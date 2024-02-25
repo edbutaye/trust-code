@@ -72,6 +72,7 @@ void Turbulence_paroi_base::typer_lire_turbulence_paroi(OWN_PTR(Turbulence_paroi
 
   //  les operateurs de diffusion sont communs aux discretisations VEF et VEFP1B
   if (discr == "VEFPreP1B") discr = "VEF";
+  if (discr=="VDF+") discr="VDF"; // EB
   typ += discr;
 
   Cerr << "et typage : " << typ << finl;

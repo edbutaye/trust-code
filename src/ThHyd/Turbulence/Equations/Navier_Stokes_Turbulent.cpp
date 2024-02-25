@@ -120,6 +120,7 @@ Entree& Navier_Stokes_Turbulent::lire_op_diff_turbulent(Entree& is)
 
   Nom discr = discretisation().que_suis_je();
   // les operateurs de diffusion sont communs aux discretisations VEF et VEFP1B
+  if (discr=="VDF+") discr="VDF";
   if (discr == "VEFPreP1B") discr = "VEF";
 
   type += discr;

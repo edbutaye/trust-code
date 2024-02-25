@@ -37,6 +37,7 @@
 #include <Param.h>
 #include <Avanc.h>
 #include <Debog.h>
+#include <Schema_Temps.h>
 
 Implemente_instanciable_sans_constructeur(Navier_Stokes_std,"Navier_Stokes_standard",Equation_base);
 // XD navier_stokes_standard eqn_base navier_stokes_standard -1 Navier-Stokes equations.
@@ -184,6 +185,7 @@ int Navier_Stokes_std::lire_motcle_non_standard(const Motcle& mot, Entree& is)
               type+= "_";
             }
           Nom discr=discretisation().que_suis_je();
+          if (discr=="VDF+") discr="VDF"; // EB
           if (discr == "VEFPreP1B")
             discr = "VEF";
           type+=discr;
@@ -312,6 +314,7 @@ void Navier_Stokes_std::completer()
       Nom type_so = "Force_Centrifuge_";
       Nom disc = discretisation().que_suis_je();
       Nom champ = inconnue().que_suis_je();
+      if (disc=="VDF+") disc="VDF"; // EB
       champ.suffix("Champ_");
       type_so+=disc;
       type_so+="_";

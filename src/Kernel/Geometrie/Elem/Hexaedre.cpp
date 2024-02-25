@@ -37,6 +37,27 @@ static int faces_sommets_hexa[6][4] =
 };
 
 Implemente_instanciable_32_64(Hexaedre_32_64,"Hexaedre",Elem_geom_base_32_64<_T_>);
+// EB
+// On trie les aretes de la manieres suivante
+// On construit successivement les aretes x,y,z des sommets 0, 3, 5, 6
+//                   _________2_________
+//		    /|		      / |
+//		   / . 		     /	|
+//		 10  |		    /1	|
+//		 /   .9  	   /	|
+//		/____|____11______/     | 0
+//		|    |		  |     |
+//		|    .		  |	|
+//		|    |------------|-----|
+//	       3|         8       |6   /       z
+//		|  /		  |   /	       ^  y
+//		| /4		  |  /7        | /
+//		|/         	  | /          |/
+//              |_________________|/	        ----->x
+//                      5
+
+
+
 
 
 /*! @brief NE FAIT RIEN

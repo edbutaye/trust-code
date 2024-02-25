@@ -78,6 +78,7 @@ public :
 
   virtual bool iterateTimeStep(bool& converged);
   int limpr() const;
+  int limpr_fpi() const;
 
   ////////////////////////////////
   //                            //
@@ -128,6 +129,7 @@ public :
   inline double pas_temps_max() const;
   inline double& pas_temps_max();
   inline int nb_impr() const;
+  inline int nb_impr_fpi() const;
   inline double temps_courant() const;
   inline double temps_precedent() const;
   inline double temps_calcul() const;
@@ -186,6 +188,7 @@ public :
   inline double temps_max() const ;
   inline double temps_sauv() const ;
   inline double temps_impr() const ;
+  inline double temps_impr_fpi() const ; // EB
   inline int precision_impr() const
   {
     return precision_impr_;
@@ -193,7 +196,7 @@ public :
   inline int wcol() const
   {
     // largeur minimale des colonnes des fichiers .out
-    // precision_impr_ + 9 car : -1.000e+150 on ajoute la longueur de "-1." et de "e+150" plus un espace
+    // precision_impr_ + 9 car : -1.000e+150 on ajoute la intueur de "-1." et de "e+150" plus un espace
     return precision_impr_ + 9;
   }
   inline int gnuplot_header() const
@@ -226,6 +229,7 @@ public :
   inline int& set_precision_impr() { return precision_impr_; }
   inline double& set_dt() { return dt_; }
   inline double& set_facsec() { return facsec_; }
+  inline double& set_dt_impr_fpi() { return dt_impr_fpi_; } ;
   inline double& set_seuil_statio() { return seuil_statio_; }
   inline int& set_stationnaire_atteint()
   {
@@ -291,6 +295,7 @@ protected :
   int nb_pas_dt_;
   int nb_pas_dt_max_;
   mutable int nb_impr_;
+  mutable int nb_impr_fpi_;
   double dt_min_;                        // Pas de temps min fixe par l'utilisateur
   mutable double dt_max_;                // Pas de temps max fixe par l'utilisateur
   Nom dt_max_str_;                       //reglage de dt_max comme une fonction du temps
@@ -305,6 +310,7 @@ protected :
   double periode_cpu_sans_sauvegarde_;
   double temps_cpu_ecoule_;
   double dt_impr_;                        // Pas de temps d'impression
+  double dt_impr_fpi_; // EB
   int precision_impr_;                // Nombre de chiffres significatifs impression
   double mode_dt_start_;                // mode calcul du pas de temps de depart
   double residu_;        // Residu
@@ -377,6 +383,26 @@ inline double Schema_Temps_base::seuil_statio() const
 inline double Schema_Temps_base::temps_impr() const
 {
   return dt_impr_;
+}
+
+// EB
+// Description:
+//    Renvoie une reference sur le temps d'impression des positions, vitesses, rms, forces des particules
+// Precondition:
+// Parametre:
+//    Signification:
+//    Valeurs par defaut:
+//    Contraintes:
+//    Acces:
+// Retour: double&
+//    Signification:
+//    Contraintes:
+// Exception:
+// Effets de bord:
+// Postcondition:
+inline double Schema_Temps_base::temps_impr_fpi() const
+{
+  return dt_impr_fpi_;
 }
 
 /*! @brief Renvoie une reference sur le temps de sauvegarde
@@ -503,6 +529,14 @@ inline int Schema_Temps_base::nb_pas_dt() const
 inline int Schema_Temps_base::nb_impr() const
 {
   return nb_impr_;
+}
+/*! @brief Renvoie le nombre d'impressions effectuees pour le module fluid_particle_interaction
+ *
+ * @return (int) le nombre d'impressions effectuees
+ */
+inline int Schema_Temps_base::nb_impr_fpi() const
+{
+  return nb_impr_fpi_;
 }
 
 /*! @brief Change le temps courant.

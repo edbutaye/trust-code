@@ -43,7 +43,7 @@ readOn(Entree& s )
  */
 DoubleVect operator * (const Matrice_Base& A, const DoubleVect& vect)
 {
-  DoubleVect r;
+  DoubleVect r(A.nb_colonnes()); // EB : on initialise la dimension du DoubleVect r
   return A.multvect(vect, r);
 }
 

@@ -92,12 +92,23 @@ public:
 class Eval_Dift_VDF_Face : public Eval_Diff_VDF_Face_Gen<Eval_Dift_VDF_Face>, public Eval_Dift_VDF
 {
 public:
-  static constexpr bool IS_TURB = true, CALC_FA7_SORTIE_LIB = true, CALC_ARR_PAR_FL = false;
+  static constexpr bool IS_TURB = true, CALC_FA7_SORTIE_LIB = true, CALC_ARR_PAR_FL = false, CALC_ARR_INT_FT=false;
   inline void associer_modele_turbulence(const Modele_turbulence_hyd_base& mod) { le_modele_turbulence = mod;  }
   inline bool uses_wall() const { return le_modele_turbulence->utiliser_loi_paroi(); }
   void mettre_a_jour() override;
   double tau_tan_impl(int face,int k) const;
-
+  inline void associer_indicatrices(const DoubleTab& indic_elem, const DoubleVect& indic_arete)
+  {
+    indicatrice_elem_.ref(indic_elem);
+    indicatrice_arete_.ref(indic_arete);
+    is_solid_particle_=1;
+  }
+  inline void associer_proprietes_fluide(const int formule_mu, const double mu_particule, const double mu_fluide)
+  {
+    formule_mu_=formule_mu;
+    mu_solide_=mu_particule;
+    mu_fluide_=mu_fluide;
+  }
 private:
   OBS_PTR(Modele_turbulence_hyd_base) le_modele_turbulence;
   OBS_PTR(Turbulence_paroi_base) loipar;
@@ -111,4 +122,10 @@ public:
   inline bool uses_wall() const { return false; }
 };
 
+class Eval_Dift_VDF_Face_FT : public Eval_Dift_VDF_Face
+{
+public:
+  static constexpr bool CALC_ARR_INT_FT=true;
+
+};
 #endif /* Eval_Dift_VDF_leaves_included */

@@ -97,8 +97,10 @@ public :
   int sauvegarder(Sortie&) const override;
   int reprendre(Entree&) override;
   int limpr() const;
+  int limpr_fpi() const; // EB
   virtual void imprimer(Sortie& os) const;
   virtual int impr(Sortie& os) const;
+  virtual int impr_fpi(Sortie& os) const; // EB
   virtual void associer_milieu_equation();
 
   virtual DoubleTab& derivee_en_temps_inco(DoubleTab& );

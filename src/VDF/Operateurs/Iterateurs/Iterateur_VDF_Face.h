@@ -104,7 +104,7 @@ private:
   void ajouter_blocs_aretes_mixtes(const int, matrices_t, DoubleTab&, const tabs_t&) const;
 
   template <bool should_calc_flux, Type_Flux_Arete Arete_Type, typename Type_Double>
-  std::enable_if_t< Arete_Type == Type_Flux_Arete::INTERNE || Arete_Type == Type_Flux_Arete::MIXTE, void>
+  std::enable_if_t< Arete_Type == Type_Flux_Arete::INTERNE || Arete_Type == Type_Flux_Arete::INTERNE_FT || Arete_Type == Type_Flux_Arete::MIXTE, void>
   ajouter_blocs_aretes_generique_(const int , const int , const int , matrices_t , DoubleTab& , const tabs_t& ) const;
 
   /* ====== FA7 SORTIE LIBRE ===== */
