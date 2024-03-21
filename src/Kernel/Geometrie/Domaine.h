@@ -126,6 +126,7 @@ public:
   inline int_t nb_elem() const  { return mes_elems_.dimension(0); }
   inline int_t nb_elem_tot() const { return mes_elems_.dimension_tot(0); }
   inline int nb_som_elem() const;
+<<<<<<< HEAD
   inline int nb_faces_elem(int=0) const;
   /// @brief Renvoie le numero (global) du j-ieme sommet du i-ieme element
   inline int_t sommet_elem(int_t i, int j) const  {  return mes_elems_(i,j); }
@@ -133,6 +134,19 @@ public:
   //
   // Aretes
   //
+=======
+  inline int nb_faces_elem(int=0) const ;
+  inline int sommet_elem(int , int ) const;
+  ArrOfInt& chercher_elements_FT(const DoubleTab& ,ArrOfInt& ,int reel=0) const; // EB cache reset a chaque iteration, sinon il explose en multi-particules (lits fluidises)
+  void reset_cache_elem_pos_FT() const; // EB
+  ///
+  /// Aretes
+  ///
+  inline int nb_aretes() const;
+  inline int nb_aretes_tot() const;
+  void creer_aretes();
+  void creer_structure_parallelle_aretes(const int nb_aretes_reelles, IntTab& Aretes_som, IntTab& Elem_Aretes); // EB
+>>>>>>> acb033dbd (Receiving patches from triocfd)
 
   /// Renvoie le nombre d'aretes reelles.
   inline int_t nb_aretes() const { return aretes_som_.dimension(0); }
@@ -392,6 +406,8 @@ protected:
   // Pour les faces virtuelles du Domaine_VF, indices de la meme face dans le tableau des faces de bord
   // (voir Domaine_32_64<_SIZE_>::init_faces_virt_bord())
   ArrOfInt_t ind_faces_virt_bord_; // contient les indices des faces virtuelles de bord // BigArrOfTID
+
+  Joints mes_aretes_joint; // EB
   // Pour chaque element virtuel i avec nb_elem<=i<nb_elem_tot on a :
   // elem_virt_pe_num_(i-nb_elem,0) = numero du PE qui possede l'element
   // elem_virt_pe_num_(i-nb_elem,1) = numero local de cet element sur le PE qui le possede
@@ -442,6 +458,8 @@ private:
   // Cached infos to accelerate chercher_elements():
   mutable DoubleTabs cached_positions_;
   mutable TRUST_Vector<SmallArrOfTID_t> cached_elements_;
+  mutable DoubleTabs cached_positions_FT_; // EB
+  mutable TRUST_Vector<SmallArrOfTID_t> cached_elements_FT_; // EB
 };
 
 /*! @brief Type les elements du domaine avec le nom passe en parametre.
@@ -597,7 +615,6 @@ inline typename Domaine_32_64<_SIZE_>::Joint_t& Domaine_32_64<_SIZE_>::joint_of_
       break;
   return mes_faces_joint_(i);
 }
-
 
 #ifdef MEDCOUPLING_
 template<typename _SIZE_>
