@@ -100,9 +100,9 @@ case $arch in
         ;;
   OSF1) list_of_CC_compilers="cxx g++"
         ;;
- Linux) list_of_CC_compilers="g++ icpc icc ecc pgCC"
-        list_of_c_compilers="gcc icc ecc pgcc cc"
-        list_of_f77_compilers="f90 f77 g77 gfortran ifort ifc efc pgf90 pgf77 crayftn"
+ Linux) list_of_CC_compilers="g++ icpx icpc icc ecc pgCC"
+        list_of_c_compilers="gcc icx icc ecc pgcc cc"
+        list_of_f77_compilers="f90 f77 g77 gfortran ifx ifort ifc efc pgf90 pgf77 crayftn"
         ;;
 CYGWIN*) list_of_CC_compilers="g++ icpc icc ecc pgCC"
          list_of_f77_compilers="f90 f77 g77 gfortran ifort ifc efc pgf90 pgf77"
@@ -284,14 +284,14 @@ echo " "
 echo "   -force_provided_mpich             Use the provided MPICH `awk -F= '/default_version=/ {print $2}' ThirdPart/src/LIBMPI/Installer_mpich` version (default, except on cluster/batch system)."
 echo "   -force_latest_mpich               Download and use the MPICH `awk -F= '/^latest_version=/ {print $2}' ThirdPart/src/LIBMPI/Installer_mpich` version."
 echo "   -force_provided_openmpi           Use the provided OpenMPI `awk -F= '/default_version=/ {print $2}' ThirdPart/src/LIBMPI/Installer_openmpi` version."
-echo "   -force_latest_openmpi             Download and use the OpenMPI `awk -F= '/latest_version=/ {print $2}' ThirdPart/src/LIBMPI/Installer_openmpi` version."
+echo "   -force_latest_openmpi             Download and use the OpenMPI `awk -F= '/^latest_version=/ {print $2}' ThirdPart/src/LIBMPI/Installer_openmpi` version."
 echo "   -force_system_mpi                 Use the system-provided MPI library."
 echo " "
 echo "   -rocalution=0|path to rocALUTION  Disable or specify extern rocALUTION library for AMD GPU computing (experimental). Default: using provided rocALUTION library."
 echo "   -cuda=path/to/nvcc | =download    Activate the CUDA support into several libraries for NVidia GPU computing (experimental)."
 echo "   -rocm                             Activate the ROCM support into several libraries for AMD GPU computing (experimental)."
 echo "   -openmp                           Enable OpenMP support (and GPU offload if -cuda is also used. In this case NVidia SDK is downloaded if not available)."
-
+echo "   -kokkos_simd                      Enable SIMD Kokkos support"
 echo " "
 echo -e "\033[1m\033[4mLinking with external Thermo-Physical Properties libraries\033[0m"
 echo " "
@@ -314,6 +314,7 @@ echo "   -disable-mpi                      Disable MPI library detection/install
 echo "   -disable-mpi4py                   Disable mpi4py installation."
 echo "   -disable-ccache                   Disable ccache detection/installation."
 echo "   -disable-mpiio                    Disable MPI-IO mode for writing of .xyz binary output file."
+echo "   -disable-cgns                     Disable the build/link of the CGNS library."
 echo "   -disable-optionals                Disable all optionals librairies and tools."
 echo "   -disable-tools                    Disable all tools to build only a binary."
 echo "   -disable-metis                    Disable metis library installation."
@@ -323,6 +324,7 @@ echo "   -disable-gnuplot                  Disable gnuplot installation and buil
 echo "   -disable-doxygen                  Disable doxygen installation and build. HTML documentation cannot be build if doxygen disabled."
 echo "   -disable-tcl_tk                   Disable Tcl/Tk detection/installation."
 echo "   -disable-gmsh                     Disable Gmsh installation and build."
+echo "   -disable-trustpy                  Do not build the trustpy documentation."
 echo "   -disable-plot2d                   Disable PLOT2D installation and build."
 echo "   -disable-checks                   Disable checks for external packages, sources, disk space and speed."
 echo "   -disable-check_sources            Disable check sources before compiling."
@@ -350,7 +352,7 @@ cc=""
 F77=""
 clean=""
 
-LIST_THIRD_PARTY="PETSC MED MPI METIS MEDCOUPLING VC CCACHE GMSH VALGRIND GNUPLOT TCL_TK PLOT2D DOXYGEN"
+LIST_THIRD_PARTY="PETSC MED MPI METIS MEDCOUPLING VC CCACHE GMSH VALGRIND GNUPLOT TCL_TK PLOT2D DOXYGEN TRUSTPY"
 
 #[ -f configure.log ] && sed "s/^/# /" -i  configure.log
 [ -f configure.log ] && sed "s/# //" -i  configure.log && sed "s/^/# /" -i  configure.log
@@ -368,14 +370,14 @@ if [ "$1" = "-disable-optionals" ]
 then
   shift
   export TRUST_ROOT=$TRUST_ROOT_SA
-  $0 -disable-ccache -disable-openblas -disable-petsc -disable-petsc-optionals -disable-hwloc -disable-gnuplot -disable-tcl_tk -disable-vc -disable-valgrind -disable-mpi -disable-metis -without-visit -disable-gmsh -disable-plot2d -without-pdflatex -without-doc -disable-jupyter -disable-doxygen -disable-checks -disable-check_sources -rocalution=0 $*
+  $0 -disable-ccache -disable-openblas -disable-petsc -disable-petsc-optionals -disable-hwloc -disable-gnuplot -disable-tcl_tk -disable-vc -disable-valgrind -disable-mpi -disable-cgns -disable-metis -without-visit -disable-gmsh -disable-plot2d -without-pdflatex -without-doc -disable-jupyter -disable-doxygen -disable-checks -disable-check_sources -rocalution=0 -disable-trustpy $*
   exit $?
 fi
 if [ "$1" = "-disable-tools" ]
 then
   shift
   export TRUST_ROOT=$TRUST_ROOT_SA
-  $0 -disable-ccache -disable-openblas -disable-hwloc -disable-gnuplot -disable-tcl_tk -disable-valgrind -disable-metis -without-visit -disable-gmsh -disable-plot2d -without-doc -without-pdflatex -disable-checks -disable-check_sources $*
+  $0 -disable-ccache -disable-openblas -disable-hwloc -disable-gnuplot -disable-tcl_tk -disable-valgrind -disable-metis -without-visit -disable-gmsh -disable-plot2d -without-doc -without-pdflatex -disable-checks -disable-check_sources -disable-trustpy $*
   exit $?
 fi
 
@@ -388,6 +390,7 @@ export TRUST_DISABLE_HWLOC=0
 export TRUST_DISABLE_PETSC_OPTIONALS=0
 export TRUST_ENABLE_PETSC_DEBUG=0
 export TRUST_DISABLE_MPIIO=0
+export TRUST_DISABLE_CGNS=0
 export TRUST_DISABLE_CHECK_SRC=0
 export TRUST_DISABLE_CHECKS=0
 export TRUST_INT64=0
@@ -399,6 +402,8 @@ export TRUST_USE_REFPROP=0
 export TRUST_ROCALUTION=1
 export TRUST_USE_OPENBLAS=1
 export TRUST_USE_OPENMP=0
+export TRUST_USE_KOKKOS=1
+export TRUST_USE_KOKKOS_SIMD=0
 export TRUST_USE_AVX=1
 export TRUST_DISABLE_MPI4PY=0
 export TRUST_DISABLE_JUPYTER=0
@@ -569,6 +574,10 @@ do
    then
       export TRUST_USE_OPENMP=1
 
+   elif [ "${1#-kokkos_simd}" != "$1" ]
+   then
+      export TRUST_USE_KOKKOS_SIMD=1
+
    elif [ "${1#-without-doc}" != "$1" ]
    then
       export TRUST_WITHOUT_DOC=1
@@ -607,6 +616,10 @@ do
    then
       export TRUST_DISABLE_MPIIO=1
 
+   elif [ "${1#-disable-cgns}" != "$1" ]
+   then
+      export TRUST_DISABLE_CGNS=1
+
    elif [ "${1#-disable-check_sources}" != "$1" ]
    then
       export TRUST_DISABLE_CHECK_SRC=1
@@ -626,6 +639,7 @@ do
       [ "$THIRD_PARTY" = "VALGRIND" ] && REP_THIRD_PARTY=$TRUST_ROOT/Outils/valgrind
       [ "$THIRD_PARTY" = "HWLOC" ] && REP_THIRD_PARTY=$TRUST_ROOT/Outils/hwloc
       [ "$THIRD_PARTY" = "GNUPLOT" ] && REP_THIRD_PARTY=$TRUST_ROOT/Outils/gnuplot
+      [ "$THIRD_PARTY" = "TRUSTPY" ] && REP_THIRD_PARTY=$TRUST_ROOT/Outils/trustpy
       [ "$THIRD_PARTY" = "DOXYGEN" ] && REP_THIRD_PARTY=$TRUST_ROOT/Outils/doxygen
       [ "$THIRD_PARTY" = "TCL_TK" ] && REP_THIRD_PARTY=$TRUST_ROOT/Outils/tcl_tk
       [ "$THIRD_PARTY" = "PLOT2D" ] && REP_THIRD_PARTY=$TRUST_ROOT/Outils/IHM
@@ -689,6 +703,23 @@ then
    export PATH=$CUDA_BIN:$PATH
 fi
 
+########
+# Kokkos
+########
+
+#if [ "$TRUST_USE_KOKKOS" = 1 ]
+#then
+#    source env/TRUST_TMP.env 1>/dev/null 2>&1
+#    source env/gpu/install_kokkos.sh
+#    export PATH=$KOKKOS_ROOT_DIR/bin:$PATH
+#    nvcc_wrapper --help 1>/dev/null 2>&1
+#    [ $? != 0 ] && echo "Kokkos: error, nvc_wrapper not correctly installed!" && exit -1
+#    echo "# Kokkos root dir is: $KOKKOS_ROOT_DIR"
+#else
+#    echo "Kokkos not requested - cleaning previous install..."
+#    rm -rf env/gpu/kokkos
+#fi
+
 export TRUST_ROOT_VERSION=`awk '/version/ && /Release notes/ {print $4;exit}' $TRUST_ROOT/RELEASE_NOTES`
 if [ "$clean" != "clean" ]
 then
@@ -724,6 +755,7 @@ then
    fi
 fi
 
+
 for THIRD_PARTY in $LIST_THIRD_PARTY
 do
    VAR=TRUST_DISABLE_$THIRD_PARTY
@@ -731,6 +763,7 @@ do
 done
 echo "TRUST_USE_OPENBLAS=$TRUST_USE_OPENBLAS && export TRUST_USE_OPENBLAS # Enable OpenBLAS instead of Netlib for BLAS/LAPACK library" >> $var
 echo "TRUST_DISABLE_MPIIO=$TRUST_DISABLE_MPIIO && export TRUST_DISABLE_MPIIO	# Disable/enable MPI-IO mode for writing of binary output file"	>> $var
+echo "TRUST_DISABLE_CGNS=$TRUST_DISABLE_CGNS && export TRUST_DISABLE_CGNS  # Disable/enable CGNS library."   >> $var
 echo "TRUST_DISABLE_PETSC_OPTIONALS=$TRUST_DISABLE_PETSC_OPTIONALS && export TRUST_DISABLE_PETSC_OPTIONALS	# Disable/enable PETSc visualization features"	>> $var
 echo "TRUST_ENABLE_PETSC_DEBUG=$TRUST_ENABLE_PETSC_DEBUG && export TRUST_ENABLE_PETSC_DEBUG	# Disable/enable PETSc debug"	>> $var
 echo "TRUST_DISABLE_CHECKS=$TRUST_DISABLE_CHECKS && export TRUST_DISABLE_CHECKS	# Disable/enable checks for external packages, sources, disk space and speed" >> $var
@@ -742,6 +775,8 @@ echo "TRUST_ENABLE_DOC_DOXYGEN=$TRUST_ENABLE_DOC_DOXYGEN && export TRUST_ENABLE_
 echo "TRUST_WITHOUT_VISIT=$TRUST_WITHOUT_VISIT && export TRUST_WITHOUT_VISIT	# Disable/enable VisIt" 	>> $var
 echo "TRUST_DOWNLOAD_VISIT=$TRUST_DOWNLOAD_VISIT && export TRUST_DOWNLOAD_VISIT 	# Download or build VisIt" >> $var
 echo "TRUST_WITHOUT_CONDA=$TRUST_WITHOUT_CONDA && export TRUST_WITHOUT_CONDA    	# `[ $TRUST_WITHOUT_CONDA = 1 ] && echo 'Installing without conda - The auto-detected Python will be used and is sym-linked in exec/python/bin' || echo 'conda enabled by default'`" >> $var
+echo "TRUST_USE_KOKKOS=$TRUST_USE_KOKKOS && export TRUST_USE_KOKKOS    	# TRUST built with Kokkos" >> $var
+echo "TRUST_USE_KOKKOS_SIMD=$TRUST_USE_KOKKOS_SIMD && export TRUST_USE_KOKKOS_SIMD    	# TRUST built with Kokkos SIMD" >> $var
 
 if [ "$TRUST_USE_EXTERNAL_MEDCOUPLING" != "" ]
 then

@@ -23,6 +23,7 @@ define_modules_config()
          module="slurm nvidia_hpc_sdk/nvhpc-nompi/22.1 compilers/gcc/9.1.0 mpi/openmpi/gcc/9.1.0/3.1.4 texlive/2020" # Cuda 11.5 mais plante cuSolver (on teste sur altair)
          module="slurm nvidia_hpc_sdk/21.2             compilers/gcc/9.1.0 mpi/openmpi/gcc/9.1.0/3.1.4 texlive/2020" # Cuda 11.2
       fi
+      echo "export TRUST_CUDA_CC=80 # A100, Cuda Compute Capability" >> $env
       #module=$module" cmake/3.22.0"
    elif [ $gnu = 1 ]
    then
@@ -35,11 +36,16 @@ define_modules_config()
       module="slurm compilers/gcc/9.1.0 mpi/openmpi/gcc/9.1.0/3.1.4 texlive/2020" # cf bt#195561
       # 02/10/2023 : Ajout module qt/5.14 pour VisIt
       module="slurm gcc/11.2.0 openmpi/gcc_11.2.0/4.1.4 texlive/2020 qt5/gcc_9.3.0/5.14.2" # passage a COS7.9, mpi/openmpi/gcc/9.1.0/3.1.4 plus supporte
+      if [ "`grep 'Rocky Linux 9.1' /etc/os-release 1>/dev/null 2>&1 ; echo $?`" = "0" ]
+      then
+         echo "module use /product/rocky9-x86_64_cluster/modulefiles/all" >> $env
+         module="slurm gcc/11.4.0 openmpi/gcc_11.4.0/4.1.6"
+      fi
    else
       # Compilateur : AOCC (AMD) et librairie MPI : HPC-X (Mellanox)
       module="slurm aocl/aocc/2.1 compilers/aocc/2.1.0 mpi/hpcx/aocc/2.1.0/2.6.0 texlive/2020"
       echo "module purge 1>/dev/null" >> $env
-      echo "module load $module 1>/dev/null" >> $env
+      echo "module load $module 1>/dev/null || exit -1" >> $env
       # echo ". /scratch2/rnrna/aocc/setenv_AOCC.sh" >> $env
       echo "export TRUST_FORCE_CC=clang++; " >> $env
       echo "export TRUST_FORCE_cc=clang; " >> $env
@@ -48,7 +54,7 @@ define_modules_config()
    fi
    echo "# Module $module detected and loaded on $HOST."   
    echo "module purge 1>/dev/null" >> $env
-   echo "module load $module 1>/dev/null" >> $env
+   echo "module load $module 1>/dev/null || exit -1" >> $env
    echo $source >> $env
    . $env
    # Creation wrapper qstat -> squeue

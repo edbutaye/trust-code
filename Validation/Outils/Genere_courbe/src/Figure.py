@@ -259,7 +259,11 @@ class Figure:
             elif self.format=='png':
                 #png
                 #ficPlot.write('set size 1.3,1.3\n')
-                ficPlot.write('set terminal png large\n')
+                #ficPlot.write('set terminal png large\n')
+                #ficPlot.write('set terminal pngcairo size 800,600\n')
+                # if pngcairo avail (FED38), it will be used; otherwise switch to png terminal
+                # see https://stackoverflow.com/questions/20657816/how-do-i-check-if-a-terminal-is-available-through-my-gnuplot-script
+                ficPlot.write("if (strstrt(GPVAL_TERMINALS, 'png') > 0) {\n    set terminal png large\n} else {\n    set terminal pngcairo size 800,600\n}\n")
                 self.fichierGraphique = 'fic%03d.png' % (indice)
 
             elif self.format=='epslatex':

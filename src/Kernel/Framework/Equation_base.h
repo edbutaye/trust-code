@@ -118,6 +118,7 @@ public :
   virtual DoubleTab& corriger_derivee_impl(DoubleTab& );
   virtual void mettre_a_jour(double temps);
   virtual void abortTimeStep();
+  virtual void resetTime(double time);
   virtual void valider_iteration();
   virtual int preparer_calcul();
   virtual bool initTimeStep(double dt);
@@ -312,7 +313,6 @@ protected :
   int implicite_;
   bool has_time_factor_; // Parameter set to 1 if convection has a prefactor (eg rhoCp in energy)
   Parametre_equation parametre_equation_;
-  Champ_Fonc volume_maille;
 
   LIST(RefObjU) liste_modeles_; //Le premier element de la liste est le modele nul
   Champs_compris champs_compris_;

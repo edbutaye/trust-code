@@ -14,6 +14,7 @@ rocALUTION,rocALUTION-f72a3919b52b64.tar.gz,,PL,"MIT License",https://rocalution
 rocALUTION,rocm-cmake-master.zip,,PL,"MIT License",https://github.com/RadeonOpenCompute/rocm-cmake/blob/develop/README.md,https://github.com/RadeonOpenCompute/rocm-cmake,
 MPI,openmpi-2.0.4.tar.gz,,GF,BSD,https://www.open-mpi.org/,https://download.open-mpi.org/release/open-mpi/v2.0/openmpi-2.0.4.tar.gz,
 MPI,mpich-3.2.tar.gz,,SV,"BSD-like license",https://www.mpich.org/,http://www.mpich.org/static/downloads/3.2/mpich-3.2.tar.gz,"pour la licence, verifiez. j'ai tire l'info de http://lists.mpich.org/pipermail/discuss/2014-October/003306.html"
+MPI,mpich-3.4.2.tar.gz,,ND,"BSD-like license",https:///www.mpich.org/,http://www.mpich.org/static/downloads/3.4.2/mpich-3.4.2.tar.gz,
 MPI,osu-micro-benchmarks-3.8.tar,,SV,BSD,https://www.nersc.gov/,https://www.nersc.gov/assets/Trinity--NERSC-8-RFP/Benchmarks/July12/osu-micro-benchmarks-3.8-July12.tar,"Note : pour le site je ne sais si celui ci est mieux ou pas : https://www.nersc.gov/users/computational-systems/cori/nersc-8-procurement/trinity-nersc-8-rfp/nersc-8-trinity-benchmarks/omb-mpi-tests et pour la licence j'ai regarde sur http://mvapich.cse.ohio-state.edu/benchmarks/ "
 pip,mpi4py-3.0.3.tar.gz,,AB,BSD,https://pypi.org/project/mpi4py,https://files.pythonhosted.org/packages/ec/8f/bbd8de5ba566dd77e408d8136e2bab7fdf2b97ce06cab830ba8b50a2f588/mpi4py-3.0.3.tar.gz,
 SKIT,SPARSKIT2.tar.gz,,SV,"LGPL ",http://www-users.cs.umn.edu/~saad/software/SPARSKIT/,https://www-users.cse.umn.edu/~saad/software/SPARSKIT/SPARSKIT2.tar.gz,"Pour la license, voir : https://launchpad.net/ubuntu/vivid/+source/sparskit/+copyright"
@@ -42,26 +43,32 @@ VisIt,zlib-1.2.11.tar.xz,,PL,"free zlib/libpng license",,https://sourceforge.net
 VisIt,glu-9.0.0.tar.gz,,PL,MIT,,https://archive.mesa3d.org/glu/glu-9.0.0.tar.gz,
 VisIt,Pillow-7.1.2.tar.gz,,ND,PIL,https://python-pillow.org/,https://files.pythonhosted.org/packages/ce/ef/e793f6ffe245c960c42492d0bb50f8d14e2ba223f1922a5c3c81569cec44/Pillow-7.1.2.tar.gz,
 VisIt,cfe-6.0.1.src.tar.xz,,ND,"Open Source License?",,http://llvm.org/releases/6.0.1/cfe-6.0.1.src.tar.xz,
-petsc,ml-6.2-p4.tar.gz,,PL,"GNU LGPL",,,
 lapack,lapack-3.4.1.tgz,,SV,BSD,http://www.netlib.org/lapack/,http://www.netlib.org/lapack/lapack-3.4.1.tgz,
 lapack,OpenBLAS-0.3.21.tar.gz,,PL,BSD,https://www.openblas.net/,http://github.com/xianyi/OpenBLAS/archive/v0.3.21.tar.gz,
 lapack,OpenBLAS-0.3.23.tar.gz,,PL,BSD,https://www.openblas.net/,https://github.com/xianyi/OpenBLAS/releases/download/v0.3.23/OpenBLAS-0.3.23.tar.gz,
-petsc,SuiteSparse-5.7.1.tar.gz,,,"voir remarque",http://faculty.cse.tamu.edu/davis/suitesparse.html,https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/v5.7.1.tar.gz,"je ne sais pas quel est le type de licence, on peut voir http://www.netlib.org/linalg/SuiteSparse-README.txt"
-petsc,viennacl-dc552a8.tar.gz,,,"MIT License",http://viennacl.sourceforge.net/,http://downloads.sourceforge.net/project/viennacl/1.5.x/ViennaCL-1.5.1.tar.gz,"Hum option utilisee ????"
-petsc,scotch-6.0.9.tar.gz,,PL," CeCILL-C license",http://scotch.gforge.inria.fr/,https://gforge.inria.fr/frs/download.php/file/38187/scotch_6.0.9.tar.gz,
-petsc,parmetis-4.0.3-p6.tar.gz,,PL,"Freely distributed as described in the FAQ section of the site http://glaros.dtc.umn.edu/gkhome/metis/parmetis/download",http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview,https://bitbucket.org/petsc/pkg-parmetis/get/v4.0.3-p6.tar.gz,"pour la licence (je ne sais pas ce que c'est) voir http://glaros.dtc.umn.edu/gkhome/metis/parmetis/download"
-petsc,superlu_dist-6.3.0.tar.gz,,PL,BSD,http://www.cs.berkeley.edu/~demmel/SuperLU.html,https://github.com/xiaoyeli/superlu_dist/archive/v6.3.0.tar.gz,
-petsc,superlu-5.2.1.tar.gz,,PL,BSD,http://www.cs.berkeley.edu/~demmel/SuperLU.html,https://github.com/xiaoyeli/superlu/archive/v5.2.1.tar.gz,
-petsc,hypre-2.19.0.tar.gz,,GF,LGPL,http://files.salome-platform.org,https://github.com/LLNL/hypre/archive/v2.19.0.tar.gz,
-petsc,petsc-3.14.1.tar.gz,,"PL",BSD,http://www.mcs.anl.gov/research/projects/petsc/index.html,https://www.mcs.anl.gov/petsc/mirror/release-snapshots/petsc-3.14.1.tar.gz,
-petsc,MUMPS_5.3.3-p2.tar.gz,,GF,CeCILL-C,http://mumps.enseeiht.fr/index.php?page=home,https://bitbucket.org/petsc/pkg-mumps/get/v5.3.3-p2.tar.gz,
-petsc,scalapack-2.1.0-p2.tgz,,PL,"BSD modified",http://www.netlib.org/scalapack/,http://www.netlib.org/scalapack/scalapack-2.1.0.tgz,
+lapack,OpenBLAS-0.3.25.tar.gz,,PL,BSD,https://www.openblas.net/,https://github.com/xianyi/OpenBLAS/releases/download/v0.3.25/OpenBLAS-0.3.25.tar.gz,
+petsc,SuiteSparse-5.13.0.tar.gz,,,"voir remarque",http://faculty.cse.tamu.edu/davis/suitesparse.html,https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/v5.13.0.tar.gz,"je ne sais pas quel est le type de licence, on peut voir http://www.netlib.org/linalg/SuiteSparse-README.txt"
+petsc,viennacl-dc552a8.tar.gz,,,"MIT License",http://viennacl.sourceforge.net/,https://github.com/viennacl/viennacl-dev/archive/dc552a8.tar.gz,"Hum option utilisee ????"
+petsc,scotch-7.0.3.tar.gz,,PL," CeCILL-C license",http://scotch.gforge.inria.fr/,https://gitlab.inria.fr/scotch/scotch/-/archive/v7.0.3/scotch-v7.0.3.tar.gz,
+petsc,parmetis-4.0.3-p8.tar.gz,,PL,"Freely distributed as described in the FAQ section of the site http://glaros.dtc.umn.edu/gkhome/metis/parmetis/download",http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview,https://bitbucket.org/petsc/pkg-parmetis/get/v4.0.3-p8.tar.gz,"pour la licence (je ne sais pas ce que c'est) voir http://glaros.dtc.umn.edu/gkhome/metis/parmetis/download"
+petsc,superlu_dist-8.1.2.tar.gz,,PL,BSD,http://www.cs.berkeley.edu/~demmel/SuperLU.html,https://github.com/xiaoyeli/superlu_dist/archive/v8.1.2.tar.gz,
+petsc,superlu-5.3.0.tar.gz,,PL,BSD,http://www.cs.berkeley.edu/~demmel/SuperLU.html,https://github.com/xiaoyeli/superlu/archive/v5.3.0.tar.gz,
+petsc,hypre-2.29.0.tar.gz,,GF,LGPL,http://files.salome-platform.org,https://github.com/hypre-space/hypre/archive/v2.29.0.tar.gz,
+petsc,petsc-3.20.0.tar.gz,,"PL",BSD,http://www.mcs.anl.gov/research/projects/petsc/index.html,https://www.mcs.anl.gov/petsc/mirror/release-snapshots/petsc-3.20...tar.gz,
+petsc,MUMPS_5.5.1.tar.gz,,GF,CeCILL-C,http://mumps.enseeiht.fr/index.php?page=home,https://graal.ens-lyon.fr/MUMPS/MUMPS_5.5.1.tar.gz,
+petsc,scalapack-5bad7487f4.tar.gz,,PL,"BSD modified",http://www.netlib.org/scalapack/,http://www.netlib.org/scalapack/scalapack-2.1.0.tgz,
 petsc,metis-5.1.0-p10.tar.gz,,PL,Apache,http://glaros.dtc.umn.edu/gkhome/metis/metis/overview,https://bitbucket.org/petsc/pkg-metis/get/v5.1.0-p10.tar.gz,
+petsc,magma-2.7.1.tar.gz,,PL,,,https://bitbucket.org/icl/magma/get/16ae283407366881829b5f6055e3a1179fdb89dd.tar.gz,
+petsc,STRUMPACK_7.1.4.tar.gz,,PL,,,https://github.com/pghysels/STRUMPACK/archive/v7.1.4.tar.gz,
+petsc,zfp-1.0.0.tar.gz,,PL,"BSD 3",,https://github.com/LLNL/zfp/releases/download/1.0.0/zfp-1.0.0.tar.gz,
+petsc,slate-v2023.06.00.tgz,,PL,,,https://github.com/icl-utk-edu/slate/releases/download/v2023.06.00/slate-2023.06.00.tar.gz,
+CGNS,CGNS.tar.gz,,ES,"zlib/libpng type",http://cgns.github.io/,https://github.com/CGNS/CGNS/archive/fc42728500afbc6a16dbf9020e89190e1aa65f98.tar.gz,
 AmgX,AmgXWrapper_331eba32db693528749bd2c46158073079d80972.tar.gz,,PL,MIT,https://github.com/barbagroup/AmgXWrapper
-AmgX,AmgX_v2.3.0.tar.gz,,PL,BSD 3,https://github.com/NVIDIA/AMGX
 AmgX,nvc_get_devices.tgz,,GF,LGPL,http://files.salome-platform.org,http://downloads.sourceforge.net/project/trust-platform/1.7.3/extra/nvc_get_devices.tgz,
-AmgX,AmgX_4d1bda0016.tar.gz,,PL,,,,
+AmgX,AmgX_4d1bda0016.tar.gz,,PL,,,https://github.com/NVIDIA/AMGX/archive/4d1bda0016.tar.gz,
 AmgX,libcusparse.so.11.gz,,PL,,,,
+kokkos,kokkos-3.7.02.tgz,,PL,"Apache License v2.0 with LLVM Exceptions",https://github.com/kokkos,https://github.com/kokkos/kokkos/archive/refs/tags/3.7.02.tar.gz,
+kokkos,kokkos-4.2.00.tgz,,PL,"Apache License v2.0 with LLVM Exceptions",https://github.com/kokkos,https://github.com/kokkos/kokkos/archive/refs/tags/4.2.00.tar.gz,
 gnuplot,gnuplot-5.2.7.tar.gz,outil,AC,specifique,http://gnuplot.sourceforge.net/,http://sourceforge.net/projects/gnuplot/files/gnuplot/5.2.7/gnuplot-5.2.7.tar.gz/download,
 SALOME,medcoupling-9.12.0.tar.gz,,abn,LGPL,http://files.salome-platform.org,,
 utils,bc-1.06.tar.gz,outil,GF,GPL,http://www.gnu.org/software/bc,http://ftp.gnu.org/gnu/bc/bc-1.06.tar.gz,
@@ -172,6 +179,7 @@ MinicondaLocChannLinux,libxcb-1.15-h7f8727e_0.conda,,ND,"BSD3?",,https://repo.an
 MinicondaLocChannLinux,libxkbcommon-1.0.1-hfa300c1_0.conda,,ND,"MIT/X11",,https://repo.anaconda.com/pkgs/main/linux-64/libxkbcommon-1.0.1-hfa300c1_0.conda,
 MinicondaLocChannLinux,libxml2-2.9.14-h74e7548_0.conda,,ND,MIT,,https://repo.anaconda.com/pkgs/main/linux-64/libxml2-2.9.14-h74e7548_0.conda,
 MinicondaLocChannLinux,libxslt-1.1.35-h4e12654_0.conda,,,,,https://repo.anaconda.com/pkgs/main/linux-64/libxslt-1.1.35-h4e12654_0.conda,
+MinicondaLocChannLinux,libstdcxx-ng-13.2.0-h7e041cc_3.conda,,ND,"GPL-3.0-only",,https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-ng-13.2.0-h7e041cc_3.conda,
 MinicondaLocChannLinux,lz4-c-1.9.4-h6a678d5_0.conda,,ND,"BSD-2-Clause",,https://repo.anaconda.com/pkgs/main/linux-64/lz4-c-1.9.4-h6a678d5_0.conda,
 MinicondaLocChannLinux,m4-1.4.18-h4e445db_0.conda,outil,ND,"GPL-3.0",,https://repo.anaconda.com/pkgs/main/linux-64/m4-1.4.18-h4e445db_0.conda,
 MinicondaLocChannLinux,markupsafe-2.1.1-py37h7f8727e_0.conda,,ND,"BSD-3-Clause",,https://repo.anaconda.com/pkgs/main/linux-64/markupsafe-2.1.1-py37h7f8727e_0.conda,
@@ -236,4 +244,5 @@ MinicondaLocChannLinux,websocket-client-0.58.0-py37h06a4308_4.conda,,ND,"BSD-3-C
 MinicondaLocChannLinux,widgetsnbextension-3.5.2-py37h06a4308_0.conda,,ND,"BSD-3-Clause",,https://repo.anaconda.com/pkgs/main/linux-64/widgetsnbextension-3.5.2-py37h06a4308_0.conda,
 MinicondaLocChannLinux,zeromq-4.3.4-h2531618_0.conda,,ND,"LGPL-3.0-or-later",,https://repo.anaconda.com/pkgs/main/linux-64/zeromq-4.3.4-h2531618_0.conda,
 MinicondaLocChannLinux,zstd-1.5.5-hc292b87_0.conda,,ND,"BSD-3-Clause",,https://repo.anaconda.com/pkgs/main/linux-64/zstd-1.5.5-hc292b87_0.conda,
-General,osqp-0.6.0.tar.gz,librairie,AG,"Apache License V2.0",https://osqp.org/,https://github.com/oxfordcontrol/osqp/archive/v0.6.0.tar.gz
+General,osqp-0.6.0.tar.gz,librairie,AG,"Apache License V2.0",https://osqp.org/,https://github.com/osqp/osqp/archive/refs/tags/v0.6.0.tar.gz,
+CGNS,CGNS.tar.gz,librairie,ES,"GNU Lesser General Public License",https://github.com/CGNS/CGNS,

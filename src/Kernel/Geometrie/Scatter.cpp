@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -34,12 +34,15 @@
 #include <FichierHDFPar.h>
 #include <LecFicDiffuse.h>
 #include <Format_Post_Lata.h>
-
 #include <EFichierBin.h>
 
 extern Stat_Counter_Id interprete_scatter_counter_;
 
 Implemente_instanciable_sans_constructeur(Scatter,"Scatter",Interprete);
+// XD scatter interprete scatter 0 Class to read a partionned mesh in the files during a parallel calculation. The files are in binary format.
+// XD  attr file chaine file 0 Name of file.
+// XD  attr domaine ref_domaine domaine 0 Name of domain.
+
 Scatter::Scatter()
 {}
 
@@ -127,7 +130,7 @@ Entree& Scatter::interpreter(Entree& is)
   // Nom des fichiers de decoupage : nomentree.xxxx
   Nom nomentree;
   is >> nomentree;
-  if (Process::nproc()==1)
+  if (Process::is_sequential())
     {
       Motcle n(nomentree);
       if (n != ";" && n != "unlock;")
@@ -156,7 +159,7 @@ Entree& Scatter::interpreter(Entree& is)
 #ifdef linux
   static int gdb_non_lance=1;
   char* TRUST_GDB=getenv("TRUST_GDB");
-  if (gdb_non_lance && ((Motcle)nomentree=="DEBUG" || TRUST_GDB!=NULL))
+  if (gdb_non_lance && ((Motcle)nomentree=="DEBUG" || TRUST_GDB!=nullptr))
     {
       gdb_non_lance=0;
       if ((Motcle)nomentree=="DEBUG") is >> nomentree;
@@ -237,7 +240,7 @@ Entree& Scatter::interpreter(Entree& is)
 
   Cerr << "\nQuality of partitioning --------------------------------------------" << finl;
   int total_nb_elem = Process::mp_sum(dom.nb_elem());
-  Cerr << "\nTotal number of elements = " << total_nb_elem << finl;
+  Cerr << "\nTotal nb of elements = " << total_nb_elem << finl;
   Cerr << "Number of Domaines : " << Process::nproc() << finl;
   double min_element_domaine = mp_min(dom.nb_elem());
   double max_element_domaine = mp_max(dom.nb_elem());
@@ -483,6 +486,12 @@ void Scatter::lire_domaine(Nom& nomentree, Noms& liste_bords_periodiques)
   //bool is_hdf = FichierHDF::is_hdf5(copy);
   LecFicDiffuse test;
   bool is_hdf = test.ouvrir(copy) && FichierHDF::is_hdf5(copy);
+  if (test.ouvrir(nomentree) && FichierHDF::is_hdf5(nomentree))
+    {
+      Cerr << "Error: You probably made a single_hdf partitioning and using the wrong name of .Zones files in the scatter" << finl;
+      Cerr << "You should remove '_p" << Process::nproc() << "' from the name of .Zones file (" << nomentree << ") in your datafile" << finl;
+      Process::exit();
+    }
 
   static Stat_Counter_Id stats = statistiques().new_counter(0 /* Level */, "Scatter::lire_domaine", 0 /* Group */);
 
@@ -1139,7 +1148,7 @@ void Scatter::ajouter_joints(Domaine& domaine,
  *   les "type_item" attaches aux elements distants.
  *   Exemple : les sommets distants sont tous les sommets de tous les elements
  *   distants.
- *  Voir aussi:
+ *  @sa
  *   Scatter::calculer_espace_distant_sommets
  *   Scatter::calculer_espace_distant_faces
  *

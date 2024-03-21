@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -201,7 +201,7 @@ void zero(Matrice_Bloc_Sym& matrice)
       {
         Matrice_Bloc& bloc_ij=ref_cast(Matrice_Bloc, matrice.get_bloc(i,j).valeur());
         ref_cast(Matrice_Morse, bloc_ij.get_bloc(0,0).valeur()).clean();
-        if(Process::nproc()>1)
+        if(Process::is_parallel())
           {
             ref_cast(Matrice_Morse, bloc_ij.get_bloc(0,1).valeur()).clean();
             ref_cast(Matrice_Morse, bloc_ij.get_bloc(1,0).valeur()).clean();
@@ -235,7 +235,7 @@ int Assembleur_P_VEFPreP1B::assembler_mat(Matrice& la_matrice,const DoubleVect& 
 
       // Les decoupages doivent etre de largeur de joint de 2
       // si le support P1 ou Pa est utilise...
-      if (Process::nproc() > 1 &&
+      if (Process::is_parallel() &&
           domaine_vef.domaine().nb_joints() &&
           domaine_vef.domaine().joint(0).epaisseur() < 2 &&
           (domaine_vef.get_alphaS() || domaine_vef.get_alphaA()))
@@ -330,7 +330,7 @@ int Assembleur_P_VEFPreP1B::assembler_mat(Matrice& la_matrice,const DoubleVect& 
 
       // Methode verifier
       char *theValue = getenv("TRUST_VERIFIE_MATRICE_VEF");
-      if (theValue != NULL) verifier(*this, la_matrice_bloc_sym_de_travail, domaine_vef, inverse_quantitee_entrelacee);
+      if (theValue != nullptr) verifier(*this, la_matrice_bloc_sym_de_travail, domaine_vef, inverse_quantitee_entrelacee);
 
       ////////////////////////////////////////////
       // Changement de base eventuel P0P1->P1Bulle
@@ -394,7 +394,7 @@ int Assembleur_P_VEFPreP1B::assembler_mat(Matrice& la_matrice,const DoubleVect& 
   // Affichage eventuel du conditionnement de la matrice
   //////////////////////////////////////////////////////
   char* theValue2 = getenv("TRUST_CONDITIONNEMENT_MATRICE");
-  if(theValue2 != NULL)
+  if(theValue2 != nullptr)
     Cout << "Estimation du conditionnement de la matrice: " << estim_cond(la_matrice)<<finl;
 
   return 1;
@@ -727,7 +727,7 @@ int Assembleur_P_VEFPreP1B::modifier_solution(DoubleTab& pression)
     Assembleur_P_VEF::modifier_solution( pression);
   // Verification possible par variable d'environnement:
   char* theValue = getenv("TRUST_VERIFIE_DIRICHLET");
-  if(theValue != NULL) verifier_dirichlet();
+  if(theValue != nullptr) verifier_dirichlet();
 
   return 1;
 }
@@ -915,7 +915,8 @@ int Assembleur_P_VEFPreP1B::modifier_matrice(Matrice& la_matrice)
       Matrice_Bloc& mat_bloc_p1_p1 = ref_cast(Matrice_Bloc, matrice.get_bloc(P1,P1).valeur());
       Matrice_Morse_Sym& A11RR = ref_cast(Matrice_Morse_Sym,mat_bloc_p1_p1.get_bloc(0,0).valeur());
       // On impose une pression de reference sur un sommet si support P0 ou si pas de CL de Neumann
-      if (((!(Process::mp_max(CL_neumann))) || ((domaine_VEF.get_alphaE()) && (domaine_VEF.get_cl_pression_sommet_faible()==1) ) ) && Process::je_suis_maitre())
+      const bool is_first_proc_with_real_elems = Process::me() == Process::mp_min(le_dom_VEF->nb_elem() ? Process::me() : 1e8);
+      if (((!(Process::mp_max(CL_neumann))) || ((domaine_VEF.get_alphaE()) && (domaine_VEF.get_cl_pression_sommet_faible()==1) ) ) && is_first_proc_with_real_elems)
         {
           int sommet_referent=0;
           double distance=DMAXFLOAT;
@@ -948,7 +949,8 @@ int Assembleur_P_VEFPreP1B::modifier_matrice(Matrice& la_matrice)
       Matrice_Bloc& mat_bloc_pa_pa = ref_cast(Matrice_Bloc, matrice.get_bloc(Pa,Pa).valeur());
       Matrice_Morse_Sym& A22RR = ref_cast(Matrice_Morse_Sym,mat_bloc_pa_pa.get_bloc(0,0).valeur());
       // On impose une pression de reference sur une arete en P0+Pa uniquement
-      if ((domaine_VEF.get_alphaE() && !domaine_VEF.get_alphaS()) && Process::je_suis_maitre())
+      const bool is_first_proc_with_real_elems = Process::me() == Process::mp_min(le_dom_VEF->nb_elem() ? Process::me() : 1e8);
+      if ((domaine_VEF.get_alphaE() && !domaine_VEF.get_alphaS()) && is_first_proc_with_real_elems)
         {
           int arete_referente=0;
           double distance=DMAXFLOAT;

@@ -1,0 +1,74 @@
+#!/bin/bash
+package=$TRUST_ROOT/externalpackages/CGNS/CGNS.tar.gz
+commit="fc42728500afbc6a16dbf9020e89190e1aa65f98"
+[ ! -f $package ] && echo "$package not found! Update your makefile." && exit -1
+
+echo ""
+echo "@@@@@@@@@@"
+echo "Installing CGNS Library from externalpackages : $package"
+echo "@@@@@@@@@@"
+echo ""
+
+# Where we do make install
+install_dir=$TRUST_ROOT/lib/src/LIBCGNS
+rm -rf $install_dir
+mkdir -p $install_dir
+
+# Where we copy srcs and do cmake and make
+build_dir=$TRUST_ROOT/build/lib/LIBCGNS
+rm -rf $build_dir
+mkdir -p $build_dir
+
+# Go to build
+cd $build_dir
+
+tar -xzf $package
+cd CGNS-$commit
+
+mkdir -p build
+cd build
+
+options="-DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCGNS_BUILD_SHARED=OFF"
+[ "$TRUST_DISABLE_MPI" = 0 ] && options=$options" -DHDF5_NEED_MPI=ON -DCGNS_ENABLE_PARALLEL=ON"
+
+if [ "$TRUST_CC_BASE_EXTP" != "" ]
+then
+   CC=$TRUST_cc_BASE_EXTP
+   FC=$TRUST_F77_BASE_EXTP
+else
+   FC=$TRUST_F77
+   CC=$TRUST_cc
+fi
+
+# We use the hdf5 of TRUST
+env CC=$CC FC=$FC cmake .. -DCMAKE_PREFIX_PATH=$TRUST_HDF5_ROOT -DCMAKE_INSTALL_PREFIX=$install_dir $options
+
+# make & install
+$TRUST_MAKE
+make install
+status=$?
+
+if ! [ $status -eq 0 ]; then
+  echo "@@@@@@@@@@@@@@@@@@@@@"
+  echo "Error at compilation/install."
+  exit -1
+fi
+
+rm -rf $build_dir
+
+# Headers for TRUST include
+include_trust=$TRUST_ROOT/include
+
+echo ""
+echo "Adding CGNS header files to $include_trust !"
+echo "#define HAS_CGNS" > $install_dir/include/cgns++.h
+
+# some tools to exec
+echo "Adding CGNS tools to $TRUST_ROOT/exec !"
+ln -nsf $install_dir/bin/cgns* $TRUST_ROOT/exec/.
+
+echo ""
+echo "@@@@@@@@@@"
+echo "Installing CGNS Library : Done !!"
+echo "@@@@@@@@@@"
+echo ""

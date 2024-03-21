@@ -1,6 +1,39 @@
 --------------------------------------------------------------------------------------------------
 Release notes version 1.9.4_beta : Enhancements, modifications and corrected bugs since version 1.9.3 :
 --------------------------------------------------------------------------------------------------
+07/03/24 (TRUST) New feature  : New syntax for facsec with Euler implicit scheme: more options allowed in datafile to monitor facsec behavior
+07/03/24 (TRUST) Keyword      : Obsolete syntax for Champ_Fonc_Fonction, Champ_Fonc_Fonction_txyz, and Sutherland (pre v1.8.4) is not accepted anymore.
+07/03/24 (TRUST) Keyword      : Obsolete syntax for Champ_Fonc_tabule (pre v1.8.4) is not accepted anymore. Syntax should be on the form Champ_fonc_tabule { pb field } nbcomp { table }
+07/03/24 (TRUST) Change       : EcritureLectureSpecial is forced to 0 for PolyMAC_P0 simulations; ie: for resuming a simulation, only binary sauv files are accepted for this discretization.
+07/03/24 (TRUST) New Keyword  : Possible to use "Unite" keyword in Definition_champs with Transformation and Morceau_Equation to specify the unit of the field (specified unit will be written in post-processing files instead of "??")
+06/03/24 (TRUST) New feature  : Implementing ICoCo resetTime() method allowing to reset the time origin during the computation. For now previous post files are overwritten by default.
+04/03/24 (TRUST) New feature  : New option 'trust -quiet jdd.data' can be used to run a dataset with not output on the console. 
+04/03/24 (TRUST) New feature  : It is now possible to resume Pb_Multiphase simulations (both via last time or champ_fonc_reprise).
+29/02/24 (TRUST) Tools        : Patched MEDCoupling to correct tetrahedrons remapping (fix will be included in next release of MEDCoupling)
+26/02/24 (TRUST) New feature  : Fallback to coarse solver if the IJK-multigrid has not reached convergence during current timestep (this concerns IJK discretization only)
+05/02/24 (TRUST) New feature  : New post-processing format introduced in TRUST : CGNS (CFD General Notation System). Not yet available for FT interface mesh (will be soon !)
+02/02/24 (TRUST) Fix          : Fixed bug in post-processing fields on nodes (SOM) in MED Format (internal MEDCouplingUMesh was not always in sync with Domaine)
+31/01/24 (TRUST) Fix          : Fixed handling of empty domains in VEF, PolyMAC_P0, and other related areas.
+31/01/24 (TRUST) Fix          : Bug fix in pb_couple on the same domain with missing APPEND for fields.
+31/01/24 (TRUST) Fix          : Resolved the issue in Perte_Charge_VEF with non-uniform, non-xyz viscosity.
+31/01/24 (TRUST) Fix	      : Replaced deprecated Pandas append with concat in Jupyter notebooks.
+31/01/24 (TRUST) New feature  : himp and Text in Terme_Puissance_Thermique_Echange_Impose can now be champ_fonc fields.
+31/01/24 (TRUST) New feature  : Addition of new methods for face/element interpolation with DoubleTab in Discretization Tools.
+31/01/24 (TRUST) New feature  : DP_Impose and regulated pressure loses compatible with VEF discretizations
+31/01/24 (TRUST) New feature  : Champ_Fonc_Interp can be used now with OverlapDEC (for parallel cases)
+31/01/24 (TRUST) Portability  : Lots of portability stuff for mac: extension .so => dylib, linker, NB_PHYSICAL_CORES, awk ...
+11/01/24 (TRUST) Change       : OpenBLAS version updated to 0.3.25, this may result into some numerical differences in tests using this library
+18/01/24 (TRUST) New keyword  : Add mesh_numbering multi-scalar field to plot {node,cell,face} numerotation for visualization
+18/01/24 (TRUST) Fix          : Refine keywords (eg: Raffiner_simplexes, Raffiner_isotrope_parallele) were not refining sub_zones
+18/01/24 (TRUST) New feature  : Partition_tool Fichier_MED can read now the partition MED file from a previous partitionned domain to create a conform partitioned mesh
+18/01/24 (TRUST) New option   : Add ecrire_med option to Partition tools to write partition field into a MED file
+12/01/24 (TRUST) Portability  : cmake 3.21.0 or newer is necessary to install petsc and so TRUST.
+12/01/24 (TRUST) New keyword  : Add "petsc LU_Strumpack { }" as direct solver from STRUMPACK library
+12/01/24 (TRUST) New keyword  : Add two ILU preconditioners based on Block Low Ranking parametrized (epsilon) compression: petsc gcp|gmres { precond ilu_mumps|ilu_strumpack { epsilon value } ... }. May be useful on problems with solver slow convergence.
+12/01/24 (TRUST) Library      : Update PETSc to 3.20.0 (dependancies like MUMPS,... not updated yet)
+11/01/24 (TRUST) Tools        : Git repository of 'externalpackages' was reset to start fresh from version 1.9.3
+10/01/24 (TRUST) Minor change : TRUST can be linked to a pre-compiled static library of CoolProp 6.6.0 version
+10/01/24 (TRUST) Fix          : Nusselt.face file was not updated at the end of computation if this latter is stopped by putting 1 in .stop file
 19/12/23 (TRUST) Fix          : The new post-processing format "single_lata" can be used with a TRUST 64 bit integers version.
 18/12/23 (TRUST) New feature  : Add option "write_singlelata" to lata_analyzer : useful to merge multiple binary lata files in a single one ! To resplit into multiple files, use "writelata".
 --------------------------------------------------------------------------------------------------
@@ -349,8 +382,8 @@ Release notes version 1.8.0 : Enhancements, modifications and corrected bugs sin
 Release notes version 1.7.9 : Enhancements, modifications and corrected bugs since version 1.7.8 :
 --------------------------------------------------------------------------------------------------
 26/06/19 (TRUST)  Bug fixed   : Probes on polyhedral meshes
-28/05/19 (TRUST)  New feature : 'Create_domaine_from_sous_zone' now propagates the zone information to the sub-domains.
-28/05/19 (TRUST)  New keyword : 'Sous_domaine' and 'Union' partitioners, enabling the creation of conform partitions from sub-zones.
+28/05/19 (TRUST)  New feature : 'Create_domain_from_sous_zone' now propagates the zone information to the sub-domains.
+28/05/19 (TRUST)  New keyword : 'Sous_dom' and 'Union' partitioners, enabling the creation of conform partitions from sub-zones.
 23/04/19 (TRUST)  New keyword : Block_Jacobi_ILU PETSc preconditioner (adapted to non symmetric linear system)
 23/04/19 (TRUST)  New keyword : Cholesky_Mumps_BLR PETSc solver (reduced memory and faster factorization)
 18/04/19 (TRUST)  New feature : Internal mesher is now able to build meshes with tanh variations in X and/or Y and/or Z directions.

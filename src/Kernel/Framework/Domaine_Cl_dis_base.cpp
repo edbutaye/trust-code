@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -124,7 +124,7 @@ Entree& Domaine_Cl_dis_base::readOn(Entree& is)
 
       //Test pour empecher l utilisation de 'Raccord_distant_homogene' en calcul sequentiel
       const Frontiere& frontiere=ledomaine.frontiere(rang);
-      if ((frontiere.que_suis_je()=="Raccord_distant_homogene") && (Process::nproc()==1))
+      if ((frontiere.que_suis_je()=="Raccord_distant_homogene") && Process::is_sequential())
         {
           Cerr<<"At least one connection (adjacent boundary on two domains) is of type 'Raccord distant homogene'." << finl;
           Cerr<<"Use 'Raccord local homogene' to define the connections in sequential computing"<<finl;
@@ -246,6 +246,12 @@ void Domaine_Cl_dis_base::mettre_a_jour(double temps)
   les_conditions_limites_.mettre_a_jour(temps);
 }
 
+/* @brief See ICoCo::ProblemTrio::resetTime()
+ */
+void Domaine_Cl_dis_base::resetTime(double temps)
+{
+  les_conditions_limites_.resetTime(temps);
+}
 
 /*! @brief Effectue une mise a jour pour des sous pas de temps d'un schema en temps (par exemple dans RungeKutta)
  *

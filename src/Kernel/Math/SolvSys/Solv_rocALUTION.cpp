@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -146,20 +146,25 @@ Solver<GlobalMatrix<T>, GlobalVector<T>, T>* Solv_rocALUTION::create_rocALUTION_
       p = new Jacobi<GlobalMatrix<T>, GlobalVector<T>, T>();
       precond_option(is, "");
     }
-  else if (precond==(Motcle)"PairwiseAMG" || precond == (Motcle) "Pairwise-AMG") // Converge pas sur P0P1...
+  /* Deprecated in ROCm 6.0.0 :
+  else if (precond==(Motcle)"PairwiseAMG|Pairwise-AMG|PW-AMG") // Converge pas sur P0P1...
     {
+      // Crashe parfois en parallele:
+      // https://github.com/ROCmSoftwarePlatform/rocALUTION/issues/195
       p = new PairwiseAMG<GlobalMatrix<T>, GlobalVector<T>, T>();
       auto& pairwiseamg = dynamic_cast<PairwiseAMG<GlobalMatrix<T>, GlobalVector<T>, T> &>(*p);
-      pairwiseamg.SetBeta(0.25); // [0-1] default 0.25
-      pairwiseamg.SetCoarsestLevel(10000); // Sinon boucle indefiniment...
-      pairwiseamg.SetOrdering(MIS); // default
-      pairwiseamg.SetCoarseningFactor(10); // [0-20] default 4
-      pairwiseamg.SetKcycleFull(true); // default true
-      pairwiseamg.InitMaxIter(1);
+      //pairwiseamg.SetBeta(0.25); // [0-1] default 0.25
+      //pairwiseamg.SetCoarsestLevel(10000); // Sinon boucle indefiniment...
+      pairwiseamg.SetOrdering(2); // default
+      //pairwiseamg.SetCoarseningFactor(19); // [0-20] default 4
+      //pairwiseamg.InitMaxIter(1);
+
+      //pairwiseamg.SetKcycleFull(true); // default true
       precond_option(is, "");
-    }
+    } */
   /* Crash bizarre en sequentiel et parallele.
    * ToDo OpenMP travail sur les samples cg-rsamg_mpi.cpp et cg-rsamg.cpp
+   Le support annonce que cg-rsamg_mpi pas supporte encore...: https://github.com/ROCmSoftwarePlatform/rocALUTION/issues/196
   else if (precond==(Motcle)"RugeStuebenAMG|RSAMG|RS-AMG|C-AMG")  // Setup rapide sur CPU. Converge vite.
     {
       p = new RugeStuebenAMG<GlobalMatrix<T>, GlobalVector<T>, T>();
@@ -624,11 +629,8 @@ int Solv_rocALUTION::resoudre_systeme(const Matrice_Base& a, const DoubleVect& b
       rhs.MoveToAccelerator();
       e.MoveToAccelerator();
       if (gpu) statistiques().end_count(gpu_copytodevice_counter_, 3 * (int)sizeof(double) * nb_rows_);
-      #pragma omp target data use_device_ptr(sol_host_addr, rhs_host_addr)
-      {
-        sol.GetInterior().CopyFromData(sol_host_addr);
-        rhs.GetInterior().CopyFromData(rhs_host_addr);
-      }
+      sol.GetInterior().CopyFromData(addrOnDevice(sol_host));
+      rhs.GetInterior().CopyFromData(addrOnDevice(rhs_host));
     }
   else
     {
@@ -708,10 +710,7 @@ int Solv_rocALUTION::resoudre_systeme(const Matrice_Base& a, const DoubleVect& b
   if (keepDataOnDevice)
     {
       // Les vecteurs sont mis a jour entre eux sur le device (optimal)
-      #pragma omp target data use_device_ptr(sol_host_addr)
-      {
-        sol.GetInterior().CopyToData(sol_host_addr);
-      }
+      sol.GetInterior().CopyToData(addrOnDevice(sol_host));
     }
   else
     {
@@ -863,7 +862,7 @@ void Solv_rocALUTION::Create_objects(const Matrice_Morse& csr)
   pm.SetLocalNrow(nb_rows_);
   pm.SetLocalNcol(nb_rows_);
 
-  if (Process::nproc()>1)
+  if (Process::is_parallel())
     {
       int boundary_nnz = md.items_to_send_.get_data().size_array();
 
@@ -926,7 +925,7 @@ void Solv_rocALUTION::Create_objects(const Matrice_Morse& csr)
   std::copy(tab2_c.begin(), tab2_c.end(), col);
   std::copy(coeff_c.begin(), coeff_c.end(), val);
   mat.SetLocalDataPtrCSR(&row_offset, &col, &val, "mat", coeff_c.size());
-  if (Process::nproc()>1)
+  if (Process::is_parallel())
     {
       row_offset = new True_int[ghost_tab1_c.size()];
       col = new True_int[ghost_tab2_c.size()];
@@ -938,7 +937,7 @@ void Solv_rocALUTION::Create_objects(const Matrice_Morse& csr)
     }
   /* Cela serait plus simple en passant les std::vector mais valgrind rale lors d'un free_host a la fin lors de ~GlobalMatrix :-(
   mat.SetLocalDataPtrCSR(reinterpret_cast<int **>(&tab1_c), reinterpret_cast<int **>(&tab2_c), reinterpret_cast<double **>(&coeff_c), "mat", coeff_c.size());   // LocalMatrix
-  if (Process::nproc()>1)
+  if (Process::is_parallel())
     mat.SetGhostDataPtrCSR(reinterpret_cast<int **>(&ghost_tab1_c), reinterpret_cast<int **>(&ghost_tab2_c),
                            reinterpret_cast<double **>(&ghost_coeff_c), "ghost", ghost_coeff_c.size());    // LocalMatrix ghost
   */

@@ -33,6 +33,10 @@ file="Create_domain_from_sous_zone.h"
 echo "#error File $file deprecated in TRUST 1.9.2. You SHOULD change the include to Create_domain_from_sub_domain.h" > backward/$file
 file="Faces_Interne.h"
 echo "#error File $file deprecated in TRUST 1.9.2. You SHOULD change the include to Bord_Interne.h" > backward/$file
+file="trust_med_utils.h"
+echo "#error File $file deprecated in TRUST 1.9.4. You SHOULD change the include to TRUST_2_MED.h" > backward/$file
+file="EcrMED.h"
+echo "#error File $file deprecated in TRUST 1.9.4. You SHOULD change the include to Ecrire_MED.h" > backward/$file
 
 # EOS includes in EOS if 
 if [ "$TRUST_EOS_HOME_DIR" != "" ]
@@ -74,6 +78,18 @@ else
     #rm -rf CoolProp/*
     echo "#undef HAS_COOLPROP" > $TRUST_TMP/coolprop++.h.tmp
     [ "`diff CoolProp/coolprop++.h $TRUST_TMP/coolprop++.h.tmp 1>/dev/null 2>/dev/null; echo $?`" != 0 ] && rm -rf CoolProp/* && cp $TRUST_TMP/coolprop++.h.tmp CoolProp/coolprop++.h
+fi
+
+# Kokkos tag:
+kokkos_hdr=$TRUST_ROOT/src/Kernel/Utilitaires/kokkos++.h
+if [ "$TRUST_USE_KOKKOS" = "1" ]; then
+    echo "#define KOKKOS_" > $TRUST_TMP/kokkos++.h
+else
+    echo "#undef KOKKOS_" > $TRUST_TMP/kokkos++.h
+fi
+#    Update only if different than existing to avoid re-compilation at each configure:
+if [ ! -f $kokkos_hdr ] || diff $kokkos_hdr $TRUST_TMP/kokkos++.h 1>/dev/null; then
+    cp $TRUST_TMP/kokkos++.h $kokkos_hdr
 fi
 
 # Ouverture de $INC

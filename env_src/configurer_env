@@ -112,7 +112,10 @@ configure_compilateur_ccache()
       # On cree un script g++ et gcc
       eval $e
       script=$TRUST_ROOT/exec/ccache/$compilateur
-      echo $ECHO_OPTS "#!/bin/bash\n\$TRUST_ROOT/exec/ccache/bin/ccache $chemin \"\$@\"" > $script
+      echo $ECHO_OPTS "#!/bin/bash" > $script
+      # Trick to boost nvc/nvcc/nvc++ build by using RAM for temporary files:
+      [ ! -d /ccc ] && [ -d /dev/shm ] && [ "`basename $chemin | grep nvc`" != "" ] && echo "TMPDIR=/dev/shm" >> $script
+      echo $ECHO_OPTS "\$TRUST_ROOT/exec/ccache/bin/ccache $chemin \"\$@\"" >> $script
       chmod +x $script
       e=$variable=\""\$TRUST_ROOT/exec/ccache/$compilateur\" && export $variable"
    fi
@@ -468,7 +471,7 @@ then
       # Limitations sur certaines frontales de clusters: sur TGCC, build TRUST/src plante si pas de limite, je met TRUST_NB_PROCS a 8
       if [ -d /ccc ] || [ $HOST = jean-zay ] # || [ ${HOST#orcus-} != $HOST ]
       then
-        TRUST_NB_PROCS=8
+        TRUST_NB_PROCS=24
       elif [ "${HOST#aar}" != $HOST ] || [ "${HOST#grenx}" != $HOST ] || [ "${HOST#gutta}" != $HOST ]
       then
         TRUST_NB_PROCS=4
@@ -617,7 +620,7 @@ fi
 # Quelle norme C++ ?
 #######################
 STDCPP=c++14
-#STDCPP=c++11 && [ "$TRUST_USE_CUDA" = 1 ] && STDCPP=c++14
+[ "$TRUST_USE_KOKKOS_SIMD" = 1 ] && STDCPP=c++17
 
 #######################
 # Quelle architecture ?
@@ -628,29 +631,44 @@ case $arch in
 	TRUST_EDITOR="gedit nedit kate kedit xemacs xedit emacs"
 	# On met Intel en 1er/GNU car plus rapide que GNU
 	cuda="" && [ "$TRUST_USE_CUDA" = 1 ] && cuda="cuda-" # Uniquement si on demande Cuda, recherche en priorite des wrappers pour les compilateurs GNU
-	TRUST_CC_BASE=" FCC icpc  armclang++ "$cuda"g++      g++"
-	TRUST_F77_BASE="frt ifort armflang   "$cuda"gfortran gfortran"
-	TRUST_cc_BASE=" fc  icc   armclang   "$cuda"gcc      gcc"
+	TRUST_CC_BASE=" FCC icpx icpc  armclang++ "$cuda"g++      g++"  # icpx is the CXX compiler in inteloneAPI 2023
+	TRUST_F77_BASE="frt ifx ifort armflang   "$cuda"gfortran gfortran"
+	TRUST_cc_BASE=" fc  icx icc   armclang   "$cuda"gcc      gcc"
 	# Support compilateur NVidia:
-	if [ "$TRUST_USE_CUDA" = 1 ] && [ "$TRUST_USE_OPENMP" = 1 ]
+	if [ "$TRUST_USE_CUDA" = 1 ]
 	then
-	   TRUST_CC_BASE="nvc++ "$TRUST_CC_BASE
-	   TRUST_F77_BASE="nvfortran "$TRUST_F77_BASE
-	   TRUST_cc_BASE="nvc "$TRUST_cc_BASE
-	   # Si n'est pas dans le PATH, on download NVHPC (attention pas encore teste). Utile sur Fedora CEA:
-	   # Normalement, sur Ubuntu on charge le PATH du module NVHPC
-	   nvc++ -help 1>/dev/null 2>&1
-	   if [ $? != 0 ]
+	   if [ "$TRUST_USE_OPENMP" = 1 ]
 	   then
-	      source ../env_src/gpu/install_nvhpc_sdk_toolkit.sh
-	      # Attention, on met NVHPC en dernier car on prendre de preference le nvcc du CUDA Toolkit:
-	      echo "ADD_PATH_AFTER $NVHPC/bin" >>$env
-	      echo "ADD_LD_LIBRARY_PATH_AFTER $NVHPC/lib" >>$env
-	      export PATH=$PATH:$NVHPC/bin # PATH to $INSTALL/nvhpc-$SDK_VERSION/Linux_x86_64/$SDK_VERSION/compilers/bin
-	      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$NVHPC/lib # PATH to $INSTALL/nvhpc-$SDK_VERSION/Linux_x86_64/$SDK_VERSION/compilers/lib
-	   fi
-	   nvc++ -help 1>/dev/null 2>&1
-	   [ $? != 0 ] && echo "Erreur, nvc++ not installed." && exit -1
+        TRUST_CC_BASE="nvc++ "$TRUST_CC_BASE
+        TRUST_F77_BASE="nvfortran "$TRUST_F77_BASE
+        TRUST_cc_BASE="nvc "$TRUST_cc_BASE
+        # Si n'est pas dans le PATH, on download NVHPC (attention pas encore teste). Utile sur Fedora CEA:
+        # Normalement, sur Ubuntu on charge le PATH du module NVHPC
+        nvc++ -help 1>/dev/null 2>&1
+        if [ $? != 0 ]
+        then
+           source ../env_src/gpu/install_nvhpc_sdk_toolkit.sh
+           # Attention, on met NVHPC en dernier car on prendre de preference le nvcc du CUDA Toolkit:
+           echo "ADD_PATH_AFTER $NVHPC/bin" >>$env
+           echo "ADD_LD_LIBRARY_PATH_AFTER $NVHPC/lib" >>$env
+           export PATH=$PATH:$NVHPC/bin # PATH to $INSTALL/nvhpc-$SDK_VERSION/Linux_x86_64/$SDK_VERSION/compilers/bin
+           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$NVHPC/lib # PATH to $INSTALL/nvhpc-$SDK_VERSION/Linux_x86_64/$SDK_VERSION/compilers/lib
+        fi
+        nvc++ -help 1>/dev/null 2>&1
+        [ $? != 0 ] && echo "Erreur, nvc++ not installed." && exit -1
+#     else
+#        # If Kokkos requested without OpenMP, put nvcc_wrapper in priority
+#        if [ "$TRUST_USE_KOKKOS" = 1 ]
+#        then
+#           TRUST_CC_BASE="nvcc_wrapper "$TRUST_CC_BASE
+#           TRUST_F77_BASE="gfortran "$TRUST_F77_BASE
+#           TRUST_cc_BASE="gcc "$TRUST_cc_BASE
+#
+#           # Check already done in configure, but who knows ...
+#           nvcc_wrapper --help 1>/dev/null 2>&1
+#           [ $? != 0 ] && echo "Kokkos: error, nvc_wrapper not correctly installed!" && exit -1
+#        fi
+     fi
 	fi
 	# Support compilateur cray et AOMP de AMD: https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-dev/docs/UBUNTUINSTALL.md
 	if [ "$TRUST_USE_ROCM" = 1 ] && [ "$TRUST_USE_OPENMP" = 1 ]
@@ -659,6 +677,7 @@ case $arch in
 	   TRUST_F77_BASE="crayftn amdflang   "$TRUST_F77_BASE
 	   TRUST_cc_BASE="craycc   amdclang   "$TRUST_cc_BASE
 	fi
+
 	# On rajoute les autres compilateurs
 	TRUST_CC_BASE=$TRUST_CC_BASE" pgCC"
 	TRUST_F77_BASE=$TRUST_F77_BASE" pgf90 f90 pgf77 f77"
@@ -727,8 +746,10 @@ then
    echo "# Detected $procs processors of $cores_per_proc cores means a total of $total_cores physical cores." | tee -a $env
    CACHE_SIZE=`awk '/cache size/ {print $(NF-1)}' /proc/cpuinfo | sort -u`
    echo "# Detected a size cache of $CACHE_SIZE KB." | tee -a $env
-   m="# Number of physical cores";e="TRUST_NB_PHYSICAL_CORES=$total_cores && export TRUST_NB_PHYSICAL_CORES";ecrit $m"|"$e"|"$env;eval $e
+elif [ `uname -s` = "Darwin" ]; then
+   total_cores=$(sysctl -n hw.perflevel0.logicalcpu)
 fi
+m="# Number of physical cores";e="TRUST_NB_PHYSICAL_CORES=$total_cores && export TRUST_NB_PHYSICAL_CORES";ecrit $m"|"$e"|"$env;eval $e
 m="# Number of logical cores used for build";e="TRUST_NB_PROCS=$TRUST_NB_PROCS && export TRUST_NB_PROCS";ecrit $m"|"$e"|"$env;eval $e
 m="# Path to make command used";e="TRUST_MAKE=\"$TRUST_MAKE\" && export TRUST_MAKE";ecrit $m"|"$e"|"$env;eval $e
 
@@ -767,10 +788,10 @@ unset PYTHONPATH # We get a warning from Miniconda if we do not unset this varia
 model=`uname -m`
 system=`uname -s` && [ "$system" = Darwin ] && system=MacOSX
 # we add ncurses and libffi to overcome an issue with vi on Ub20 if env_for_python.sh loaded
-pkgs="ncurses libffi pyqt nomkl numpy matplotlib swig cmake scipy sympy libgd pandas bison `[ "$TRUST_DISABLE_JUPYTER" != 1 ] && echo jupyter pandoc psutil`"
+pkgs="ncurses libffi pyqt nomkl numpy matplotlib swig cmake scipy sympy libstdcxx-ng libgd pandas bison psutil `[ "$TRUST_DISABLE_JUPYTER" != 1 ] && echo jupyter pandoc`"
 local_channel="-c file://$TRUST_ROOT/externalpackages/Miniconda/local_channel --override-channels"
-[ "$model" = aarch64 ] && local_channel="" && pkgs="nomkl numpy matplotlib swig cmake scipy sympy libgd pandas bison `[ "$TRUST_DISABLE_JUPYTER" != 1 ] && echo jupyter pandoc psutil`" && [ -d /ccc ] && pkgs="" # Pas internet au CCRT
-[ "$model" = arm64 ] && local_channel="" && pkgs="nomkl numpy matplotlib swig cmake scipy sympy libgd pandas bison `[ "$TRUST_DISABLE_JUPYTER" != 1 ] && echo jupyter pandoc psutil`" # internet OK sous Mac
+[ "$model" = aarch64 ] && local_channel="" && pkgs="nomkl numpy matplotlib swig cmake scipy sympy libgd pandas bison psutil `[ "$TRUST_DISABLE_JUPYTER" != 1 ] && echo jupyter pandoc`" && [ -d /ccc ] && pkgs="" # Pas internet au CCRT
+[ "$model" = arm64 ] && local_channel="" && pkgs="nomkl numpy matplotlib swig cmake scipy sympy libgd pandas bison psutil `[ "$TRUST_DISABLE_JUPYTER" != 1 ] && echo jupyter pandoc`" # internet OK sous Mac
 
 if [ -d $TRUST_ROOT/exec/python/bin ] && [ -f $TRUST_ROOT/exec/python/bin/conda ]
 then
@@ -786,7 +807,7 @@ then
        INSTALL_OK=1
 
        # list of packages already-installed/to-install in conda, we ignore mpi4py since installed with pip
-       $TRUST_ROOT/exec/python/bin/conda list | grep -v mpi4py | grep -v coolprop > conda_list.check
+       $TRUST_ROOT/exec/python/bin/conda list | grep -v mpi4py | grep -v ^coolprop > conda_list.check
        if [ "$system" = "Linux" ] && [ $model = "x86_64" ] #&& [ -f $TRUST_ROOT/exec/conda_list.ref ]
        then
           # Strict check of conda packages
@@ -898,7 +919,7 @@ then
 fi
 
 # We touch all conda files, otherwise it will be deleted from SCRATCH of clusters (e.g. jean-zay)
-[ "${TRUST_ROOT#*scratch/}" != "$TRUST_ROOT" ] && find $TRUST_ROOT/exec/python -exec touch {} +
+[ "${TRUST_ROOT#*scratch/}" != "$TRUST_ROOT" ] && [ "$TRUST_WITHOUT_CONDA" != "1" ] && find $TRUST_ROOT/exec/python -exec touch {} +
 # export PATH
 echo "export PYTHONLIBS_ROOT_DIR=\$TRUST_ROOT/exec/python" >> $env
 echo "export PYTHONINTERP_ROOT_DIR=\$PYTHONLIBS_ROOT_DIR/bin" >> $env
@@ -1008,7 +1029,7 @@ fi
 if [ "$TRUST_CC_BASE_EXTP" = "" ]
 then
    CC_BASE=`basename $TRUST_CC_BASE`
-   if [ "$CC_BASE" = nvc++ ] || [ "$CC_BASE" = crayCC ] || [ "$CC_BASE" = amdclang++ ]
+   if [ "$CC_BASE" = nvc++ ] || [ "$CC_BASE" = crayCC ] || [ "$CC_BASE" = amdclang++ ] || [ "$CC_BASE" = nvcc_wrapper ]
    then
       TRUST_CC_BASE_EXTP=g++       && [ -f /usr/bin/cuda-g++ ]      && TRUST_CC_BASE_EXTP=/usr/bin/cuda-g++
       TRUST_cc_BASE_EXTP=gcc       && [ -f /usr/bin/cuda-gcc ]      && TRUST_cc_BASE_EXTP=/usr/bin/cuda-gcc
@@ -1029,7 +1050,7 @@ then
     remove_stdcpp_conda=0 && [ "$stdcpp_sys" != "" ] && remove_stdcpp_conda=`echo $stdcpp_sys $stdcpp_conda | awk '{ print ($1>$2?1:0) }'`
     if [ $remove_stdcpp_conda -eq 1 ]
     then
-       echo "Warning! Look for a newer conda package than libstdcxx-ng=9.3.0 to avoid this hack:"
+       echo "Warning! Look for a newer conda package than libstdcxx-ng=13.2.0 to avoid this hack:"
        #rm $TRUST_ROOT/exec/python/lib/libstdc++.so*
        #dirlibstd=`dirname $libstd_sys`
        for file in `ls $TRUST_ROOT/exec/python/lib/libstdc++.so* 2>/dev/null`
@@ -1157,6 +1178,20 @@ then
          exit -1
       fi
    fi
+   if [ "$TRUST_CUDA_CC" = "" ]
+   then
+      TRUST_CUDA_CC=`nvidia-smi --query-gpu=compute_cap --format=csv | tail -1 | awk '{gsub("\\\.","",$1);print $1}'`
+      # nvidia-smi trop anciens ne supporte pas query-gpu=compute_cap:
+      [ "$TRUST_CUDA_CC" = "" ] && [ "`nvidia-smi 2>&1 | grep -e A[3456]000`" != "" ] && TRUST_CUDA_CC=86 # Cartes A3000-A6000
+      if [ "$TRUST_CUDA_CC" != "" ] 
+      then
+         m="# Cuda Compute Capability:";e="TRUST_CUDA_CC=\"$TRUST_CUDA_CC\" && export TRUST_CUDA_CC";
+         ecrit $m"|"$e"|"$env;eval $e
+      else
+         echo "Cuda Compute Capability not detected ! TRUST_CUDA_CC should be set."
+	 exit -1
+      fi	 
+   fi
    #########################
    # Detection CUDA run time
    #########################
@@ -1176,6 +1211,7 @@ then
       [ -f $CUDA_INC_PATH/cuda.h ] && export CUDA_INC_PATH && break
    done
    [ "$CUDA_ROOT" = "" ] && echo "CUDA libraries not found!" && exit -1
+   
    m="# PATH to CUDA";
    e="CUDA_ROOT=\"$CUDA_ROOT\" && export CUDA_ROOT";
    ecrit $m"|"$e"|"$env;eval $e
@@ -1209,10 +1245,9 @@ then
    echo "ADD_LD_LIBRARY_PATH \$ROCM_PATH/lib" >> $env
    # Detection de l'architecture de la carte AMD:
    ROCM_ARCH=`$ROCM_PATH/bin/rocminfo 2>&1 | awk '/ gfx/ {print $2}'`
-   [ "$ROCM_ARCH" = "" ] && ROCM_ARCH=gfx90a # Adastra
-   # Pour la carte du PC AMD:
-   # https://community.amd.com/t5/infinity-hub-container/radeon-rx6600xt-ubuntu-22-04-and-rocm-woes/m-p/585568
-   [ "$ROCM_ARCH" = gfx1032 ] && echo "export HSA_OVERRIDE_GFX_VERSION=10.3.0 # Pour gfx1032 (pas supporte utilise le code de gfx1030)" >> $env
+   [ "$HOST" = adastra ] && ROCM_ARCH=gfx90a # Adastra
+   # Pour les cartes mal supportees (ex PC AMD): https://community.amd.com/t5/infinity-hub-container/radeon-rx6600xt-ubuntu-22-04-and-rocm-woes/m-p/585568
+   [ "${ROCM_ARCH#gfx103}" != $ROCM_ARCH ] && ROCM_ARCH=gfx1030 && echo "export HSA_OVERRIDE_GFX_VERSION=10.3.0 # Pour gfx1032 (pas supporte utilise le code de gfx1030)" >> $env
    echo "export ROCM_ARCH=$ROCM_ARCH # Carte AMD" >> $env
 fi
 
@@ -1713,11 +1748,12 @@ Defines=""
 SYSINC=""
 SL_EXTENSION="so" && [ ${TRUST_ARCH#HPPA} != $TRUST_ARCH ] && SL_EXTENSION="sl"
 [ ${TRUST_ARCH} = cygwin ] && SL_EXTENSION="dll"
+[ ${TRUST_ARCH} = "darwin" ] && SL_EXTENSION="dylib"
 
 OPTIMIZE="-O3"
 TRUST_SUPPORTED=0
 case $TRUST_ARCH_CC in
-  linux_g++*|cygw*g++*|linux_cuda-g++*) TRUST_SUPPORTED=1
+  linux_g++*|cygw*g++*|linux_cuda-g++*|linux_nvcc_wrapper*) TRUST_SUPPORTED=1
   [ "$STDCPP" = c++11 ] && TRUST_SUPPORTED=`echo $TRUST_VERSION_GNU | awk -F. '{ver=$1*100+$2*10+$3;if (ver>=485 && ver<=1311) print "(Supportee)";else print "(Not yet supported or not supported anymore)"}'`
 	[ "$STDCPP" = c++14 ] && TRUST_SUPPORTED=`echo $TRUST_VERSION_GNU | awk -F. '{ver=$1*100+$2*10+$3;if (ver>=500 && ver<=1321) print "(Supportee)";else print "(Not yet supported or not supported anymore)"}'`
 	m="# GNU compiler version";e="TRUST_VERSION_GNU=$TRUST_VERSION_GNU && export TRUST_VERSION_GNU";ecrit $m"|"$e"|"$env
@@ -1730,7 +1766,13 @@ case $TRUST_ARCH_CC in
 	[ "$TRUST_USE_OPENMP" = 1 ] && PTHREAD="-pthread" # Pour OpenBLAS ?
 	FPIC="-fPIC"
 	[ ${TRUST_ARCH} = cygwin ] && FPIC=""  # sous cygwin pas de -fPIC
-	CppFlags="-O3 $FPIC $PTHREAD -std=$STDCPP -fno-common -Wno-long-long -Wall -Wno-unknown-pragmas -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -Wsynth -Wshadow -Wextra -Wno-unused-parameter -pedantic -fabi-version=0 -Wno-cpp"
+#	if [ "$TRUST_USE_KOKKOS" = 1 ]; then
+#	    # Kokkos already adds '-std=c++14' - do not doit twice since nvcc_wrapper will complain
+#	    std_tmp_=""
+#	else
+	    std_tmp_="-std=$STDCPP"
+#	fi
+	CppFlags="-O3 $FPIC $PTHREAD $std_tmp_ -fno-common -Wno-long-long -Wall -Wno-unknown-pragmas -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -Wsynth -Wshadow -Wextra -Wno-unused-parameter -pedantic -fabi-version=0 -Wno-cpp"
 	[ "`echo $TRUST_VERSION_GNU | awk -F. '{print ($1>4)}'`" = 1 ] && [ $TRUST_ARCH_CC = linux_g++ ] && CppFlags=$CppFlags" -Wshadow -Werror" # Uniquement si gcc>=5
 	CppFlags=$CppFlags" -fno-math-errno" # Operations mathematiques optimisees sans ecarts crees (vient de F5)
 	[ "$TRUST_INT64" != "1" ] && CppFlags=$CppFlags" -Wconversion"
@@ -1742,7 +1784,7 @@ case $TRUST_ARCH_CC in
         [ "`echo $TRUST_VERSION_GNU | awk -F. '{print ($1>=10)}'`" = 1 ] && F77Flags=$F77Flags" -fallow-argument-mismatch"
 	ccFLAGS="-O3 $FPIC $PTHREAD"
 	ShLibFlag="\$(TRUST_CC) -shared"
-	cherche_include_systeme
+	#cherche_include_systeme
 	;;
     linux_clang++|linux_armclang++|darwin_clang++) TRUST_SUPPORTED=1
         [ "$TRUST_ARCH_CC" = linux_armclang++ ] && ArmFlags="-armpl -ffast-math" # To add optimized machine-specific library. -ffast-math interessant sur irene-arm (*2 sur HPCG, rien sur GNU)
@@ -1771,13 +1813,21 @@ case $TRUST_ARCH_CC in
 	;;
    linux_crayCC|linux_amdclang++) TRUST_SUPPORTED=1
    	Defines="-D_COMPILE_AVEC_CLANG"
-        CppFlags="-O3 -fPIC -std=$STDCPP -fno-common -Wno-long-long -Wall -Wno-inconsistent-missing-override -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -Wsynth -Wshadow -Wextra -Qunused-arguments -Wno-unsequenced -Wno-unused-parameter -Wno-tautological-compare -Werror"
+        if [ "$TRUST_USE_KOKKOS" = 1 ] && [ "$TRUST_USE_ROCM" = 1 ]
+        then
+           STDCPP="c++17"   # For Kokkos 4.x
+           CppFlags="-Wno-openmp-mapping"
+           #CppFlags=$CppFlags" -xhip" # Mode de compilation Hip incompatible avec OpenMP: https://github.com/ROCm/ROCm/discussions/2137 & https://github.com/burlen/cuda_plus_offload
+        fi   
+        CppFlags=$CppFlags" -O3 -fPIC -std=$STDCPP -fno-common -Wno-long-long -Wall -Wno-inconsistent-missing-override -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -Wsynth -Wshadow -Wextra -Qunused-arguments -Wno-unsequenced -Wno-unused-parameter -Wno-tautological-compare -Werror"
         #CppFlags=$CppFlags" -h list=all" # Genere un fichier listing pour OpenMP-target
-        SYSLIBS="-L$GCC_PREFIX/snos/lib64 -lstdc++ -lgfortran -lrt" # EXTP GNU
+        #[ "$TRUST_CC_BASE_EXTP" != "" ] && SYSLIBS="-L$GCC_PREFIX/snos/lib64 -lstdc++ -lgfortran -lrt" # EXTP GNU
+	[ "$TRUST_ARCH_CC" = "linux_crayCC" ] && SYSLIBS="-L$GCC_PREFIX/snos/lib64 -lstdc++ -lgfortran -lrt" # EXTP GNU
         SYSLIBS=$SYSLIBS" ${PE_MPICH_GTL_DIR_amd_gfx90a} ${PE_MPICH_GTL_LIBS_amd_gfx90a}" # Librairie GTL necessaire pour activer GPU-Direct
         F77Flags="-O3 -fPIC"
         F77Flags="-O1 -fPIC" # Sinon _dger_ undefined reference dans dlsode.f !
-        [ "$TRUST_INT64" = "1" ] && F77Flags=$F77Flags" -default64"
+        [ "$TRUST_INT64" = "1" ] && [ "$TRUST_ARCH_CC" = "linux_crayCC" ]     && F77Flags=$F77Flags" -default64"          # crayftn
+        [ "$TRUST_INT64" = "1" ] && [ "$TRUST_ARCH_CC" = "linux_amdclang++" ] && F77Flags=$F77Flags" -fdefault-integer-8" # flang
         ccFLAGS="-O3 -fPIC"
         ShLibFlag="\$(TRUST_CC) -shared"
 	;;
@@ -1792,7 +1842,17 @@ case $TRUST_ARCH_CC in
    linux_pgCC|linux_nvc++) TRUST_SUPPORTED=1
         m="# TMPDIR ?";e="TMPDIR=\"$TRUST_TMP\" && export TMPDIR";ecrit $m"|"$e"|"$env # Plantage vus avec /tmp par defaut
         Defines="-D_COMPILE_AVEC_PGCC"
-        CppFlags="-O3 -fPIC -Ktrap=fp -Kieee -noswitcherror" # -Ktrap=fp evitent des soucis Arithmetic Exceptions...
+        CppFlags=""
+        if [ "$TRUST_USE_KOKKOS" = 1 ] && [ "$TRUST_USE_CUDA" = 1 ]
+        then
+           CppFlags="-cuda" # nvc++ compile cuda code to avoid use of "nvcc -ccbin=nvc++"
+           #TRUST_USE_UVM=1 # Provisoire
+           [ "$TRUST_USE_UVM" = 1 ] && CppFlags=$CppFlags" -gpu=managed" && Defines=$Defines" -DTRUST_USE_UVM"
+           # Attention -mp=gpu -gpu=nordc ne marche pas sur le GPU !!! Voir: https://forums.developer.nvidia.com/t/openmp-offload-w-cuda-interop-undefined-reference-to-fatbinwrap-nv-module-id/253051
+           # Donc on active Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE=ON au niveau de Kokkos
+           STDCPP="c++17"   # For Kokkos 4.x (attention C++17: NVHPC 23.5 OK, NVHPC 23.9 KO sur template !)
+        fi
+        CppFlags=$CppFlags" -O3 -fPIC -Ktrap=fp -Kieee -noswitcherror" # -Ktrap=fp evitent des soucis Arithmetic Exceptions...
         CppFlags=$CppFlags" -std=$STDCPP -Wno-long-long -Wall -Wshadow -Wextra -Wno-unused-parameter -Werror --display_error_number --diag_suppress1 --diag_suppress185" #--diag_suppress111 si on veut supprimer le warning "statement is unreachable"
         CppFlags=$CppFlags" -Wunused-variable" # Flag qui detecte tous les objets C++ non utilises
         #CppFlags=$CppFlags" -Minfo=accel -Minfo=mp -Minfo=loop" # Info au build ou NVCOMPILER_ACC_NOTIFY ?
@@ -1802,7 +1862,7 @@ case $TRUST_ARCH_CC in
         ccFLAGS="-O3 -fPIC -noswitcherror"
         ShLibFlag="\$(TRUST_CC) -shared"
     ;;
-   linux_icpc) TRUST_SUPPORTED=1
+   linux_icpc|linux_icpx) TRUST_SUPPORTED=1
 	# -fp-model precise (default fast=1) pour avoir memes resultats que GNU
 	# ND: -fp-model=except en plus de precise, fvca_jdd13 OK mais crash dans F5
 	flag_optim="-O3 -fp-model=strict" && [ "$VT_ROOT" != "" ] && flag_optim="-g "$flag_optim # -g pour Itac, traceanalyzer
@@ -2075,10 +2135,13 @@ then
      if [ "$TRUST_USE_CUDA" = 1 ]
      then
         # A partir de HPC SDK 21.3 et necessite compute_capability 70 !
-        openmp_target="-target=gpu $march" # ToDo OpenMP -gpu=cc86 pour a5000/a6000, detecter nvidia-smi ou autre et pour cluster mettre dans HOST.sh. Gain limite: 1% sur petra ?
+	openmp_target="-target=gpu $march -gpu=cc$TRUST_CUDA_CC" # Desormais detecte
+        #openmp_target="-target=gpu $march" # ToDo OpenMP -gpu=cc86 pour a5000/a6000, detecter nvidia-smi ou autre et pour cluster mettre dans HOST.sh. Gain limite: 1% sur petra ?
         # Sur cluster pour compiler sur la frontale (pas de carte):
         # https://forums.developer.nvidia.com/t/compile-error-for-openmp-code-with-target-offloading-in-nvhpc-20-11/164188
-        [ "$BATCH_SYSTEM_DETECTED" = 1 ] && openmp_target=$openmp_target" -gpu=cc70,cc80" # cc80 pour topaze (A100)
+        # ToDo: faire un TRUST_CUDA_CC=70 (v100), 80 (A100), 86 (A5000, A6000) et mettre ici ou ailleurs (ex: PETSc/install)
+        # Mais comment detecter ? Placer dans le HOST deja... Sinon, faire un nvidia-smi...
+        #[ "$BATCH_SYSTEM_DETECTED" = 1 ] && openmp_target=$openmp_target" -gpu=cc70,cc80" # cc80 pour topaze (A100)
         #Flags utiles du debug:
         #export NVCOMPILER_ACC_NOTIFY = 1|2|4|8|16
         #export NVCOMPILER_ACC_TIME = 1
@@ -2134,7 +2197,7 @@ double b[3];
    fi
 fi
 # Ajout des flags OpenMP:
-CppFlags=$CppFlags" "$openmp" "$openmp_target
+CppFlags=$openmp" "$openmp_target" "$CppFlags
 SYSLIBS=$SYSLIBS" "$openmp
 
 ##########
@@ -2243,24 +2306,12 @@ LINK_MALIB = $LINK_MALIB" > $tmp
 
    # On supprime -DNDEBUG
    Defines=${Defines% -DNDEBUG}
-   # On remplace -O par -g
-   O=`echo $CppFlags | awk '{print $1}'`
-   CppFlags="-g -O0"${CppFlags#$O}
+   # On remplace -O? par -g
+   F77Flags=`echo $F77Flags | sed "1,$ s?-O[0-9]?-g?g"`
+   ccFLAGS=`echo $ccFLAGS | sed "1,$ s?-O[0-9]?-g?g"`
+   CppFlags=`echo $CppFlags | sed "1,$ s?-O[0-9]?-g -O0?g"`
    ### Sur gcc >= 11, -g utilise dwarf5 qui empeche addr2line des versions < 2.35.2 de binutils de convertir les adresses des binaires en numero ligne du code source
    [[ $(echo $TRUST_VERSION_GNU | cut -d '.' -f 1) -ge 11 ]] && CppFlags=${CppFlags/-g /-gdwarf-4 }
-   O=`echo $F77Flags | awk '{print $1}'`
-   F77Flags="-g"${F77Flags#$O}
-   # 16/03/2010: Ajout de -fbounds-check en debug sur gfortran
-   # D'apres http://gcc.gnu.org/bugzilla/show_bug.cgi?id=33745 -fbounds-check ne marche pas bien pour gfortran ancien
-   # On a eu des problemes sur 4.0.1 (peyrolle: TAB(N,*) annonce un depassement tableau, TAB(N,M) non) et 4.1 (castor)
-   # On a aussi un pb sur Fedora 18 At line 1 of file pilaenv.f : Fortran runtime error: Actual string length is shorter than the declared one for... (MC2 en debug)
-   # 19-09-2016: probleme avec clang sur cas test Lire_unv => on commente
-   #if [ $TRUST_F77_BASE != ${TRUST_F77_BASE%gfortran} ] && [ "`$TRUST_F77_BASE -v 2>&1 | awk '/gcc / && /version / {print ($3>=4.2?1:0)}'`" = 1 ] && [ "`grep 'Fedora release' /etc/issue`" = "" ]
-   #then
-   #   F77Flags=$F77Flags" -fbounds-check"
-   #fi
-   O=`echo $ccFLAGS | awk '{print $1}'`
-   ccFLAGS="-g"${ccFLAGS#$O}
    #############################
    # Creation du fichier profile
    #############################
@@ -2282,13 +2333,13 @@ LINK_MALIB = $LINK_MALIB" > $tmp
       # Avec icpc l'inlining ne se fait pas avec -pg on le force:
       [ "`basename $TRUST_CC_BASE`" = icpc ] && option_profile=$option_profile" -inline-forceinline"
    fi
-   echo $ECHO_OPTS "1,$ s?$O?-g $option_profile $O?g\nw" | ed $tmp 1>/dev/null 2>&1
+   echo $ECHO_OPTS "1,$ s?-O?-g $option_profile -O?g\nw" | ed $tmp 1>/dev/null 2>&1
    # Pour le link il faut -pg !
    echo $ECHO_OPTS "1,$ s?SYSLIBS =?SYSLIBS = $option_profile?g\nw" | ed $tmp 1>/dev/null 2>&1
 
    suffixe2=$TRUST_ARCH_CC${suffixe#$TRUST_ARCH_CC}"_pg"
    update_file $tmp make.$suffixe2
-   O="-g"
+   #O="-g"
    ##############################
    # Creation du fichier coverage
    ##############################

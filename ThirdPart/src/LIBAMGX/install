@@ -21,7 +21,7 @@ done
 # Fin ToDo
 log=$ROOT/perf_$LIB.log && rm -f $log
 rm -r -f $LIB
-#TRUST_AMGX_COMMIT=4d1bda0016
+#TRUST_AMGX_COMMIT=v2.4.0
 if [ $LIB = AmgX ]
 then
    # Build
@@ -35,6 +35,7 @@ then
       tar cfz $PACKAGE --exclude .git $LIB && echo "Creation du package $PACKAGE"
    else
       commit=4d1bda0016
+      #commit=v2.4.0 # Soucis encore selon version Cuda...
       tar xfz $TRUST_ROOT/externalpackages/AmgX/AmgX_$commit.tar.gz
    fi
    cd $LIB && mkdir -p build && cd build
@@ -52,7 +53,8 @@ then
    $TRUST_MAKE install || exit -1 # Important de faire en 1 fois car sur cluster make install recompile a nouveau apres make !!!
    cp -f ../examples/matrix.mtx $AMGX_DIR/$LIB/lib/examples
    # Install cuSPARSE 11.2 to fix multi-gpu bug for C-AMG if cuda>11.2
-   cusparse=$TRUST_ROOT/externalpackages/AmgX/libcusparse.so.11 && [ -f $cusparse.gz ] && gunzip -c $cusparse.gz > $AMGX_DIR/$LIB/lib/`basename $cusparse`
+   NB_GPUS=`nvidia-smi 2>/dev/null | grep -e Off -e On | wc -l`
+   [ $NB_GPUS != 1 ] && cusparse=$TRUST_ROOT/externalpackages/AmgX/libcusparse.so.11 && [ -f $cusparse.gz ] && gunzip -c $cusparse.gz > $AMGX_DIR/$LIB/lib/`basename $cusparse`
    # Clean:
    cd $ROOT && rm -r -f $LIB
 fi

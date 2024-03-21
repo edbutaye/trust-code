@@ -54,7 +54,6 @@ Equation_base::Equation_base()
   sys_invariant_=1;
   implicite_=-1;
   has_time_factor_= false;
-  champs_compris_.ajoute_nom_compris("volume_maille");
   Nom expr_equation_non_resolue="0";
   equation_non_resolue_.setNbVar(1);
   equation_non_resolue_.setString(expr_equation_non_resolue); // Valeur par defaut, equation resolue
@@ -1073,6 +1072,22 @@ void Equation_base::abortTimeStep()
   if (champ_convecte_.non_nul()) champ_convecte_->abortTimeStep();
 }
 
+/*! @brief Reset current time of the equation. Used from ICoCo.
+ * See documentation of Problem_base::resetTime()
+ */
+void Equation_base::resetTime(double time)
+{
+  if(solveur_masse.non_nul()) solveur_masse->resetTime(time);
+  les_sources.resetTime(time);
+  le_dom_Cl_dis->resetTime(time);
+  for (int i=0; i<nombre_d_operateurs(); i++)
+    operateur(i).l_op_base().resetTime(time);
+  inconnue()->resetTime(time);
+  if (champ_conserve_.non_nul()) champ_conserve_->resetTime(time);
+  if (champ_convecte_.non_nul()) champ_convecte_->resetTime(time);
+}
+
+
 /*! @brief methode virtuelle permettant de corriger l'onconnue lors d'iterations implicites par exemple K-eps doivent rester positifs
  *
  *  les fractions massqiues entre 0 et 1
@@ -1216,14 +1231,6 @@ const Discretisation_base& Equation_base::discretisation() const
 
 void Equation_base::creer_champ(const Motcle& motlu)
 {
-  if (motlu == "volume_maille")
-    {
-      if (!volume_maille.non_nul())
-        {
-          discretisation().volume_maille(schema_temps(),domaine_dis(),volume_maille);
-          champs_compris_.ajoute_champ(volume_maille);
-        }
-    }
 // pour recuperer une equation const !!!!!
 
   const Equation_base& me_const =(*this);
@@ -1255,13 +1262,7 @@ const Champ_base& Equation_base::get_champ(const Motcle& nom) const
 {
   Nom inco_residu (inconnue()->le_nom());
   inco_residu += "_residu";
-  if (nom=="volume_maille")
-    {
-      Champ_Fonc_base& ch_vol_maille=ref_cast_non_const(Champ_Fonc_base,volume_maille.valeur());
-      if (est_different(ch_vol_maille.temps(),inconnue()->temps()))
-        ch_vol_maille.mettre_a_jour(inconnue()->temps());
-    }
-  else if(nom == Motcle(inco_residu))
+  if(nom == Motcle(inco_residu))
     {
       Champ_Fonc_base& ch=ref_cast_non_const(Champ_Fonc_base,field_residu_.valeur());
       double temps_init = schema_temps().temps_init();
@@ -1709,7 +1710,7 @@ void Equation_base::Gradient_conjugue_diff_impl(DoubleTrav& secmem, DoubleTab& s
             aCKN = 0.5;
           precond_diag = param.precoditionnement_diag();
           // Bug fixed : Diagonal preconditionning is fixed with periodic BC (it is OK for a parallel calculation)
-          //if (precond_diag==1 && Process::nproc()>1)
+          //if (precond_diag==1 && Process::is_parallel())
           //  {
           //    Cerr << "Error with the value of preconditionnement_diag option which is set to " << precond_diag << "." << finl;
           //    Cerr << "The diagonal preconditionning is unavailable for a parallel calculation." << finl;
@@ -1731,6 +1732,7 @@ void Equation_base::Gradient_conjugue_diff_impl(DoubleTrav& secmem, DoubleTab& s
       Matrice_Morse_Diag diag;
       if (precond_diag)
         {
+          // ToDo OpenMP or Kokkos precond_diag
           statistiques().begin_count(assemblage_sys_counter_);
           const int nb_case = inconnue().valeurs().dimension_tot(0);
           const int nb_comp = inconnue().valeurs().line_size();
@@ -2193,7 +2195,7 @@ void Equation_base::assembler_blocs(matrices_t matrices, DoubleTab& secmem, cons
   if (!(discretisation().is_polymac_family() || probleme().que_suis_je() == "Pb_Multiphase"))
     {
       const std::string& nom_inco = inconnue().le_nom().getString();
-      Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : NULL;
+      Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : nullptr;
       if(mat) mat->ajouter_multvect(inconnue().valeurs(), secmem);
     }
 }
@@ -2208,7 +2210,7 @@ void Equation_base::assembler_blocs_avec_inertie(matrices_t matrices, DoubleTab&
   if (!discretisation().is_polymac_family())
     {
       const std::string& nom_inco = inconnue().le_nom().getString();
-      Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : NULL;
+      Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : nullptr;
       modifier_pour_Cl(*mat,secmem);
     }
   statistiques().end_count(assemblage_sys_counter_);
@@ -2231,7 +2233,7 @@ void Equation_base::init_champ_conserve() const
 void Equation_base::calculer_champ_conserve(const Objet_U& obj, DoubleTab& val, DoubleTab& bval, tabs_t& deriv)
 {
   const Equation_base& eqn = ref_cast(Equation_base, obj);
-  const Champ_base *coeff = eqn.solv_masse().valeur().has_coefficient_temporel() ? &eqn.get_champ(eqn.solv_masse().valeur().get_name_of_coefficient_temporel()) : NULL; //coeff temporel
+  const Champ_base *coeff = eqn.solv_masse().valeur().has_coefficient_temporel() ? &eqn.get_champ(eqn.solv_masse().valeur().get_name_of_coefficient_temporel()) : nullptr; //coeff temporel
   const Champ_Inc_base& inco = eqn.inconnue();
   ConstDoubleTab_parts part(inco.valeurs());
   //valeur du champ lui-meme

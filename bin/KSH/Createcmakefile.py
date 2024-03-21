@@ -28,7 +28,7 @@ def read_libs_from_makeliba():
     list2=[]
     for L in listL:
         if (L.rfind("$")>-1):
-            list1.append(L.replace('$(','$ENV{').replace(')','}'))
+            list1.append(L.replace('$(','$ENV{').replace(')','}').replace('ENV{OPT','{OPT'))
         else:
             list2.append(L)
             pass
@@ -46,7 +46,11 @@ def read_libs_from_makeliba():
 
 
 def add_library_for_dir(s2):
-    strout="add_library(obj_"+s2+" OBJECT  ${srcs} )\n"
+    import os
+    tgt_nam = f"obj_{s2}"
+    strout = f"add_library({tgt_nam} OBJECT  ${{srcs}} )\n"
+#    if os.environ["TRUST_USE_KOKKOS"]:
+#        strout += f"target_link_libraries({tgt_nam} Kokkos::kokkos )\n"
     strout += "set(listlibs ${listlibs} " +s2 +" PARENT_SCOPE    )\n"
     strout += "add_custom_target(check_sources_"+s2+"   COMMAND check_sources.sh ${CMAKE_CURRENT_SOURCE_DIR} ) #COMMENT  \"checking code validity "+s2+"\" )\n" # MAIN_DEPENDENCY ${file} DEPENDS ${file})\n"
     strout+="add_DEPENDENCIES(obj_"+s2+" check_sources_"+s2+")\n"
@@ -184,9 +188,13 @@ IF(NOT VISUAL)
  set (CMAKE_Fortran_COMPILER $ENV{TRUST_F77})
 ENDIF(NOT VISUAL)
 
+set(TRUST_LINKER "$ENV{TRUST_LINKER}")
+if(NOT TRUST_LINKER STREQUAL "")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=${TRUST_LINKER}")
+endif()
+
+
 project(TRUST)
-
-
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/cmake.deps)
    include(cmake.deps)
@@ -194,6 +202,20 @@ endif()
 
 
 ''')
+#    if os.environ["TRUST_USE_KOKKOS"]:
+#       out.write('''
+#
+#cmake_policy(SET CMP0011 NEW)
+#cmake_policy(SET CMP0012 NEW)
+#cmake_policy(SET CMP0074 NEW)
+#list(APPEND CMAKE_PREFIX_PATH $ENV{TRUST_KOKKOS_ROOT})
+#find_package(Kokkos REQUIRED)
+    #if(Kokkos_ENABLE_CUDA)
+#  kokkos_check(OPTIONS CUDA_LAMBDA)
+#endif()
+#
+    #''')
+
     out.write('set(listdir '+' '.join(listdirorg)+')\n')
     out.write('''
 
@@ -246,8 +268,6 @@ SET (MPI_INCLUDE $ENV{MPI_INCLUDE})
 SET (CUDA_INC_PATH $ENV{CUDA_INC_PATH})
 SET (TRUST_ARCH $ENV{TRUST_ARCH})
 SET (TRUST_ROOT $ENV{TRUST_ROOT})
-# OPT sert a petsc pour l instant
-#SET(OPT $ENV{OPT})
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(OPT "_opt")
 elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -273,8 +293,9 @@ SET (METIS_ROOT $ENV{METIS_ROOT} )
 SET (TRUST_LATAFILTER $ENV{TRUST_LATAFILTER})
 SET (TRUST_ICOCOAPI $ENV{TRUST_ICOCOAPI})
 SET (TRUST_MED_ROOT $ENV{TRUST_MED_ROOT})
+SET (TRUST_CGNS_ROOT $ENV{TRUST_CGNS_ROOT})
 SET (TRUST_MEDCOUPLING_ROOT $ENV{TRUST_MEDCOUPLING_ROOT})
-
+SET (TRUST_KOKKOS_ROOT $ENV{TRUST_KOKKOS_ROOT})
 
 
 #set(COMPIL_DYN FALSE)
@@ -310,6 +331,20 @@ set(EXECUTABLE_OUTPUT_PATH ${TRUST_ROOT}/exec)
 
     out.write('include (${TRUST_ROOT}/env/Cmake.libs)\n')
     out.write('\n')
+    
+    # nvcc_wrapper does not want -std=c++14:
+#    if os.environ["TRUST_USE_KOKKOS"]:
+#        out.write('''
+#cmake_policy(SET CMP0007 NEW)
+#foreach(v DEBUG MINSIZEREL RELEASE PROFIL SEMI_OPT)
+#    set(_tmp_flgs)
+#    string(REPLACE " " ";" flags_list ${CMAKE_CXX_FLAGS_${v}})
+#    list(REMOVE_ITEM flags_list "-std=c++14")
+#    string(REPLACE ";" " " _tmp_flgs "${flags_list}")
+#    set(CMAKE_CXX_FLAGS_${v} ${_tmp_flgs} CACHE STRING "" FORCE)
+#endforeach()
+#''')
+
     out.write('FOREACH (liba ${list_libs})\n')
     out.write('''        set (staticlib lib${liba}.a )
          find_library( lib${liba} NAMES ${staticlib} ${liba} PATHS ${list_path_libs} NO_DEFAULT_PATH )
@@ -342,7 +377,16 @@ ENDIF(NOT VISUAL)
 ''')
     out.write('\n\nSTRING( TOUPPER ${CMAKE_BUILD_TYPE} BUILD_CONFIG)\nstring(STRIP ${CMAKE_EXE_LINKER_FLAGS_${BUILD_CONFIG}} linker_flag )\nSET(syslib ${libs} ${linker_flag} )\n\n')
     out.write('# PL: SYSTEM added to indicate thirdparty includes as system includes to avoid warnings:\n')
-    out.write('include_directories(SYSTEM ${METIS_ROOT}/include ${TRUST_MED_ROOT}/include ${TRUST_MEDCOUPLING_ROOT}/include ${MPI_INCLUDE} ${TRUST_ROOT}/lib/src/LIBAMGX/AmgXWrapper/include ${TRUST_ROOT}/lib/src/LIBAMGX/AmgX/include ${CUDA_INC_PATH} ${PETSC_ROOT}/${TRUST_ARCH}${OPT}/include ${TRUST_ROOT}/lib/src/LIBROCALUTION/include ${TRUST_LATAFILTER}/include ${TRUST_ICOCOAPI}/include ${TRUST_ROOT}/lib/src/LIBOSQP/include ${TRUST_ROOT}/lib/src/LIBVC/include )\n')
+    out.write('include_directories(SYSTEM ${METIS_ROOT}/include \
+    ${TRUST_MED_ROOT}/include ${TRUST_CGNS_ROOT}/include ${TRUST_MEDCOUPLING_ROOT}/include \
+    ${MPI_INCLUDE} ${TRUST_ROOT}/lib/src/LIBAMGX/AmgXWrapper/include \
+    ${TRUST_ROOT}/lib/src/LIBAMGX/AmgX/include ${CUDA_INC_PATH} \
+    ${PETSC_ROOT}/${TRUST_ARCH}${OPT}/include \
+    ${TRUST_ROOT}/lib/src/LIBROCALUTION/include \
+    ${TRUST_LATAFILTER}/include ${TRUST_ICOCOAPI}/include \
+    ${TRUST_ROOT}/lib/src/LIBOSQP/include \
+    ${TRUST_ROOT}/lib/src/LIBVC/include \
+    ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include )\n')
     out.write('add_definitions(${ADD_CPPFLAGS})\n')
 
     out.write('''
@@ -374,8 +418,11 @@ endif(NOT COMPIL_DYN)
  # on ne produit pas d executable en mode partiel
  IF((  "${ajout}" STREQUAL "" ) OR ($ENV{FORCE_LINK}))
    add_executable (${trio} MAIN/the_main.cpp MAIN/mon_main.cpp ${special_srcs}  )
-   include_directories(Kernel/Utilitaires MAIN Kernel/Math)
+   include_directories(Kernel/Utilitaires MAIN Kernel/Math Kernel/Framework)
    target_link_libraries(${trio} ${libtrio} ${syslib})
+#   if($ENV{TRUST_USE_KOKKOS})
+#     target_link_libraries(${trio} Kokkos::kokkos)
+#   endif()
    install (TARGETS ${trio} DESTINATION exec)
 
 
@@ -392,6 +439,7 @@ string(FIND ${f} /  ii  REVERSE )
 string(SUBSTRING ${l2} ${ii} -1 l3 )
 string(SUBSTRING ${l3} 1 -1 l3 )
 ADD_TEST(NAME ${l3} COMMAND trust -exe $<TARGET_FILE:${trio}> -check ${l3}  )
+set_property(TEST ${l3}  PROPERTY SKIP_RETURN_CODE 200 )
 endforeach(f )
 
  ENDIF()
@@ -576,6 +624,7 @@ string(FIND ${f} /  ii  REVERSE )
 string(SUBSTRING ${l2} ${ii} -1 l3 )
 string(SUBSTRING ${l3} 1 -1 l3 )
 ADD_TEST(NAME ${l3} COMMAND trust -exe $<TARGET_FILE:exe> -check ${l3}  )
+set_property(TEST ${l3}  PROPERTY SKIP_RETURN_CODE 200 )
 endforeach(f )
 ''')
         out.close()

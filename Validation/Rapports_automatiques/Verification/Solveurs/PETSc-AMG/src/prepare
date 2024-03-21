@@ -1,0 +1,20 @@
+#!/bin/bash
+gunzip -c $TRUST_ROOT/tests/Reference/Collecteur/collecteur_chaud.geom.gz > collecteur_chaud.geom
+cpu=4
+make_PAR.data base.data $cpu
+liste_cas=""
+libs=petsc && [ "$TRUST_USE_CUDA" = 1 ] && libs="petsc amgx"
+pcs="ssor c-amg sa-amg ua-amg boomeramg"
+for pc in $pcs
+do
+   for lib in $libs
+   do
+      cas=$lib"_"gcp_$pc
+      liste_cas=$liste_cas" "$cas
+      jdd=$cas.data
+      cp PAR_base.data $jdd 
+      sed -i "1,$ s?petsc?$lib?" $jdd
+      sed -i "1,$ s?precond ssor?precond $pc?" $jdd
+   done
+done
+exit 0

@@ -85,29 +85,36 @@ class Write_notebook:
             minifigure=1
             pass
         title = ""
-        if (figure.titre!="Undefined"):
-            title = "### " + chaine2Tex(figure.titre) + "\n \n "
+        #if (figure.titre!="Undefined"):
+        #    title = "### " + chaine2Tex(figure.titre) + "\n \n "
     
         # TODO voir pour minifigure et markers avec style + options linewidth...
 
         if len(figure.description)!=0: title += self.write_description(figure.description)
         
         #figure.printFichierParametres()
-        if len(figure.listeCourbes)>0:  
+        if len(figure.listeCourbes)>0:
             code = "from trustutils import plot \n \n"
-            titre=""
-            if (figure.titre_figure!='Undefined'):
+            titre = ""
+            if (figure.titre_figure!='Undefined' and len(figure.titre_figure)>0):
                 titre=figure.titre_figure
-            elif (figure.titre!='Undefined'):
+            elif (figure.titre!='Undefined' and len(figure.titre)>0):
                 titre=figure.titre
-            code += "fig = plot.Graph(r\"" + chaine2Tex(titre) + "\") \n"
+            if len(titre) == 0 :
+                code += "fig = plot.Graph() \n"
+            else:
+                code += "fig = plot.Graph(r\"" + chaine2Tex(titre) + "\") \n"
+
             for courbe in figure.listeCourbes:
                 style = ""
-                if courbe.style!="Undefined":
-                    if courbe.style=="points":
-                        style = ",marker='+'"
-                    if courbe.style =="linespoints":
-                        style = ",marker='-x'"
+                if courbe.style=="Undefined":
+                    style = ",marker='+'"
+                elif courbe.style=="points":
+                    style = ",marker='+'"
+                elif courbe.style =="linespoints":
+                    style = ",marker='-x'"
+                elif courbe.style =="lines":
+                    style = ",marker='-'"
                 if (courbe.points!='Undefined'):
                     param = courbe.segment.split()
                     ficSon = get_nom_cas(param[0]) + '_' + (param[1]).upper() + '.son'
@@ -133,9 +140,9 @@ class Write_notebook:
                             colonnes = formule.split()
                             xdata = colonnes[0]
                             ydata = colonnes[1]
-                            code += "fig.add(%s,%s,marker=\"x\",label=r\"%s\""%(xdata,ydata,chaine2Tex(courbe.legende)) + style + ")\n" #TODO Attention ne permet pas l'existence d'espace dans la formule
+                            code += "fig.add(%s,%s,label=r\"%s\""%(xdata,ydata,chaine2Tex(courbe.legende)) + style + ")\n" #TODO Attention ne permet pas l'existence d'espace dans la formule
                         else:
-                            code += "fig.add(data[0],data[1],marker=\"x\",label=r\"%s\""%(chaine2Tex(courbe.legende)) + style + ")\n" #TODO Attention ne permet pas l'existence d'espace dans la formule
+                            code += "fig.add(data[0],data[1],label=r\"%s\""%(chaine2Tex(courbe.legende)) + style + ")\n" #TODO Attention ne permet pas l'existence d'espace dans la formule
                         
                     else:
                         code += "\nimport numpy as np \n"
@@ -171,7 +178,8 @@ class Write_notebook:
                     code += "\nfig.scale('log','log')\n"
                 pass
 
-            self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
+            if len(title)>0 :
+                self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
             self.nb['cells'] += [nbf.v4.new_code_cell(code)]
         else:
             #motcle picture/image
@@ -184,10 +192,15 @@ class Write_notebook:
     def inclureVisuNotebook(self,maitre,visu):
         '''Inclusion de la visu dans le fichier latex du rapport de validation.'''
         code = "from trustutils import visit\n \n"
-        title = "### " + chaine2Tex(visu.titre) + "\n \n "
+        title = ""
+        if visu.titre != "Undefined":
+            title = "### " + chaine2Tex(visu.titre) + "\n \n "
         minifigure=self.minifigure_avt
         #TODO minifigure
-        if len(visu.description)!=0: title += self.write_description(visu.description)
+        if len(visu.description) != 0:
+            title += self.write_description(visu.description)
+        if len(title) != 0:
+            self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
         #visu.printFichierParametres()
         show = 0
         code0 = ""
@@ -222,10 +235,11 @@ class Write_notebook:
                     code1 += "visu.visuOptions([\"%s\"])\n"%plot[1]
             if (plot[0].lower()=='instruction_visit'):
                 code1 += "visu.executeVisitCmds(%s)\n"%plot[1]
+        if len(visu.cycles) != 0:
+            code1 += "visu.iteration(%s )\n"%(visu.cycles)
         code += code0 + code1 + "visu.plot()"
                 
-        self.nb['cells'] += [nbf.v4.new_markdown_cell(title),
-                nbf.v4.new_code_cell(code)]
+        self.nb['cells'] += [nbf.v4.new_code_cell(code)]
         pass
     def inclureTableauNotebook(self,maitre,tableau):
         '''Inclusion du tableau dans le fichier latex du rapport de validation.'''
@@ -234,9 +248,10 @@ class Write_notebook:
         title = ""
         if (tableau.titre!="Undefined"):
             title += "### "+ chaine2Tex(tableau.titre) + "\n \n "
-        if (len(tableau.description)!=0): title += self.write_description(tableau.description)
-
-        self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
+        if (len(tableau.description)!=0):
+            title += self.write_description(tableau.description)
+        if (len(title) != 0):
+            self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
 
         if len(tableau.listeLignes)==0: return
 
@@ -342,10 +357,14 @@ class Write_notebook:
 #
     def inclureChapitre(self,maitre,chapitre):
         '''Inclusion du chapitre dans le notebook.'''
-        title = "## " + chaine2Tex(chapitre.titre) + "\n \n"
-        if len(chapitre.description)!=0: title += self.write_description(chapitre.description)
+        title = ""
+        if chapitre.titre != "Undefined":
+            title = "## " + chaine2Tex(chapitre.titre) + "\n \n"
+        if len(chapitre.description)!=0 :
+            title += self.write_description(chapitre.description)
         iter = 0
-        self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
+        if len(title) != 0:
+            self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
 
         #ajout des figures
         for figure in chapitre.listeFigures:
@@ -358,7 +377,7 @@ class Write_notebook:
         from SousChapitre import SousChapitre
         fin = False
 
-        if sousChapitre.titre!='Undefined':
+        if sousChapitre.titre != 'Undefined':
             title = "### %s \n" % chaine2Tex(sousChapitre.titre)
             self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
 #
@@ -532,8 +551,6 @@ class Write_notebook:
     def include_data(self,maitre):
         if maitre.inclureData>0:
             first=1
-            title = "## Data Files"
-            self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
             
             for cas in maitre.casTest:
                 from lib import get_detail_cas
@@ -544,11 +561,13 @@ class Write_notebook:
                 if ((maitre.inclureData==1) or ((maitre.inclureData==2) and (comment!="") )) :
                     if (first):
                         first=0
-                        subtitle = "### %s" % (chaine2Tex(nomcas))
-                        self.nb['cells'] += [nbf.v4.new_markdown_cell(subtitle)]
-                        code = "run.dumpDataset(\"%s\")"%ficData
-                        self.nb['cells'] += [nbf.v4.new_code_cell(code)]
+                        title = "## Data Files"
+                        self.nb['cells'] += [nbf.v4.new_markdown_cell(title)]
                         pass
+                    subtitle = "### %s" % (chaine2Tex(nomcas))
+                    self.nb['cells'] += [nbf.v4.new_markdown_cell(subtitle)]
+                    code = "run.dumpDatasetMD(\"%s\")"%ficData
+                    self.nb['cells'] += [nbf.v4.new_code_cell(code)]
                     pass
                 pass
             pass
@@ -590,6 +609,7 @@ class Write_notebook:
 
         date = time.strftime('%d/%m/%Y')
         
+        self.nb.metadata = { "title": maitre.titre[1:-1] }
         intro = "## Introduction\n \n Validation made by: " + chaine2Tex(maitre.auteur) + "\n \n"
         intro += " Report generated " + chaine2Tex(date)
         

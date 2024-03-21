@@ -231,7 +231,7 @@ then
    # env_src/make.all_includes.TRUST pour les includes aussi
    LIBAMGX="" && [ "$TRUST_USE_CUDA" = 1 ] && LIBAMGX=LIBAMGX
    LIBROCALUTION="" && [ "$TRUST_ROCALUTION" = $TRUST_ROOT/lib/src/LIBROCALUTION ] && LIBROCALUTION=LIBROCALUTION
-   reps="LIBMFFT LIBMFFT_C LIBSKIT LIBLATAFILTER LIBICOCOAPI $LIBMETIS `[ ${#TRUST_BLAS_LAPACK} = 0 ] && echo LIBLAPACK` LIBMED LIBMEDCOUPLING  `[ "$TRUST_DISABLE_PETSC" = 0 ] && echo LIBPETSC` $LIBAMGX $LIBROCALUTION LIBOSQP `[ "$TRUST_DISABLE_VC" != 1 ] && echo LIBVC`"
+   reps="LIBMFFT LIBMFFT_C LIBSKIT LIBKOKKOS LIBLATAFILTER LIBICOCOAPI $LIBMETIS `[ ${#TRUST_BLAS_LAPACK} = 0 ] && echo LIBLAPACK` LIBMED LIBMEDCOUPLING  `[ "$TRUST_DISABLE_PETSC" = 0 ] && echo LIBPETSC` $LIBAMGX $LIBROCALUTION LIBOSQP `[ "$TRUST_DISABLE_VC" != 1 ] && echo LIBVC` `[ "$TRUST_DISABLE_CGNS" != 1 ] && echo LIBCGNS`"
    time=`date "+%s"`
    for rep in $reps
    do
@@ -267,6 +267,25 @@ then
    #fi
 fi
 echo>>$COMPILE
+
+######
+# CGNS
+######
+if [ "$TRUST_DISABLE_CGNS" = 1 ]
+then
+   if [ -d "$TRUST_CGNS_ROOT/include" ]
+   then
+      echo "#undef HAS_CGNS" > $TRUST_TMP/cgns++.h.tmp
+      [ "`diff $TRUST_CGNS_ROOT/include/cgns++.h $TRUST_TMP/cgns++.h.tmp 1>/dev/null 2>/dev/null; echo $?`" != 0 ] && rm -rf $TRUST_CGNS_ROOT/* && mkdir -p $TRUST_CGNS_ROOT/include && cp $TRUST_TMP/cgns++.h.tmp $TRUST_CGNS_ROOT/include/cgns++.h
+      rm $TRUST_TMP/cgns++.h.tmp
+   else
+     mkdir -p $TRUST_CGNS_ROOT/include
+     echo "#undef HAS_CGNS" > $TRUST_CGNS_ROOT/include/cgns++.h
+   fi
+
+   # if execs ..
+   rm -rf $TRUST_ROOT/exec/cgns*
+fi
 
 #####
 # EOS
@@ -654,7 +673,7 @@ then
          then
             export OPT="" && export METIS_ROOT=$PETSC_ROOT/$TRUST_ARCH$OPT
          else
-            export OPT="_opt"
+            export OPT="_opt" && [ "$build_type" = "Debug" ] && OPT=""
             [ "$TRUST_DISABLE_PETSC" != 1 ] && export METIS_ROOT=$PETSC_ROOT/$TRUST_ARCH$OPT
          fi
 
@@ -691,10 +710,6 @@ then
    [ $compile_opt -eq 0 ] && echo "No opt compilation, so stop"  | tee -a $COMPILE && exit 0
    echo >>$COMPILE
 fi
-#
-# Pour HP et realiser un executable share lib portable (SHLIB_PATH) :
-#
-[ ${TRUST_ARCH#HPPA} != $TRUST_ARCH ] && [ -f $TRUST_ROOT/exec/TRUST$COMM$OPT ] && chatr -B immediate -B nonfatal +s enable $TRUST_ROOT/exec/TRUST$COMM$OPT 1>/dev/null
 
 ############################
 # Creation des outils TRUST

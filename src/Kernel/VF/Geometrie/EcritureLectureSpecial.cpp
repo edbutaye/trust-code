@@ -196,7 +196,7 @@ int ecrit(Sortie& fich, const ArrOfBit& items_to_write, const DoubleTab& pos, co
                   fich.put(tmp.addr(), j, dim + nb_comp /* nb colonnes en ascii */);
                   // On flushe regulierement en sequentiel car sur certains tres gros maillages
                   // stack overflow possible...
-                  if (Process::nproc()==1) fich.syncfile();
+                  if (Process::is_sequential()) fich.syncfile();
                   j = 0;
                 }
             }
@@ -220,7 +220,7 @@ static int ecriture_special_part2(const Domaine_VF& zvf, Sortie& fich, const Dou
     {
       // Champs p1bulles et autres: appel recursif pour les differents sous-tableaux:
       ConstDoubleTab_parts parts(val);
-      int n = zvf.que_suis_je() == "Domaine_PolyMAC_P0P1NC" || zvf.que_suis_je() == "Domaine_PolyMAC_P0" ? 1 : parts.size();//on saute les variables auxiliaires de Champ_{P0,Face}_PolyMAC_P0P1NC
+      int n = zvf.que_suis_je() == "Domaine_PolyMAC_P0" ? 1 : parts.size();//on saute les variables auxiliaires de Champ_{P0,Face}_PolyMAC_P0
       for (int i = 0; i < n; i++)
         bytes += ecriture_special_part2(zvf, fich, parts[i]);
     }
@@ -691,11 +691,11 @@ Nom& EcritureLectureSpecial::get_Output()
   static Nom option=Output;
 
   // disable MPIIO in sequential mode
-  if (Output=="EcrFicPartageMPIIO" && Process::nproc()==1) option="EcrFicPartageBin";
+  if (Output=="EcrFicPartageMPIIO" && Process::is_sequential()) option="EcrFicPartageBin";
 
   // disable MPIIO if TRUST_DISABLE_MPIIO=1
   char* theValue = getenv("TRUST_DISABLE_MPIIO");
-  if (theValue != NULL)
+  if (theValue != nullptr)
     {
       if (option=="EcrFicPartageMPIIO" && strcmp(theValue,"1")==0) option="EcrFicPartageBin";
     }

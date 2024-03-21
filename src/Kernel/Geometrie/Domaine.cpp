@@ -36,7 +36,7 @@
 #include <Conds_lim.h>
 #include <NettoieNoeuds.h>
 #include <Polyedre.h>
-#include <trust_med_utils.h>
+#include <TRUST_2_MED.h>
 
 #ifdef MEDCOUPLING_
 using MEDCoupling::DataArrayInt;
@@ -216,7 +216,7 @@ Entree& Domaine::readOn(Entree& s)
   read_former_domaine(s);
   check_domaine();
 
-  if ( (Process::nproc()==1) && (NettoieNoeuds::NettoiePasNoeuds==0) )
+  if (Process::is_sequential() && (NettoieNoeuds::NettoiePasNoeuds==0) )
     {
       NettoieNoeuds::nettoie(*this);
       nbsom = mp_sum(sommets_.dimension(0));
@@ -274,7 +274,7 @@ void Domaine::check_domaine()
       corriger_type(frontiere(i).faces(), type_elem().valeur());
   }
 
-  if (mes_faces_bord_.size() == 0 && mes_faces_raccord_.size() == 0 && Process::nproc() == 1)
+  if (mes_faces_bord_.size() == 0 && mes_faces_raccord_.size() == 0 && Process::is_sequential())
     Cerr << "Warning, the reread domaine " << nom_ << " has no defined boundaries (none boundary or connector)." << finl;
 
   mes_faces_bord_.associer_domaine(*this);
@@ -428,10 +428,10 @@ ArrOfInt& Domaine::chercher_elements(const DoubleTab& positions, ArrOfInt& eleme
   // resize_tab est virtuelle, si c'est un Vect ou un Tab elle appelle le
   // resize de la classe derivee:
   elements.resize_tab(sz, ArrOfInt::NOCOPY_NOINIT);
-  double x, y = 0, z = 0;
+  double y = 0, z = 0;
   for (int i = 0; i < sz; i++)
     {
-      x = positions(i, 0);
+      double x = positions(i, 0);
       if (dim > 1)
         y = positions(i, 1);
       if (dim > 2)
@@ -442,24 +442,26 @@ ArrOfInt& Domaine::chercher_elements(const DoubleTab& positions, ArrOfInt& eleme
     {
       // Securite car vu sur un calcul FT (cache qui augmente indefiniment, nombre de particules variables...)
       if (cached_memory>1e8) // 100Mo/proc
-        // Vide le cache
-        cached_elements_.reset();
-      cached_positions_.reset();
-    }
-  else
-    {
-      // Met en cache
-      cached_positions_.add(positions);
-      cached_elements_.add(elements);
-      cached_memory += positions.size_array() * (int) sizeof(double);
-      cached_memory += elements.size_array() * (int) sizeof(int);
-      if (cached_memory > 1e7)   // 10Mo
         {
-          Cerr << 2 * cached_positions_.size() << " arrays cached in memory for Zone::chercher_elements(...): ";
-          if (cached_memory < 1e6)
-            Cerr << int(cached_memory / 1024) << " KBytes" << finl;
-          else
-            Cerr << int(cached_memory / 1024 / 1024) << " MBytes" << finl;
+          // Vide le cache
+          cached_elements_.reset();
+          cached_positions_.reset();
+        }
+      else
+        {
+          // Met en cache
+          cached_positions_.add(positions);
+          cached_elements_.add(elements);
+          cached_memory += positions.size_array() * (int) sizeof(double);
+          cached_memory += elements.size_array() * (int) sizeof(int);
+          if (cached_memory > 1e7)   // 10Mo
+            {
+              Cerr << 2 * cached_positions_.size() << " arrays cached in memory for Zone::chercher_elements(...): ";
+              if (cached_memory < 1e6)
+                Cerr << int(cached_memory / 1024) << " KBytes" << finl;
+              else
+                Cerr << int(cached_memory / 1024 / 1024) << " MBytes" << finl;
+            }
         }
     }
   return elements;
@@ -1075,7 +1077,7 @@ void Domaine::merge_wo_vertices_with(Domaine& dom2)
 void Domaine::fill_from_list(std::list<Domaine*>& lst)
 {
   Cerr << "Filling domain from list of domains in progress... " << finl;
-  if (Process::nproc() > 1)
+  if (Process::is_parallel())
     Process::exit("Error in Domaine::fill_from_list() : compression prohibited in parallel mode");
   if (lst.size() == 0)
     Process::exit("Error in Domaine::fill_from_list() : compression prohibited in parallel mode");
@@ -2271,14 +2273,11 @@ void Domaine::imprimer() const
 }
 
 /*! @brief Build the MEDCoupling mesh corresponding to the TRUST mesh.
- *
- * Not necessary when the domain was read from a MED file
  */
 void Domaine::build_mc_mesh() const
 {
 #ifdef MEDCOUPLING_
-  // This method should not be called if MC mesh was already filled when reading domain from MED
-  assert(mc_mesh_.isNull());
+  Cerr << "   Domaine: Creating a MEDCouplingUMesh object for the domain '" << le_nom() << "'" << finl;
 
   // Initialize mesh
   Nom type_ele = elem_->que_suis_je();
@@ -2354,6 +2353,8 @@ void Domaine::build_mc_mesh() const
         }
     }
 
+  mc_mesh_ready_ = true;
+
 #endif
 }
 
@@ -2419,7 +2420,7 @@ void Domaine::build_mc_face_mesh(const Domaine_dis_base& domaine_dis_base) const
   mc_face_mesh_->checkConsistency();
 #endif
   mP->decrRef();
-#endif
+#endif // MEDCOUPLING_
 }
 
 /*! @brief Initialize the renumerotation array for periodicity
@@ -2436,11 +2437,16 @@ void Domaine::init_renum_perio()
 void Domaine::prepare_rmp_with(Domaine& other_domain)
 {
 #ifdef MEDCOUPLING_
-  if (get_mc_mesh() == nullptr) build_mc_mesh();
-  if (other_domain.get_mc_mesh() == nullptr) other_domain.build_mc_mesh();
+  using namespace MEDCoupling;
 
-  Cerr << "Building remapper between " << le_nom() << " (" << (int)mc_mesh_->getSpaceDimension() << "D) mesh with " << (int)mc_mesh_->getNumberOfCells() << " cells and " << other_domain.le_nom() << " (" << (int)other_domain.get_mc_mesh()->getSpaceDimension() << "D) mesh with " << (int)other_domain.get_mc_mesh()->getNumberOfCells() << " cells" << finl;
-  rmps[&other_domain].prepare(other_domain.get_mc_mesh(), get_mc_mesh(), "P0P0");
+  // Retrieve mesh upfront to possibly build them if they were not already:
+  get_mc_mesh();
+  const MEDCouplingUMesh* oth_msh = other_domain.get_mc_mesh();
+
+  Cerr << "Building remapper between " << le_nom() << " (" << (int)mc_mesh_->getSpaceDimension() << "D) mesh with " << (int)mc_mesh_->getNumberOfCells()
+       << " cells and " << other_domain.le_nom() << " (" << (int)other_domain.get_mc_mesh()->getSpaceDimension() << "D) mesh with "
+       << (int)other_domain.get_mc_mesh()->getNumberOfCells() << " cells" << finl;
+  rmps[&other_domain].prepare(oth_msh, mc_mesh_, "P0P0");
   Cerr << "remapper prepared with " << rmps.at(&other_domain).getNumberOfColsOfMatrix() << " columns in matrix, with max value = " << rmps.at(&other_domain).getMaxValueInCrudeMatrix() << finl;
 #else
   Process::exit("Domaine::prepare_rmp_with should not be called since it requires a TRUST version compiled with MEDCoupling !");

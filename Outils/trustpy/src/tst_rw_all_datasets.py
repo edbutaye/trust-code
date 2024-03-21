@@ -17,51 +17,32 @@ import trustpy.trust_utilities as TRUU
 import trustpy.baseTru as BTRU
 from trustpy.unittest_custom_methods_trust import UnittestCustomMethodsTrust
 
+from tst_rw_one_dataset import SingleTest
+
 class TestCase(unittest.TestCase, UnittestCustomMethodsTrust):
     # Static variable - set in main() below:
     MODULE_NAME = None
 
+    # Make single_test part of this class too:
+    single_test = SingleTest.single_test
+
     def get_all_data_names(self):
         """ Retrieve all .data file names from the places where we find a .lml.gz file """
         import glob
-        trust_root = os.environ.get("TRUST_ROOT", None)
-        if trust_root is None:
+        tr = os.environ.get("TRUST_ROOT", None)
+        pd = os.environ.get("project_directory", None)
+        trustpy_from_trust = os.environ.get("TRUSTPY_FROM_TRUST", None)
+        if tr is None:
           raise Exception("TRUST_ROOT not defined! Have you sourced TRUST?")
-        tst_dir = os.path.join(trust_root, "tests")
+        if not pd is None and trustpy_from_trust is None: # Baltik!
+          tst_dir = os.path.join(pd, "build", "tests", "all")
+        else:
+          tst_dir = os.path.join(tr, "tests")
         # Find all datasets:
         pattern = os.path.abspath(os.path.join(tst_dir, "**/*.lml.gz"))
         g = glob.glob(pattern, recursive=True)
         TRUU.log_info("Number of test cases found: %d" % len(g))
         return g
-
-    def single_test(self, lml_nam):
-        """ Test a single data set """
-        from trustpy.trust_parser import TRUSTParser, TRUSTStream
-        import xyzpy.classFactoryXyz as CLFX
-
-        # Extract dir name, and build dataset file name
-        d = os.path.dirname(lml_nam)
-        bas = os.path.split(d)[-1]
-        data_nam = os.path.join(d, bas + ".data")
-        with open(data_nam) as f:
-            data_ex = f.read()
-        try:
-            # Parse the TRUST data set provided in arg
-            tp = TRUSTParser()
-            tp.tokenize(data_ex)
-            stream = TRUSTStream(parser=tp, file_nam=data_nam)
-            # Load it into the data model
-            tds_cls = CLFX.getXyzClassFromName("DataSet" + BTRU._TRIOU_SUFFIX)
-            ds = tds_cls.ReadFromTokens(stream)
-            # Test write out:
-            s = ''.join(ds.toDatasetTokens())
-            data_ex_p = self.prune_after_end(data_ex)
-            self.assertTrue(self.check_str_equality(s, data_ex_p).ok)
-            return True
-        except Exception as e:
-            print(e)
-            TRUU.log_error(f"   Dataset KO: {data_nam}\n\n\n\n\n")
-            return False
 
     def test_all(self):
         """ Test all TRUST data files! """
@@ -91,4 +72,3 @@ if __name__ == "__main__":
         sys.exit(-1)
     TestCase.MODULE_NAME = mod
     unittest.main()
-

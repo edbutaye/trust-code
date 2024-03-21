@@ -89,7 +89,8 @@ def _runCommand(cmd, verbose):
     if it fails.
     """
     # Run by redirecting stderr to stdout
-    complProc = subprocess.run(cmd, shell=True, executable="/bin/bash", stderr=subprocess.STDOUT)
+    # add universal_newlines as in https://stackoverflow.com/questions/41171791/how-to-suppress-or-capture-the-output-of-subprocess-run
+    complProc = subprocess.run(cmd, shell=True, executable="/bin/bash", stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines = True)
     if verbose:
         print(cmd)
         print(complProc.stdout)
@@ -318,7 +319,7 @@ class TRUSTCase(object):
         """
 
         f = open(self._fullPath(), "r").read()
-        displayMD( "```" + f + "```" )
+        displayMD( "```\n" + f + "\n```" )
 
     def _runScript(self, scriptName, verbose=False):
         """ Internal. Run a shell script if it exists.
@@ -635,6 +636,8 @@ class TRUSTSuite(object):
                     if not allOK:
                         print(err_msg % (case.dir_, case.name_))
                         print(case.last_run_err_)
+                        raise ValueError ("at least one case has failed ! open notebook to get more information ")
+
                 except Exception as e:
                     os.chdir(ORIGIN_DIRECTORY)  # Restore initial directory
                     raise e

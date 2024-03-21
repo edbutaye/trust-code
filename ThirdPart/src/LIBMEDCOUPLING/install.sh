@@ -66,7 +66,8 @@ then
    MPICH_CXX=$OMPI_CXX
    MPICH_CC=$OMPI_CC
 fi
-export CXXFLAGS=-Wno-narrowing
+# -Wno-sign-conversion for intel oneAPI 2023, otherwise medcoupling build fails
+export CXXFLAGS="-Wno-narrowing -Wno-sign-conversion"
 if [[ $USE_PYTHON == ON && $(uname -s) == "Darwin" ]]
 then
    export CXXFLAGS="$CXXFLAGS -I${TRUST_ROOT}/exec/python/include/python3.8"
@@ -79,6 +80,12 @@ cd - 1>/dev/null 2>&1
 # Patch for conformize3d (applique dans MC 9.12)
 #echo "Applying patch for conformize3d ..."
 #(cd ../$src_dir; patch -p1 < ${TRUST_ROOT}/ThirdPart/src/LIBMEDCOUPLING/mc_conf3d.patch)
+# Patch for OverlapDEC
+echo "Applying patch for OverlapDEC ..."
+(cd ../$src_dir; patch -p1 < ${TRUST_ROOT}/ThirdPart/src/LIBMEDCOUPLING/odec_multi_compo.patch)
+# Patch for tetra intersections 
+echo "Applying patch for tetra intersect ..."
+(cd ../$src_dir; patch -p1 -f < ${TRUST_ROOT}/ThirdPart/src/LIBMEDCOUPLING/tetra_mc.patch)
 
 # Better detection of SWIG on Ubuntu 16
 SWIG_EXECUTABLE=`type -p swig`
@@ -98,7 +105,11 @@ fi
 
 echo "About to execute CMake -- options are: $OPTIONS"
 echo "Current directory is : `pwd`"
-cmake ../$src_dir $OPTIONS -DCMAKE_INSTALL_PREFIX=$install_dir -DCMAKE_BUILD_TYPE=Release
+rel_type=Release
+if [ "$TRUST_DEBUG_MC" = "1" ]; then
+   rel_type=Debug
+fi
+cmake ../$src_dir $OPTIONS -DCMAKE_INSTALL_PREFIX=$install_dir -DCMAKE_BUILD_TYPE=$rel_type
 
 # The current CMake of MEDCoupling is badly written: dependencies on .pyc generation do not properly capture SWIG generated Python modules.
 # So we need to do make twice ...
@@ -136,7 +147,7 @@ then
      then
         echo "medcoupling library OK"
     # Clean build folder
-    cd .. ; rm -rf configuration* medcoupling*
+    cd .. ; [ "$TRUST_DEBUG_MC" != "1" ] && rm -rf configuration* medcoupling*
      else
         echo "medcoupling library KO"
         exit -1
@@ -158,6 +169,6 @@ fi
 mv $MC_ENV_FILE_tmp $MC_ENV_FILE
 
 # patch MEDCouplingConfig.cmake to not have absolute paths for MED and HDF5 inside it
-sed -i "s@$TRUST_ROOT@\${PACKAGE_PREFIX_DIR}/../../..@g" $install_dir/cmake_files/MEDCouplingConfig.cmake
+sed -i "s@$TRUST_ROOT@\${PACKAGE_PREFIX_DIR}/../../../..@g" $install_dir/cmake_files/MEDCouplingConfig.cmake
 
 echo "All done!"

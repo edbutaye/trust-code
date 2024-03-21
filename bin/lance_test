@@ -577,6 +577,7 @@ using_ctest=0
 if [ "$1" = -ctest ]
 then
    using_ctest=1
+   export TRUST_USE_CTEST=1
    shift
 fi
 #export nomail=0 // On commente pour pouvoir faire par exemple: nomail=1 trust -check ....
@@ -907,6 +908,13 @@ then
 	   liste_skipped=$liste_skipped" $i"
 	   i=""
 	fi
+	# Discard sensitive test case with OpenMP #
+	if [ "$TRUST_USE_OPENMP" = 1 ] && [ "`grep -i " ecarts #" $file 2>/dev/null`" != "" ]
+	then
+	   echo "Sensitive test $i is skipped (Not supported with OpenMP)"
+	   liste_skipped=$liste_skipped" $i"
+	   i=""
+	fi	
 	# Discard test case from Valgrind #
 	if [ "$VALGRIND" = 1 ]
 	then
@@ -1054,6 +1062,11 @@ then
 	i=""
 	fi
 	[ $choix != "0" ] && [ ${choix#P_} = $choix ] && [ $choix != $k ] && [ $choix != "M" ] && i=""
+	if [ ${#i} = 0 ] && [ "$TRUST_USE_CTEST" = 1 ]
+	then
+	   echo "test skipped"
+	   exit 200
+	fi
 	if [ ${#i} != 0 ]
 	then
 	    let tests=$tests+1
@@ -1124,19 +1137,17 @@ then
 		if [ "`grep -E 'BEGIN PARTITION|DEBUT DECOUPAGE' $NOM.data`" = "" ]
 		then
 		    echo " File $NOM.data not ready to check parallelism !"
-		    DEC=0
+		    export DEC=0
 		else
-		    DEC=1
+		    export DEC=1
 		    let tests_par=$tests_par+1
 		    ###############################
 		    # preparation pour le parallele
 		    ###############################
 		    # Cree les fichiers DEC..data et PAR..data
-		    # Provisoire car bug ?
-		    # NB_CPUS=2
-		    NB_CPUS_SA=$NB_CPUS
 		    echo $ECHO_OPTS "Partitioning for parallel calculation...\c"
-		    . make_PAR.data $NOM $NB_CPUS
+		    make_PAR.data $NOM $NB_CPUS
+		    NB_CPUS=$?
 		    # Solveur direct Cholesky n'est pas parallelise mais remplace par GCP pour le test de comparaison sequentiel-parallele
 		    # => le script make_PAR.data modifie les jdd SEQ_$NOM.data et PAR_$NOM.data
 		    # Or ici le script lance_test lance les jdd $NOM.data et PAR_$NOM.data puis compare leurs resultats
@@ -1170,7 +1181,6 @@ then
 		else
 		    # lancement parallele
 		    eval $EP &
-		    NB_CPUS=$NP_CPUS_SA
 		    process_pere=$!
 		fi
 		if [ $exterm = 0 ]

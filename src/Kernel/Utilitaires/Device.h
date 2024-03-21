@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -19,6 +19,7 @@
 #include <Array_base.h>
 #include <Nom.h>
 #include <stat_counters.h>
+#include <kokkos++.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -45,13 +46,17 @@ inline void start_timer(int bytes=-1)
 }
 inline void end_timer(int onDevice, const std::string& str, int bytes=-1) // Return in [ms]
 {
+  Kokkos::fence();
+#ifdef TRUST_USE_UVM
+  cudaDeviceSynchronize();
+#endif
 #ifdef _OPENMP
   if (init_openmp_)
     {
       if (bytes == -1) statistiques().end_count(gpu_kernel_counter_, 0, onDevice);
       if (clock_on) // Affichage
         {
-          std::string clock(Process::nproc() > 1 ? "[clock]#" + std::to_string(Process::me()) : "[clock]  ");
+          std::string clock(Process::is_parallel() ? "[clock]#" + std::to_string(Process::me()) : "[clock]  ");
           double ms = 1000 * (Statistiques::get_time_now() - clock_start);
           if (bytes == -1)
             if (onDevice)
@@ -72,6 +77,14 @@ inline void end_timer(int onDevice, const std::string& str, int bytes=-1) // Ret
         }
     }
 #endif
+}
+template <typename _TYPE_>
+extern _TYPE_* addrOnDevice(TRUSTArray<_TYPE_>& tab);
+
+template <typename _TYPE_>
+inline const _TYPE_* addrOnDevice(const TRUSTArray<_TYPE_>& tab)
+{
+  return addrOnDevice(const_cast<TRUSTArray<_TYPE_>&>(tab));
 }
 
 template <typename _TYPE_>
@@ -107,7 +120,7 @@ bool isAllocatedOnDevice(TRUSTArray<_TYPE_>& tab)
 {
 #ifdef _OPENMP
   if (omp_get_default_device()==0)
-    return isAllocatedOnDevice(tab.addrForDevice());
+    return isAllocatedOnDevice(tab.data());
   else
 #endif
     return tab.get_dataLocation()!=HostOnly;

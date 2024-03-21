@@ -15,16 +15,21 @@ define_modules_config()
    if [ "$TRUST_USE_ROCM" = 1 ] && [ "$TRUST_USE_OPENMP" = 1 ]
    then
       # Compilateur crayCC
-      module="craype-x86-trento craype-network-ofi PrgEnv-cray rocm craype-accel-amd-gfx90a libfabric gcc-mixed/11.2.0"
-      module=$module" cce/15.0.1" # 16.0.0 has an issue with crayftn (ToDo contact support)
+      module="craype-x86-trento craype-network-ofi PrgEnv-cray/8.5.0 rocm/5.7.1 craype-accel-amd-gfx90a libfabric gcc-mixed/11.2.0"
+      #module=$module" cce/15.0.1" # 16.0.0 has an issue with crayftn (ToDo contact support)
+      # Compilateur amdclang
+      #module="craype-x86-trento craype-network-ofi PrgEnv-amd/8.5.0 rocm/5.7.1 craype-accel-amd-gfx90a libfabric gcc-mixed/11.2.0"
    else
       # Compilateur GNU
-      module="craype-x86-trento craype-network-ofi PrgEnv-cray libfabric gcc/10.3.0"   
+      #module="craype-x86-trento craype-network-ofi PrgEnv-cray libfabric gcc/10.3.0" used for first 1.9.3 install
+      # use swig module, but it needs develop GCC-CPU-3.1.0, which load gcc-native/12.1
+      # gcc-native/12.1 is replaced by cce/17.0.0 when loading PrgEnv-cray, so we reload gcc-native/12.1 again
+       module="develop GCC-CPU-3.1.0 swig/4.1.1-fortran craype-x86-trento craype-network-ofi PrgEnv-cray libfabric gcc/10.3.0 cray-python/3.10.10 cmake/3.27.7-python3"
    fi   
    #
    echo "# Module $module detected and loaded on $HOST."
    echo "module purge 1>/dev/null" >> $env
-   echo "module load $module 1>/dev/null" >> $env
+   echo "module load $module 1>/dev/null || exit -1" >> $env
    echo "PATH=\$CRAY_MPICH_PREFIX/bin:\$PATH"  >> $env # Pour trouver mpicxx
    echo "export TRUST_DEVICES_PER_NODE=8" >> $env # Devices per node
    . $env
@@ -55,7 +60,8 @@ define_soumission_batch()
       # Attention, le verbose est important sinon crash ! voir doc
       srun_options="-c $cpus_per_task --gpus-per-task=1 --ntasks-per-node=8 --threads-per-core=1 --gpu-bind=verbose,closest"
       #[ $NB_PROCS -gt 8 ] && qos=normal # 2 nodes
-      [ "`id | grep cpa2202`" != "" ] && project="cpa2202" # Projet GPU (5000h)
+      #[ "`id | grep cpa2202`" != "" ] && project="cpa2202" # Projet GPU (5000h)
+      [ "`id | grep cin3364`" != "" ] && project="cin3364"
    else
       # Partition scalaire
       constraint=GENOA

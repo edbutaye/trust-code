@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -161,15 +161,13 @@ void Convection_Diffusion_Temperature::discretiser()
 
 
   const Discret_Thyd& dis=ref_cast(Discret_Thyd, discretisation());
-  if (Process::je_suis_maitre())
-    Cerr << "Energy equation discretization" << finl;
+  Cerr << "Energy equation discretization" << finl;
   dis.temperature(schema_temps(), domaine_dis(), la_temperature);
   champs_compris_.ajoute_champ(la_temperature);
 
   Equation_base::discretiser();
 
-  if (Process::je_suis_maitre())
-    Cerr << "Convection_Diffusion_Temperature::discretiser() ok" << finl;
+  Cerr << "Convection_Diffusion_Temperature::discretiser() ok" << finl;
 }
 
 int Convection_Diffusion_Temperature::preparer_calcul()
@@ -397,7 +395,7 @@ DoubleTab& Convection_Diffusion_Temperature::derivee_en_temps_inco(DoubleTab& de
 
 double Convection_Diffusion_Temperature::get_time_factor() const
 {
-  return milieu().capacite_calorifique().valeurs()(0, 0) * milieu().masse_volumique().valeurs()(0, 0);
+  return domaine_dis()->nb_elem() ? milieu().capacite_calorifique().valeurs()(0, 0) * milieu().masse_volumique().valeurs()(0, 0) : 1.0;
 }
 
 // ajoute les contributions des operateurs et des sources
@@ -538,7 +536,7 @@ void Convection_Diffusion_Temperature::assembler_blocs(matrices_t matrices, Doub
   statistiques().begin_count(assemblage_sys_counter_);
 
   const std::string& nom_inco = inconnue().le_nom().getString();
-  Matrice_Morse *mat = matrices.count(nom_inco)?matrices.at(nom_inco):NULL;
+  Matrice_Morse *mat = matrices.count(nom_inco)?matrices.at(nom_inco):nullptr;
   if(mat) mat->ajouter_multvect(inconnue().valeurs(), secmem);
 
   for (auto &&i_m : mats2)

@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -471,7 +471,7 @@ void Statistiques::begin_count_(const int id)
 #ifdef PETSCKSP_H
       Nom info(si.description[id]);
       info+="\n";
-      PetscInfo(0,info);
+      PetscInfo(0,"%s",info.getChar());
 #endif
 #ifdef VTRACE
       // Level 1 only to avoid MPI calls
@@ -547,7 +547,7 @@ static void print_stat(Sortie& perfs,
                        double var_time_per_step = 0)
 {
   char tampon[BUFLEN+200];
-  if (Process::nproc() > 1)
+  if (Process::is_parallel())
     {
       double percent_time = (temps_total_max==0 ? 0 : time / temps_total_max * 100.);
 
@@ -638,7 +638,7 @@ void Statistiques::dump(const char * message, int mode_append)
 
   SChaine perfs;
   SChaine perfs_globales;
-  if (Process::nproc() > 1)
+  if (Process::is_parallel())
     {
       perfs.precision(3);
       perfs << "Statistics execution [PE " << Process::me() << "] : " << message << finl;
@@ -836,7 +836,7 @@ void Statistiques::dump(const char * message, int mode_append)
     }
   delete[] drapeaux;
 
-  if (Process::nproc() > 1)
+  if (Process::is_parallel())
     perfs << finl;
 
   if (Process::je_suis_maitre())

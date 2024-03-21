@@ -7,8 +7,8 @@ package=$1
 ######################################
 add_package()
 {
-   echo $ECHO_OPTS "Looking for package $1... \c"
-   external_package=`cd ..;ls -rt $1*.tar.gz $1*.tgz $1*.tar.bz2 2>/dev/null | tail -1`
+   echo $ECHO_OPTS "Looking for package $1 $2 ... \c"
+   external_package=`cd ..;ls -rt $1*$2.tar.gz $1*$2.tgz $1*$2.tar.bz2 2>/dev/null | tail -1`
    #external_package=`grep petsc $TRUST_ROOT/bin/gestion_externalpackages/liste_dep.csv  | awk -F, '{print "/"$2}' | grep "/"$1`
    lower_name=`echo $1 | awk '{print tolower($1)}'`
    if [ "$external_package" = "" ]
@@ -155,6 +155,7 @@ then
       then
          echo "$petsc_for_kernel file changed..."
          echo "#include <petscksp.h>
+#define PETSCKSP_H
 #$string" > $petsc_for_kernel
       fi
 
@@ -268,31 +269,39 @@ with_packages=""
 ################
 # GPU support? #
 ################
-[ "$TRUST_USE_CUDA" = 1 ] && [ "$TRUST_INT64" = 1 ] && echo "WARNING, PETSc GPU support is not enabled in TRUST with int64: ToDo use a more recent PETSc version..."
-if [ "$TRUST_USE_CUDA" = 1 ] && [ "$TRUST_INT64" != 1 ]
+if [ "$TRUST_USE_CUDA" = 1 ]
 then
    echo "****************************************"
-   echo "TRUST_USE_CUDA=$TRUST_USE_CUDA"
+   echo "PETSC_HAVE_CUDA=$PETSC_HAVE_CUDA"
    with_gpu="--with-cuda"
    with_gpu=$with_gpu" --with-cudac=$TRUST_NVCC"
-   CUDA_STUBS="" && [ -d $CUDA_ROOT/lib64/stubs ]        && CUDA_STUBS=",-L$CUDA_ROOT/lib64/stubs"        # Necessaire sur irene pas sur jeanzay (fait ch..r)
-   for CUDA_LIB_PATH in $CUDA_ROOT/math_libs $CUDA_ROOT/../math_libs $CUDA_ROOT/../../math_libs `echo $CUDA_ROOT | sed "1,$ s?/cuda/?/../math_libs/?g"`
-   do
-      [ -d $CUDA_LIB_PATH ] && CUDA_MATH=",-L$CUDA_LIB_PATH/lib64" && break
-   done
-   with_gpu=$with_gpu" --with-cuda-lib=[-L$CUDA_ROOT/lib64$CUDA_STUBS$CUDA_MATH,-lcudart,-lcublas,-lcublasLt,-lcufft,-lcusparse,-lcusolver]"
-   CUDA_INCLUDES=`ls $CUDA_ROOT/include/cuda/cuda.h $CUDA_ROOT/include/cuda.h $CUDA_LIB_PATH/include/cublas.h 2>/dev/null`
-   with_gpu=$with_gpu" --with-cuda-include=["
-   for CUDA_INCLUDE in $CUDA_INCLUDES
-   do
-      with_gpu=$with_gpu"`dirname $CUDA_INCLUDE`,"
-   done
-   with_gpu=$with_gpu"]"
+   with_cuda_dir=1
+   if [ $with_cuda_dir = 1 ]
+   then
+      # PETSc>=3.18 detecte mieux:
+      with_gpu=$with_gpu" --with-cuda-dir=$CUDA_ROOT"
+   else
+      # PETSc=3.18.5
+      CUDA_STUBS="" && [ -d $CUDA_ROOT/lib64/stubs ]        && CUDA_STUBS=",-L$CUDA_ROOT/lib64/stubs"        # Necessaire sur irene pas sur jeanzay (fait ch..r)
+      for CUDA_LIB_PATH in $CUDA_ROOT/math_libs $CUDA_ROOT/../math_libs $CUDA_ROOT/../../math_libs `echo $CUDA_ROOT | sed "1,$ s?/cuda/?/../math_libs/?g"`
+      do
+         [ -d $CUDA_LIB_PATH ] && CUDA_MATH=",-L$CUDA_LIB_PATH/lib64" && break
+      done
+      with_gpu=$with_gpu" --with-cuda-lib=[-L$CUDA_ROOT/lib64$CUDA_STUBS$CUDA_MATH,-lcudart,-lcublas,-lcublasLt,-lcufft,-lcusparse,-lcusolver,-lcurand]"
+      CUDA_INCLUDES=`ls $CUDA_ROOT/include/cuda/cuda.h $CUDA_ROOT/include/cuda.h $CUDA_LIB_PATH/include/cublas.h 2>/dev/null`
+      with_gpu=$with_gpu" --with-cuda-include=["
+      for CUDA_INCLUDE in $CUDA_INCLUDES
+      do
+         with_gpu=$with_gpu"`dirname $CUDA_INCLUDE`,"
+      done
+      with_gpu=$with_gpu"]"
+   fi
    CUDAFLAGS="-O3 -ccbin $TRUST_cc_BASE"
    add_package viennacl
    echo "CUDA support for PETSc with: "$with_gpu
    echo "****************************************"
 else
+   with_gpu="--with-cudac=0" # Disable the Cuda Compiler search
    echo "****************************************"
    echo "CUDA support is not activated for PETSc "
    echo "****************************************"
@@ -309,7 +318,7 @@ then
    export MPICH_CXX=$OMPI_CXX
    export MPICH_CC=$OMPI_CC
    export MPICH_FC=$OMPI_FC
-   CUDAFLAGS="-O3 -ccbin $OMPI_CC"
+   CUDAFLAGS="-O3 -ccbin $OMPI_CC --compiler-options -fPIC"
    COPTFLAGS="-O3 -fPIC"
    FOPTFLAGS="-O3 -fPIC"
    unset CPATH # Necessaire sur JeanZay
@@ -319,6 +328,7 @@ fi
 # OpenMP support ? #
 ####################
 PETSC_HAVE_OPENMP=$TRUST_USE_OPENMP
+PETSC_HAVE_OPENMP=0 # Desactive car inutile et pb de STRUMPACK sur GPU
 if [ "$PETSC_HAVE_OPENMP" = 1 ]
 then
    with_openmp="--with-openmp"
@@ -442,9 +452,28 @@ fi
 if [ "$TRUST_USE_MUMPS" = 1 ] && [ "`uname -m`" != aarch64 ] # configure de PETSc plante sur mumps avec ARM
 then
    # On prend MUMPS (plus performant)
-   add_package MUMPS
+   add_package MUMPS 5.5.1 # 5.6.1 dans extp : des soucis a regler
 fi
 add_package metis
+
+#############
+# STRUMPACK #
+#############
+TRUST_USE_STRUMPACK=1
+if [ "$TRUST_USE_STRUMPACK" = 1 ] && [ "$TRUST_DISABLE_MPI" = 0 ]
+then
+   add_package zfp
+   #add_package ButterflyPACK (pb EXAMPLE est necessaire mais trop gros, que faire?). Voir deja si c'est utile ce package
+   if [ "$TRUST_USE_CUDA" = 1 ]
+   then
+      add_package magma && with_packages=$with_packages" --with-magma-gputarget=Ampere" 
+      with_packages=$with_packages" --with-cuda-arch=70,80"
+      # Encore des problemes  de build (cublas_lib not found, cmake slate pas a jour encore?) sur cluster GPU (ex topaze)
+      # ou c'est utile (multi-GPU), et meme sur A6000, cela ne fonctionne pas (MPI_multiple_thread) donc on disable:
+      # [ "$TRUST_USE_OPENMP" = 1 ] && add_package slate
+   fi   
+   add_package STRUMPACK
+fi
 
 ##############
 # MPI or not #
@@ -470,14 +499,14 @@ if [ "$TRUST_DISABLE_MPI" = 0 ]
 then
    # SUPERLU_DIST: Attention avec OpenMPI natif...
    # SuperLU_dist sur GPU necessite OpenMP ! Argh...
-   #[ $minimal_mumps = 0 ] && add_package superlu_dist && [ "$TRUST_USE_CUDA" = 1 ] && [ $PETSC_HAVE_OPENMP = 0 ] && echo "Rerun configure by adding -openmp!" && exit 1
-   [ "$minimal_mumps" = 0 ] && [ "$TRUST_USE_CUDA" = 1 ] && [ "$PETSC_HAVE_OPENMP" = 1 ] && add_package superlu_dist
+   #[ $minimal_mumps = 0 ] && add_package superlu_dist && [ "$PETSC_HAVE_CUDA" = 1 ] && [ $PETSC_HAVE_OPENMP = 0 ] && echo "Rerun configure by adding -openmp!" && exit 1
+   [ "$minimal_mumps" = 0 ] && [ "$PETSC_HAVE_CUDA" = 1 ] && [ "$PETSC_HAVE_OPENMP" = 1 ] && add_package superlu_dist
 
    # New (SuiteSparse/Cholmod/UmfPack):
    if [ "$minimal_mumps" = 0 ]
    then
       # Cholmod GPU pas portable avec cartes recentes type V100/A100 sur Cuda 11.x, on desactive en attendant montee de version:
-      if [ "$TRUST_USE_CUDA" != 1 ] || [ "$TRUST_WITHOUT_HOST" = 1 ]
+      if [ "$PETSC_HAVE_CUDA" != 1 ] || [ "$TRUST_WITHOUT_HOST" = 1 ]
       then
          add_package SuiteSparse && with_packages=$with_packages" --download-suitesparse-disablegpu=1" # Add --with-64-bit-indices ?
       fi
@@ -515,7 +544,14 @@ then
    #######
    # Hypre
    #######
-   [ $minimal_mumps = 0 ]  && add_package hypre
+   if [ "$TRUST_USE_CUDA" = 1 ]
+   then
+      # PETSc 3.20 necessite une montee de version pour Hypre sur GPU:
+      [ ! -f ../hypre-2.19.0.tar.gz ] && add_package hypre && with_packages=$with_packages" --with-hypre-gpu-arch=80" # Necessaire pour topaze, pas a6000 (sm_86) ?
+      # Message cudaErrorNoKernelImageForDevice: no kernel image is available for execution on the device
+   else
+      [ $minimal_mumps = 0 ] && add_package hypre
+   fi
 fi
 
 ##########
@@ -577,13 +613,8 @@ do
    # On recupere les flags de compilation de TRUST pour etre coherent (oubli de -fPIC dans 1.6.2)
    fic_env=$TRUST_ROOT/env/make.$TRUST_ARCH_CC`[ $debug = 0 ] && echo _opt`
    [ "$COPTFLAGS" = "" ] && COPTFLAGS=`$TRUST_Awk '/ccFLAGS =/ {gsub("ccFLAGS =","",$0);print $0}' $fic_env`
-   # On compile les librairies Fortran (eg:MUMPS) en int32:
-   if [ "$TRUST_INT64" = "1" ]
-   then
-      FOPTFLAGS=`$TRUST_Awk '/F77Flags =/ {gsub("F77Flags =","",$0);print $0}' $fic_env | sed "s/-fdefault-integer-8//g" | sed "s/-i8//g" `
-   else
-      FOPTFLAGS=`$TRUST_Awk '/F77Flags =/ {gsub("F77Flags =","",$0);print $0}' $fic_env`
-   fi
+   # On compile les librairies Fortran (eg:MUMPS) en int32, donc on supprime les flags de conversion int32 -> int64 en Fortran:
+   [ "$FOPTFLAGS" = "" ] && FOPTFLAGS=`$TRUST_Awk '/F77Flags =/ {gsub("F77Flags =","",$0);print $0}' $fic_env | sed "s/-fdefault-integer-8//g" | sed "s/-i8//g" `
    CXXOPTFLAGS=$COPTFLAGS
    echo "Configuring PETSc..."
    # Hack provisoire sur aarch64, python de conda fait planter le configure:
@@ -611,7 +642,11 @@ do
    $with_openmp \
    $with_mpi \
    $with_64bit_indices \
-   $options || exit -1
+   $options
+   err=$?
+   cp configure.log $DIR/configure.log
+   echo "Created $DIR/configure.log"
+   [ $err != 0 ] && exit $?
    #############
    # Compilation
    #############
@@ -625,12 +660,12 @@ do
       # Cas tests
       ###########
       err=0
-      if [ "$TRUST_USE_CUDA" != 1 ]
+      if [ "$PETSC_HAVE_CUDA" != 1 ]
       then
-         # Tests with TRUST_USE_CUDA=1 are done below
+         # Tests with PETSC_HAVE_CUDA=1 are done below
          #  bloque de temps en temps make test
          echo No running make test
-	 err=$?
+         err=$?
       fi
       if [ $err = 0 ]
       then
@@ -650,7 +685,7 @@ do
 	    #[ -d docs ] && cp -r docs $PETSC_ROOT/$PETSC_ARCH/.
 	    # Copie des exemples
 	    #[ -d src ] && cp -r src $PETSC_ROOT/$PETSC_ARCH/.
-            cd ..
+	    cd ..
 	    echo "make install done"
 	    # On allege encore l'installation:
 	    [ "$TRUST_ENABLE_PETSC_DEBUG" = 0 ] && rm -r -f $PETSC_ROOT/../build
@@ -669,9 +704,7 @@ do
 	 if [ -f $PETSC_ROOT/$PETSC_ARCH/include/ptscotch.h ]
 	 then
 	     sed -i 's/#define PTSCOTCH_H/#define PTSCOTCH_H\n#include <mpi.h>/' $PETSC_ROOT/$PETSC_ARCH/include/ptscotch.h 1>/dev/null 2>&1
-
 	 fi
-	 
       else
          echo "make test failed." && exit -1
       fi
@@ -698,7 +731,6 @@ fi
 #fi
 
 # On efface la distribution sur les machines ou Petsc a ete compile uniquement en optimise
-cp $package/configure.log .
 [ "$liste_debug" = "0" ] && echo "Deleting `pwd`/$package..." && rm -r -f $package
 echo "Leaving install PETSc, it seems OK."
 

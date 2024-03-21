@@ -385,6 +385,7 @@ option_configure=" -disable-ccache"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-intel19" | grep ^$HOST"\."`" != "" ]			&& modules_to_load="gcc/6.5.0 iccifort/2019.5.281 impi/icc_2019.5.281/2019.5.281"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-intel21" | grep ^$HOST"\."`" != "" ]			&& modules_to_load="impi/intel-compilers_2021.4.0/2021.4.0 imkl/2021.4.0"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-intel22" | grep ^$HOST"\."`" != "" ]			&& modules_to_load="impi/intel-compilers_2022.1.0/2021.6.0 imkl/2022.2.0"
+[ "`$TRUST_ROOT/bin/admin/liste_machines "\-intel23" | grep ^$HOST"\."`" != "" ]			&& modules_to_load="impi/intel-compilers_2023.2.1/2021.9.0 imkl/intel-compilers_2023.2.1_impi_2021.9.0/2023.2.0"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-gcc8" | grep ^$HOST"\."`" != "" ]				&& modules_to_load="gcccore/.8.3.0 gcc/8.3.0"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-force_even_unsupported" | grep ^$HOST"\."`" != "" ]		&& option_configure=$option_configure" -force_even_unsupported"
 # Compilation en INT64
@@ -394,7 +395,7 @@ option_configure=" -disable-ccache"
 # system mpi, for cuda
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-force_system_mpi" | grep ^$HOST"\."`" != "" ] 		&& option_configure=$option_configure" -force_system_mpi"
 # coolprop
-[ "`$TRUST_ROOT/bin/admin/liste_machines "\-coolprop" | grep ^$HOST"\."`" != "" ] 			&& option_configure=$option_configure" -with-coolprop=/volatile/projet/trust_trio/CoolProp"
+[ "`$TRUST_ROOT/bin/admin/liste_machines "\-coolprop" | grep ^$HOST"\."`" != "" ] 			&& option_configure=$option_configure" -with-coolprop=/volatile/projet/trust_trio/CoolProp_6.6.0"
 # eos
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-eos" | grep ^$HOST"\."`" != "" ] 				&& option_configure=$option_configure" -with-eos=/volatile/projet/trust_trio/EOS_code/install"
 # no conda
@@ -469,10 +470,10 @@ do
    [ "`$TRUST_ROOT/bin/admin/liste_machines "\-cachegrind" | grep ^$HOST_BUILD"\."`" != "" ] && echo $ECHO_OPTS "1,$ s?-O3?-g -O3?g\nw" | ed $TRUST_ROOT/env/make.linux_g++3_opt
    options="" && [ "`$TRUST_ROOT/bin/admin/liste_machines "\-semi_opt" | grep ^$HOST_BUILD"\."`" != "" ] && options=$options" semi_opt" # avx plus semi_opt si specifie
    [ "`$TRUST_ROOT/bin/admin/liste_machines "\-Semi_opt_gcov" | grep ^$HOST_BUILD"\."`" != "" ] && options="semi_opt gcov" # si Semi_opt_gcov on compile en semi_opt et gcov
-   make && cp compile_$code$COMM$OPT"_"$TRUST_ARCH"_"$HOST_BUILD".log" compile.tmp && make $options
-   err_exe_compile=$?
-   cat compile_$code$COMM$OPT"_"$TRUST_ARCH"_"$HOST_BUILD".log" >> compile.tmp && mv compile.tmp compile_$code$COMM$OPT"_"$TRUST_ARCH"_"$HOST_BUILD".log"
-   [ "`grep BUILD_EXEC=OK compile_$code$COMM$OPT"_"$TRUST_ARCH"_"$HOST_BUILD.log`" != "" ] && err_exe_compile=0
+   make && err_exe_compile=$? && cp compile_$code$COMM$OPT"_"$TRUST_ARCH"_"$HOST_BUILD".log" compile.tmp  
+   [ "$options" != "" ] && make $options && cat compile_$code$COMM$OPT"_"$TRUST_ARCH"_"$HOST_BUILD".log" >> compile.tmp
+   mv compile.tmp compile_$code$COMM$OPT"_"$TRUST_ARCH"_"$HOST_BUILD".log"
+   err_exe_compile=1 && [ "`grep BUILD_EXEC=OK compile_$code$COMM$OPT"_"$TRUST_ARCH"_"$HOST_BUILD.log`" != "" ] && err_exe_compile=0
    err_tool_compile=1
    [ $err_exe_compile = 0 ] && [ "`grep BUILD_TOOLS=OK compile_$code$COMM$OPT"_"$TRUST_ARCH"_"$HOST_BUILD.log`" != "" ] && err_tool_compile=0
    if [ $err_tool_compile = 0 ]
@@ -606,6 +607,8 @@ do
          MPI_VERSION=`$Mpirun --version 2>&1 | $TRUST_Awk '/Open MPI/ {print "OpenMPI "$NF} /Version:/ {print "MPICH "$NF} /Intel\(R\) MPI/ {print "Intel MPI "$8}'`
          # Sur jean-zay mpirun desactive sur openmpi
          [ "$MPI_VERSION" = "" ] && MPI_VERSION=`$TRUST_CC --showme:version | $TRUST_Awk '/Open MPI/ {print "OpenMPI "$4}'`
+         # Sur adastra mpirun pointe vers srun avec mpich
+         [ "$MPI_VERSION" = "" ] && MPI_VERSION=`$MPI_ROOT/bin/mpichversion 2>&1 | $TRUST_Awk '/Version:/ {print "MPI=MPICH "$NF}'`
          if [ "$MPI_VERSION" != "" ]
          then
             echo "MPI=MPI natif: $MPI_VERSION"
@@ -715,11 +718,17 @@ do
    # Mieux pour NVidia
    echo "nvidia=`cat /proc/driver/nvidia/cards/0 2>/dev/null | awk -F: '/Model/ {print $2}'` `nvidia-smi -a 2>/dev/null | awk -F: '/Driver/ {print $2}'`" >> $PERF
    CC_PERF="CC "`basename $TRUST_CC_BASE`
-   if [ "$TRUST_VERSION_GNU" != "" ]
+   if [ "`basename $TRUST_CC_BASE`" = "nvc++" ]
    then
-      CC_PERF=$CC_PERF" "$TRUST_VERSION_GNU
+      CC_PERF=$CC_PERF" "`$TRUST_CC_BASE --version 2>&1 | head -2 | $TRUST_Awk '{print $2}'`
+   elif [ "`basename $TRUST_CC_BASE`" = "icpx" ]
+   then
+      CC_PERF=$CC_PERF" "`$TRUST_CC_BASE --version 2>&1 | head -1 | $TRUST_Awk '{print $5}'`
+   elif [ "`basename $TRUST_CC_BASE`" = "amdclang++" ] || [ "`basename $TRUST_CC_BASE`" = "crayCC" ]
+   then
+      CC_PERF=$CC_PERF" "`$TRUST_CC_BASE --version 2>&1 | head -1 | $TRUST_Awk '{print $4}'`
    else
-      CC_PERF=$CC_PERF" "`$TRUST_CC_BASE --version 2>&1 | head -1 | $TRUST_Awk '{if ($3=="Linux)") print $4;else if ($2=="clang") print $4 ; else print $3}'`
+      CC_PERF=$CC_PERF" "`$TRUST_CC_BASE --version 2>&1 | head -1 | $TRUST_Awk '{print $3}'`
    fi
    echo $CC_PERF >> $PERF
    # On verifie si on a obtenu un executable teste 
@@ -786,7 +795,7 @@ do
 	    # On desactive MED pour tester correctement "make module"
 	    # touch med++.h
 	    # Modification d'un .h du Kernel:
-	    cp $TRUST_ROOT/src/Kernel/Framework/Postraitement.h .
+	    cp $TRUST_ROOT/src/Kernel/Postraitement/Postraitement.h .
 	    chmod +w Postraitement.h
 	    echo " " >> Postraitement.h
 	    # On efface le repertoire

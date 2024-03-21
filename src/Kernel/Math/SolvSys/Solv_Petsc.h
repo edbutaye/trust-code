@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -32,7 +32,7 @@ class Matrice_Morse_Sym;
 class Matrice_Morse;
 
 
-enum solveur_direct_ { no, mumps, superlu_dist, petsc, umfpack, pastix, cholmod, cli };
+enum solveur_direct_ { no, mumps, superlu_dist, petsc, umfpack, pastix, cholmod, strumpack, cli };
 extern bool gmres_right_unpreconditionned;
 
 /* Struct to associate Petsc preconditionner to user-provided preconditioner */
@@ -61,6 +61,17 @@ public :
     return resoudre_systeme(M,A,B);
   };
   void create_solver(Entree&);
+#ifdef PETSCKSP_H
+  // To switch between solver definitions in one Solv_Petsc instance:
+  void reset_solver(const Nom& name)
+  {
+    // ToDo: regler option_prefix_ et numero_solveur dans create_solver et initialize...
+    reset();
+    EChaine ech(name);
+    Cout << "Setting PETSc solver: " << name << finl;
+    create_solver(ech);
+  }
+#endif
   inline void reset();
   inline bool read_matrix() const
   {

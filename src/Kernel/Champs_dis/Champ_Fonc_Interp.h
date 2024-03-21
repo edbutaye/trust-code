@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -22,12 +22,16 @@
 #ifdef MEDCOUPLING_
 #include <MEDCouplingFieldDouble.hxx>
 #include <MEDCouplingRemapper.hxx>
+#ifdef MPI_
+#include <OverlapDEC.hxx>
 #endif
+#endif // MEDCOUPLING_
 
 class Champ_Fonc_Interp : public Champ_Fonc_P0_base
 {
-  Declare_instanciable(Champ_Fonc_Interp);
+  Declare_instanciable_sans_destructeur(Champ_Fonc_Interp);
 public:
+  virtual ~Champ_Fonc_Interp();
   int initialiser(double ) override;
   void mettre_a_jour(double) override;
 
@@ -36,14 +40,22 @@ protected:
   void update_fields();
   REF(Probleme_base) pb_loc_, pb_dist_;
   REF(Domaine) dom_loc_, dom_dist_;
-  bool is_initialized_ = false;
+  bool is_initialized_ = false, is_elem_trgt_ = true /* par default aux elems */;
+  int use_dec_ = -123, sharing_algo_ = -123;
   double default_value_ = DMAXFLOAT;
+  DoubleTab valeurs_elem_, valeurs_faces_elem_;
+  Champ espace_stockage_;
 
 #ifdef MEDCOUPLING_
   MEDCoupling::NatureOfField nature_;
   MEDCoupling::MCAuto<MEDCoupling::MEDCouplingFieldDouble> local_field_, distant_field_;
   MEDCoupling::MCAuto<MEDCoupling::DataArrayDouble> local_array_, distant_array_;
+#ifdef MPI_
+  std::shared_ptr<MEDCoupling::OverlapDEC> dec_ = nullptr;
 #endif
+  bool is_dec_initialized_ = false;
+  bool verbose_ = false;
+#endif // MEDCOUPLING_
 };
 
 #endif /* Champ_Fonc_Interp_included */

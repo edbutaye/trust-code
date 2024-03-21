@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -23,6 +23,8 @@
 #include <span.hpp>
 #include <climits>
 #include <Device.h>
+
+#include <View_Types.h>  // Kokkos stuff
 
 /*! @brief Represente un tableau d'elements de type int/double/float.
  *
@@ -141,8 +143,9 @@ public:
   inline _TYPE_ * addr();
   inline const _TYPE_ * addr() const;
   // Les memes methodes pour une utilisation sur le device
-  inline _TYPE_ * addrForDevice();
-  inline const _TYPE_ * addrForDevice() const;
+  inline _TYPE_ *data();
+
+  inline const _TYPE_ *data() const;
 
   // Renvoie le nombre d'elements du tableau (et non la taille allouee)
   inline int size_array() const;
@@ -195,10 +198,10 @@ public:
   inline virtual void resize_tab(int n, Array_base::Resize_Options opt = COPY_INIT);
 
   // Host/Device methods:
-  inline DataLocation get_dataLocation() { return p_==NULL ? HostOnly : p_->get_dataLocation(); }
-  inline DataLocation get_dataLocation() const { return p_==NULL ? HostOnly : p_->get_dataLocation(); }
-  inline void set_dataLocation(DataLocation flag) { if (p_!=NULL) p_->set_dataLocation(flag); }
-  inline void set_dataLocation(DataLocation flag) const { if (p_!=NULL) p_->set_dataLocation(flag); }
+  inline DataLocation get_dataLocation() { return p_==nullptr ? HostOnly : p_->get_dataLocation(); }
+  inline DataLocation get_dataLocation() const { return p_==nullptr ? HostOnly : p_->get_dataLocation(); }
+  inline void set_dataLocation(DataLocation flag) { if (p_!=nullptr) p_->set_dataLocation(flag); }
+  inline void set_dataLocation(DataLocation flag) const { if (p_!=nullptr) p_->set_dataLocation(flag); }
   inline void checkDataOnHost() { checkDataOnHost(*this); }
   inline void checkDataOnHost() const { checkDataOnHost(*this); }
   inline bool isDataOnDevice() const { return isDataOnDevice(*this); }
@@ -210,7 +213,27 @@ public:
   inline virtual Span_ get_span_tot() { return Span_(data_,size_array_); }
   inline virtual const Span_ get_span() const { return Span_((_TYPE_*)data_, size_array_); }
   inline virtual const Span_ get_span_tot() const { return Span_((_TYPE_*)data_, size_array_); }
+
+  // Kokkos accessors
 protected:
+  inline void init_view_arr() const;
+
+public:
+  // Kokkos view accessors:
+  inline ConstViewArr<_TYPE_> view_ro() const;  // Read-only
+  inline ViewArr<_TYPE_> view_wo();             // Write-only
+  inline ViewArr<_TYPE_> view_rw();             // Read-write
+
+  inline void sync_to_host() const;              // Synchronize back to host
+
+  inline void modified_on_host() const;         // Mark data as being modified on host side
+
+protected:
+  // Kokkos members
+  mutable bool dual_view_init_ = false;
+  mutable DualViewArr<_TYPE_> dual_view_arr_;
+
+
   inline void attach_array(const TRUSTArray& a, int start = 0, int size = -1);
   inline void fill_default_value(Array_base::Resize_Options opt, int first, int nb);
   inline void resize_array_(int n, Array_base::Resize_Options opt = COPY_INIT);
@@ -246,7 +269,7 @@ private:
   // ToDo OpenMP :Appels couteux (car non inlines?) depuis operator()[int] mais comment faire mieux ?
   inline void checkDataOnHost(const TRUSTArray& tab) const
   {
-#ifdef _OPENMP
+#if defined(_OPENMP) && !defined(TRUST_USE_UVM)
     if (tab.get_dataLocation()==Device)
       {
         copyFromDevice(tab, "const detected with checkDataOnHost()");
@@ -256,7 +279,7 @@ private:
   }
   inline void checkDataOnHost(TRUSTArray& tab)
   {
-#ifdef _OPENMP
+#if defined(_OPENMP) && !defined(TRUST_USE_UVM)
     const DataLocation& loc = tab.get_dataLocation();
     if (loc==Host || loc==HostOnly || loc==PartialHostDevice) return;
     else if (loc==Device)
@@ -276,11 +299,11 @@ private:
   }
   inline void printKernel(bool flag, const TRUSTArray& tab, std::string kernel_name) const
   {
-    if (kernel_name!="??" && tab.size_array()>100 && getenv ("TRUST_CLOCK_ON")!=NULL)
+    if (kernel_name!="??" && tab.size_array()>100 && getenv ("TRUST_CLOCK_ON")!=nullptr)
       {
-        std::string clock(Process::nproc()>1 ? "[clock]#"+std::to_string(Process::me()) : "[clock]  ");
+        std::string clock(Process::is_parallel() ? "[clock]#"+std::to_string(Process::me()) : "[clock]  ");
         std::cout << clock << "            [" << (flag ? "Kernel] " : "Host]   ") << kernel_name
-                  << " with a loop on array [" << toString(tab.addrForDevice()).c_str() << "] of " << tab.size_array()
+                  << " with a loop on array [" << toString(tab.data()).c_str() << "] of " << tab.size_array()
                   << " elements" << std::endl ;
       }
   }
@@ -289,6 +312,7 @@ private:
   // -Si ce n'est pas le cas, les tableaux sont copies sur le host via checkDataOnHost
   inline bool checkDataOnDevice(const TRUSTArray& tab, std::string kernel_name) const
   {
+#ifdef _OPENMP
     bool flag = tab.isDataOnDevice() && computeOnDevice;
     if (!flag)
       checkDataOnHost(tab);
@@ -296,9 +320,13 @@ private:
     //  tab.set_dataLocation(Device); // non const array will be computed on device
     printKernel(flag, tab, kernel_name);
     return flag;
+#else
+    return false;
+#endif
   }
   inline bool checkDataOnDevice(TRUSTArray& tab, std::string kernel_name)
   {
+#ifdef _OPENMP
     bool flag = tab.isDataOnDevice() && computeOnDevice;
     if (!flag)
       checkDataOnHost(tab);
@@ -306,9 +334,13 @@ private:
       tab.set_dataLocation(Device); // non const array will be computed on device
     printKernel(flag, tab, kernel_name);
     return flag;
+#else
+    return false;
+#endif
   }
   inline bool checkDataOnDevice(TRUSTArray& tab, const TRUSTArray& tab_const, std::string kernel_name="??")
   {
+#ifdef _OPENMP
     bool flag = tab.isDataOnDevice() && tab_const.isDataOnDevice() && computeOnDevice;
     // Si un des deux tableaux n'est pas a jour sur le device alors l'operation se fera sur le host:
     if (!flag)
@@ -320,6 +352,9 @@ private:
       tab.set_dataLocation(Device); // non const array will be computed on device
     printKernel(flag, tab, kernel_name);
     return flag;
+#else
+    return false;
+#endif
   }
 };
 

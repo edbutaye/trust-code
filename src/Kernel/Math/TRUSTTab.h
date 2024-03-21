@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2022, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -19,6 +19,8 @@
 #include <MD_Vector_base.h>
 #include <TRUSTVect.h>
 #include <math.h>
+
+#include <View_Types.h>  // Kokkos stuff
 
 /*! @brief : Tableau a n entrees pour n<= 4.
  *
@@ -249,6 +251,37 @@ public:
   inline void reset() override;
   inline void resize_tab(int n, Array_base::Resize_Options opt = Array_base::COPY_INIT) override;
 
+protected:
+  inline void init_view_tab2() const;
+  inline void init_view_tab3() const;
+  inline void init_view_tab4() const;
+
+public:
+  // Kokkos view accessors:
+  inline ConstViewTab<_TYPE_> view_ro() const;  // Read-only
+  inline ViewTab<_TYPE_> view_wo();             // Write-only
+  inline ViewTab<_TYPE_> view_rw();             // Read-write
+
+  inline void sync_to_host() const;             // Synchronize back to host
+  inline void modified_on_host() const;         // Mark data as being modified on host side
+
+  // For 3D arrays:
+  inline ConstViewTab3<_TYPE_> view3_ro() const;  // Read-only
+  inline ViewTab3<_TYPE_> view3_wo();             // Write-only
+  inline ViewTab3<_TYPE_> view3_rw();             // Read-write
+
+  inline void sync_to_host3() const;             // Synchronize back to host
+  inline void modified_on_host3() const;         // Mark data as being modified on host side
+
+  // For 4D arrays:
+  inline ConstViewTab4<_TYPE_> view4_ro() const;  // Read-only
+  inline ViewTab4<_TYPE_> view4_wo();             // Write-only
+  inline ViewTab4<_TYPE_> view4_rw();             // Read-write
+
+  inline void sync_to_host4() const;             // Synchronize back to host
+  inline void modified_on_host4() const;         // Mark data as being modified on host side
+
+
 private:
   static constexpr int MAXDIM_TAB = 4;
   // Nombre de dimensions du tableau (nb_dim_>=1)
@@ -260,6 +293,11 @@ private:
   // Dimension totale (nombre de lignes du tableau) = nb lignes reeles + nb lignes virtuelles
   // Les dimensions dimension_tot(i>=1) sont implicitement egales a dimension(i)
   int dimension_tot_0_;
+
+  // Kokkos members
+  mutable DualViewTab<_TYPE_> dual_view_tab2_;      // For 2D case : A(i,j)
+  mutable DualViewTab3<_TYPE_> dual_view_tab3_;      // For 3D case : A(i,j,k)
+  mutable DualViewTab4<_TYPE_> dual_view_tab4_;      // For 4D case : A(i,j,k,l)
 
   inline void verifie_MAXDIM_TAB() const
   {

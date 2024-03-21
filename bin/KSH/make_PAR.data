@@ -14,7 +14,8 @@ SUBSTITUE ()
 {
    eps=`$TRUST_Awk '/seq faces/ {print $(NF-1)}' $NOM.data`
    sed -e "s?fichier $NOM?fichier $1?g" \
--e "s?seq faces $eps 0?seq faces $eps 1?g" $NOM.data > $1".data"
+-e "s?seq faces $eps 0?seq faces $eps 1?g" \
+-e "s? mode_db write ? mode_db read ?g" $NOM.data > $1".data"
    # Cholesky par Petsc est parallele 
    if [ "`grep -i Cholesky $1.data | grep -vi precond_local | grep -vi Petsc`" != "" ]
    then
@@ -108,8 +109,9 @@ do
    # if there's a single .Zones file (written in HDF format), the grep above is wrong
     if [ $NB_CPUS_ZONE = 0 ]
     then
-	FILE_NAME=`find . -name "$nom_zone"_p'*'.Zones | xargs basename`
-	NB_CPUS_ZONE=`echo $FILE_NAME | cut -d '.' -f 1 | $TRUST_Awk -F '_p' '{print $2}'`
+       [ "`ls $nom_zone'_p'*.Zones 2>/dev/null`" = "" ] && echo "Error, no .Zones created!" && exit -1
+       FILE_NAME=`find . -name $nom_zone'_p'*.Zones | xargs basename`
+       NB_CPUS_ZONE=`echo $FILE_NAME | cut -d '.' -f 1 | $TRUST_Awk -F '_p' '{print $2}'`
     fi
        
    # Verification
@@ -143,9 +145,10 @@ else
    rm -f *.dbg
    if [ ${#DEC} = 0 ]
    then
+      # make_PAR.data is called from lance_test if ${#DEC}!=0
       echo $ECHO_OPTS "To run the parallel calculation on $NB_CPUS CPUs:"
       echo $ECHO_OPTS "trust $PAR_NOM $NB_CPUS"
-      exit $NB_CPUS
    fi
+   exit $NB_CPUS
 fi
 

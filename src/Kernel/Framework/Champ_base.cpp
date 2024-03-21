@@ -347,6 +347,7 @@ void Champ_base::mettre_a_jour(double)
 void Champ_base::abortTimeStep()
 {
 }
+
 /*! @brief Affecter un champ dans un autre.
  *
  * Rebvoie le resultat de l'affectation.
@@ -531,7 +532,7 @@ inline void add_sommets_communs(const Domaine& dom, DoubleTab& les_valeurs, IntT
 
   //  if (Process::nproc()>9) return;
   char* theValue = getenv("TRUST_POST_SOM_NON_PARA");
-  if (theValue != NULL)
+  if (theValue != nullptr)
     return;
   int nb_compo_ = les_valeurs.line_size();
 
@@ -651,7 +652,7 @@ int Champ_base::calculer_valeurs_som_post(DoubleTab& les_valeurs,int nb_som,Nom&
   int old_traitement_symetrie=0;
   {
     char* theValue = getenv("TRUST_POST_SOM_SYMETRIE_ERREUR");
-    if (theValue != NULL)
+    if (theValue != nullptr)
       {
         Cerr<<"results depend on order of bc or faces in bc ..."<<finl;
         old_traitement_symetrie=1;
@@ -661,7 +662,7 @@ int Champ_base::calculer_valeurs_som_post(DoubleTab& les_valeurs,int nb_som,Nom&
 
   {
     char* theValue = getenv("TRUST_POST_SOM_NO_DIRICHLET");
-    if (theValue != NULL)
+    if (theValue != nullptr)
       {
         impose_cl_diri=0;
       }
@@ -849,7 +850,7 @@ int Champ_base::calculer_valeurs_som_compo_post(DoubleTab& les_valeurs,int ncomp
 
   {
     char* theValue = getenv("TRUST_POST_SOM_NO_DIRICHLET");
-    if (theValue != NULL)
+    if (theValue != nullptr)
       {
         appliquer_cl=0;
       }

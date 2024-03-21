@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -143,7 +143,7 @@ void echange_espace_virtuel_(const MD_Vector& md, TRUSTVect<_TYPE_>& v, const Ec
       mdv.initialize_comm(opt, comm, v);
       comm.end_init();
     }
-  bool bufferOnDevice = Process::nproc()>1 && v.isDataOnDevice() && Objet_U::computeOnDevice;
+  bool bufferOnDevice = Process::is_parallel() && v.isDataOnDevice() && Objet_U::computeOnDevice;
   comm.begin_comm(bufferOnDevice);     // buffer allocated on device
   mdv.prepare_send_data(opt, comm, v); // pack buffer on device (read_from_vect_items)
   comm.exchange(bufferOnDevice);       // buffer d2h + MPI + buffer h2d
@@ -636,7 +636,7 @@ void MD_Vector_tools::dump_vector_with_md(const DoubleVect& v, Sortie& os)
   const MD_Vector_base& md = v.get_md_vector().valeur();
   os << md.que_suis_je() << finl;
   os << md << finl;
-  os << "line_size" << space << v.line_size() << finl;
+  os << "line_size" << tspace << v.line_size() << finl;
 
   os << v.size_array() << finl;
   os.put(v.addr(), v.size_array(), v.line_size());
@@ -689,7 +689,7 @@ MD_Vector MD_Vector_tools::extend(const MD_Vector& src, extra_item_t& items)
   /* remplissage de : recep[p] -> liste des items qu'on veut recevoir du processeur p
                       items[{p, i}] -> ou on va placer chaque item dans le MD_Vector elargi */
   int i, j, p, nb_items_tot = src.valeur().get_nb_items_tot(), idx = nb_items_tot;
-  const MD_Vector_std *mds = NULL;
+  const MD_Vector_std *mds = nullptr;
   if (sub_type(MD_Vector_std, src.valeur())) mds = &ref_cast(MD_Vector_std, src.valeur());
   else if (sub_type(MD_Vector_composite, src.valeur())) mds = &ref_cast(MD_Vector_composite, src.valeur()).global_md_;
 
