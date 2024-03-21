@@ -596,6 +596,7 @@ IntTab  Domaine_VF::set_arete_virt_pe_num(int na, int na_tot) // EB
   tmp.echange_espace_virtuel();
   return tmp;
 }
+
 void Domaine_VF::construire_arete_virt_pe_num(int na, int na_tot, IntTab& tmp)
 {
   Cerr << "Domaine_VF::construire_arete_virt_pe_num" << finl;
@@ -613,6 +614,7 @@ void Domaine_VF::construire_arete_virt_pe_num(int na, int na_tot, IntTab& tmp)
 
 
 }
+
 const IntTab& Domaine_VF::arete_virt_pe_num() const // EB
 {
   assert(arete_virt_pe_num_.dimension(1) == 2);

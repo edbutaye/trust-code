@@ -55,8 +55,6 @@ static int faces_sommets_hexa[6][4] =
 //              |_________________|/	        ----->x
 //                      5
 
-
-
 Implemente_instanciable(Hexaedre,"Hexaedre",Elem_geom_base);
 
 

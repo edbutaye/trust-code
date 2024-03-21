@@ -158,15 +158,15 @@ protected:
   int nb_faces_Y_ = -1;                         // nombre de faces perpendiculaires a l'axe des Y
   int nb_faces_Z_ = -1;                         // nombre de faces perpendiculaires a l'axe des Z
   int nb_aretes_ = -1;                          // nombre d'aretes tous types confondus
-  int nb_aretes_reelles_ = -1; 			// EB
-  int nb_aretes_tot_ = -1; 			// EB
+  int nb_aretes_reelles_ = -1; // EB
+  int nb_aretes_tot_ = -1; // EB
   int nb_aretes_joint_ = -1;                    // nombre d'aretes joint
   int nb_aretes_coin_ = -1;                     // nombre d'aretes coin
   int nb_aretes_bord_ = -1;                     // nombre d'aretes bord
   int nb_aretes_mixtes_ = -1;                   // nombre d'aretes mixtes
   int nb_aretes_internes_ = -1;                 // nombre d'aretes internes
   IntTab Qdm_;                            // connectivites aretes/faces
-  IntVect type_arete_; 						// EB : type des aretes
+  IntVect type_arete_; // EB : type des aretes
   DoubleVect volumes_aretes_;
   // DoubleVect porosite_elem_;               // Porosites volumiques pour les volumes de
   // controle de masse
@@ -216,6 +216,7 @@ inline DoubleVect Domaine_VDF::volumes_aretes()
 {
   return volumes_aretes_;
 }
+
 inline const DoubleVect  Domaine_VDF::volumes_aretes() const
 {
   return volumes_aretes_;
@@ -276,6 +277,7 @@ inline const IntVect& Domaine_VDF::orientation() const
 {
   return orientation_;
 }
+
 // Description:
 // WARNING, cette fonction ne renvoie pas directement l'orientation de l'arete mais plutot
 // le type1 tel que definit dans Aretes::affecter
@@ -283,12 +285,14 @@ inline const IntVect& Domaine_VDF::orientation_aretes() const
 {
   return orientation_aretes_;
 }
+
 /*! @brief inline DoubleVect& Domaine_VDF::porosite_face() {
  *
  *   return porosite_face_;
  *  }
  *
  */
+
 // WARNING
 // ne renvoie pas directement l'orientation de la face mais le type1 de l'arete
 // voir Aretes::affecter
@@ -296,6 +300,7 @@ inline IntVect& Domaine_VDF::orientation_aretes()
 {
   return orientation_aretes_;
 }
+
 // type des aretes
 // -1 si arete coin, 0 si arete bord
 //  1 si arete mixte, 2 si arete interne
@@ -304,6 +309,7 @@ inline const IntVect& Domaine_VDF::type_arete() const
   return type_arete_;
 }
 // fin EB
+
 /*! @brief inline const DoubleVect& Domaine_VDF::porosite_face() const {
  *
  *    return porosite_face_;
@@ -612,6 +618,7 @@ inline int Domaine_VDF::nb_aretes() const
 {
   return nb_aretes_;
 }
+
 // debut EB
 inline int Domaine_VDF::nb_aretes_reelles() const { return nb_aretes_reelles_; }
 inline int Domaine_VDF::nb_aretes_tot() const { return nb_aretes_tot_; }

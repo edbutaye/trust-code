@@ -38,6 +38,7 @@
 #include <TRUSTTab_parts.h>
 #include <Domaine_VF.h>
 #include <Param.h>
+
 Implemente_instanciable_sans_constructeur(Navier_Stokes_std,"Navier_Stokes_standard",Equation_base);
 
 Navier_Stokes_std::Navier_Stokes_std():methode_calcul_pression_initiale_(0),div_u_nul_et_non_dsurdt_divu_(0),postraitement_gradient_P_(0)

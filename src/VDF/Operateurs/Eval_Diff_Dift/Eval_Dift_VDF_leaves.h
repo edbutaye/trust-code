@@ -130,4 +130,5 @@ public:
   static constexpr bool CALC_ARR_INT_FT=true;
 
 };
+
 #endif /* Eval_Dift_VDF_leaves_included */

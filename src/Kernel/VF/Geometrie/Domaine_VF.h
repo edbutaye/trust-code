@@ -220,9 +220,10 @@ protected:
   //ArrOfInt faces_perio_;   // faces periodiques (utile si on boucle de 0 a nb_faces_tot)
   ArrOfInt faces_doubles_; // faces a double contribution (faces periodiques et items communs). Utile si on boucle de 0 a nb_faces pour une reduction ensuite
   ArrOfInt est_face_bord_; // renvoie pour une face reelle ou virtuelle: 0 si interne, 1 si face de bord non periodique, 2 si face de bord periodique
-  IntVect aretes_multiples_; 			    // EB
+  IntVect aretes_multiples_; // EB
   IntTab faces_doubles_pe_num_; // EB indice du PE voisin possedant la face et indice locale de cette face sur le pe
   IntTab faces_doubles_virt_pe_num_; // EB
+
   // Pour chaque face virtuelle i avec nb_faces_<=i<nb_faces_tot on a :
   // face_virt_pe_num_(i-nb_faces_,0) = numero du PE qui possede la face
   // face_virt_pe_num_(i-nb_faces_,1) = numero local de cette face sur le PE qui le possede
@@ -423,6 +424,7 @@ inline int Domaine_VF::elem_faces(int num_elem, int i) const
 {
   return elem_faces_(num_elem, i);
 }
+
 // debut EB
 // Description:
 // renvoie le numero de le ieme face de la maille num_elem
@@ -463,6 +465,7 @@ inline ArrOfInt& Domaine_VF::faces_doubles()
 {
   return faces_doubles_;
 }
+
 // debut EB
 inline const IntVect& Domaine_VF::aretes_multiples() const
 {
@@ -498,20 +501,23 @@ inline const IntTab& Domaine_VF::aretes_multiples_pe_num() const // EB
 {
   return aretes_multiples_pe_num_;
 }
+
 inline IntTab& Domaine_VF::aretes_multiples_pe_num() // EB
 {
   return aretes_multiples_pe_num_;
 }
+
 inline const IntTab& Domaine_VF::aretes_multiples_virt_pe_num() const // EB
 {
   return aretes_multiples_virt_pe_num_;
 }
+
 inline IntTab& Domaine_VF::aretes_multiples_virt_pe_num() // EB
 {
   return aretes_multiples_virt_pe_num_;
 }
-
 // fin EB
+
 /*! @brief cf au dessus
  *
  */
