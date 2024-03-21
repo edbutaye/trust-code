@@ -43,11 +43,13 @@ public:
     completer_impl<Type_Operateur::Op_DIFT_FACE, Eval_Dift_VDF_Face>();
     associer_pb<Eval_Dift_VDF_Face>(equation().probleme());
   }
+
   inline void associer_indicatrices(const DoubleTab& indic_elem, const DoubleVect& indic_arete) override// EB
   {
     Eval_Dift_VDF_Face& eval_diff_turb = dynamic_cast<Eval_Dift_VDF_Face&> (iter->evaluateur());
     eval_diff_turb.associer_indicatrices(indic_elem,indic_arete);
   }
+
   // EB
   inline void associer_proprietes_fluide(const int formule_mu, const double mu_particule, const double mu_fluide) override// EB
   {
@@ -57,6 +59,7 @@ public:
 };
 
 // ===========================================================================================================================================
+
 class Op_Dift_VDF_Face_FT : public Op_Dift_VDF_Face_base, public Op_Diff_Dift_VDF<Op_Dift_VDF_Face_FT>
 {
   Declare_instanciable_sans_constructeur(Op_Dift_VDF_Face_FT);
@@ -85,6 +88,7 @@ public:
   }
 };
 // fin EB
+
 // ===========================================================================================================================================
 
 class Op_Dift_VDF_Face_Axi : public Op_Dift_VDF_Face_Axi_base

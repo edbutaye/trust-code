@@ -196,7 +196,7 @@ public :
   inline int wcol() const
   {
     // largeur minimale des colonnes des fichiers .out
-    // precision_impr_ + 9 car : -1.000e+150 on ajoute la intueur de "-1." et de "e+150" plus un espace
+    // precision_impr_ + 9 car : -1.000e+150 on ajoute la longueur de "-1." et de "e+150" plus un espace
     return precision_impr_ + 9;
   }
   inline int gnuplot_header() const
@@ -530,6 +530,7 @@ inline int Schema_Temps_base::nb_impr() const
 {
   return nb_impr_;
 }
+
 /*! @brief Renvoie le nombre d'impressions effectuees pour le module fluid_particle_interaction
  *
  * @return (int) le nombre d'impressions effectuees

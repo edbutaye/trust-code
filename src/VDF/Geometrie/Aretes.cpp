@@ -168,6 +168,7 @@ int Aretes::affecter_aretes(int& numero_a, int dir, int type, int nb_face,
 
   return 1;
 }
+
 /*! @brief affecte a l'arete virtuelle numero_a les faces f1, f2, f3, f4 ainsi que l'orientation (type1_) et le type (type2_)
  *
  *
@@ -195,6 +196,7 @@ int Aretes::affecter_aretes_virtuelle(int& numero_a, int dir, int type, int nb_f
   return 1;
 }
 // fin EB
+
 void Aretes::calculer_centre_de_gravite(Domaine_VDF& domaine)
 {
   const IntTab& so = domaine.face_sommets();
@@ -404,6 +406,7 @@ void Aretes::swap_Aretes_Som(int a1, int a2, IntTab& Aretes_Som)
   Aretes_Som(a2, 1)=tmp;
 
 }
+
 // EB
 /*! @brief appelee par trier Echange les aretes a1 et a2 de Elem_Aretes
  *
@@ -654,8 +657,8 @@ void Aretes::trier(int& nb_aretes_coin, int& nb_aretes_bord,
     }
     */
 }
-
 // fin EB
+
 void Aretes::trier_pour_debog(int& nb_aretes_coin, int& nb_aretes_bord,
                               int& nb_aretes_mixte, int& nb_aretes_interne,const DoubleTab&
                               xv)

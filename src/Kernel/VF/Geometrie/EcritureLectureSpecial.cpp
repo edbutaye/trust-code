@@ -240,6 +240,7 @@ static int ecriture_special_part2(const Domaine_VF& zvf, Sortie& fich, const Dou
     }
   return bytes;
 }
+
 // debut EB
 /*! @brief Partie "interieure" de l'ecriture, appellee par la methode en dessous.
  *
@@ -274,7 +275,6 @@ static int ecriture_special_part2_indic_aretes(const Domaine_VF& dvf, Sortie& fi
     }
   return bytes;
 }
-
 
 /*! @brief codage de l'ecriture des positions et des valeurs de val
  *

@@ -71,6 +71,7 @@ inline IntTab& Aretes::faces()
 {
   return faces_;
 }
+
 // EB orientation des aretes
 /*! @brief retourne l'orientation des aretes selon la definition dans Aretes::affecter_aretes
  *

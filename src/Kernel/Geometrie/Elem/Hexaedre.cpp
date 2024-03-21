@@ -58,8 +58,6 @@ Implemente_instanciable_32_64(Hexaedre_32_64,"Hexaedre",Elem_geom_base_32_64<_T_
 
 
 
-
-
 /*! @brief NE FAIT RIEN
  *
  * @param (Sortie& s) un flot de sortie

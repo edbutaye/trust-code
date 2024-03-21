@@ -347,6 +347,7 @@ Nom Discretisation_base::get_name_of_type_for(const Nom& class_operateur, const 
     {
       type = type_operateur;
       Nom disc = eqn.discretisation().que_suis_je();
+
       if (disc=="VDF+") disc="VDF"; // EB
       int isQC = eqn.probleme().is_dilatable();
 
@@ -379,6 +380,7 @@ Nom Discretisation_base::get_name_of_type_for(const Nom& class_operateur, const 
       Nom discr = eqn.discretisation().que_suis_je();
       if (discr == "VEFPreP1B") discr = "VEF";
       if (discr=="VDF+") discr="VDF"; // EB
+
       type += discr;
 
       Nom type_ch = eqn.inconnue().que_suis_je();
@@ -403,6 +405,7 @@ Nom Discretisation_base::get_name_of_type_for(const Nom& class_operateur, const 
         }
 
       Nom discr = eqn.discretisation().que_suis_je();
+
       if (discr=="VDF+") discr="VDF";
       type += discr;
       type += "_";
@@ -448,6 +451,7 @@ Nom Discretisation_base::get_name_of_type_for(const Nom& class_operateur, const 
       assert(champ_sup.non_nul());
 
       const Champ_base& diffusivite = champ_sup.valeur();
+
       if (nom_discr=="VDF+") nom_discr="VDF"; // EB
       if (nom_discr == "VEFPreP1B") nom_discr = "VEF";
       type += nom_discr;
@@ -488,6 +492,7 @@ Nom Discretisation_base::get_name_of_type_for(const Nom& class_operateur, const 
           Nom tiret = "_";
           type += tiret;
           Nom discr = que_suis_je();
+
           if (discr=="VDF+") discr="VDF"; // EB
           if (discr == "VEFPreP1B") discr = "VEF";
           type += discr;
@@ -500,6 +505,7 @@ Nom Discretisation_base::get_name_of_type_for(const Nom& class_operateur, const 
           Nom tiret = "_";
           type += tiret;
           Nom discr = que_suis_je();
+
           if (discr=="VDF+") discr="VDF"; // EB
           // les operateurs de diffusion sont communs aux discretisations VEF et VEFP1B
           if (discr == "VEFPreP1B") discr = "VEF";

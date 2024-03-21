@@ -22,6 +22,7 @@ Op_Dift_VDF_Face::Op_Dift_VDF_Face() : Op_Dift_VDF_Face_base(Iterateur_VDF_Face<
 {
   declare_support_masse_volumique(1);
 }
+
 Implemente_instanciable_sans_constructeur(Op_Dift_VDF_Face_FT,"Op_Dift_VDF_Face_FT",Op_Dift_VDF_Face_base);
 Sortie& Op_Dift_VDF_Face_FT::printOn(Sortie& s ) const { return s << que_suis_je() ; }
 Entree& Op_Dift_VDF_Face_FT::readOn(Entree& s ) { return s ; }

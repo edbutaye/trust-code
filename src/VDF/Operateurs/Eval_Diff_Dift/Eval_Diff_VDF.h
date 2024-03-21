@@ -121,8 +121,10 @@ public:
           }
         return myViscLam; // fin EB
       }
-    else {return 0.25 * (tab_diffusivite_(is_var_ * i, compo) + tab_diffusivite_(is_var_ * j, compo) + tab_diffusivite_(is_var_ * k, compo) + tab_diffusivite_(is_var_ * l, compo));}
-
+    else
+      {
+        return 0.25 * (tab_diffusivite_(is_var_ * i, compo) + tab_diffusivite_(is_var_ * j, compo) + tab_diffusivite_(is_var_ * k, compo) + tab_diffusivite_(is_var_ * l, compo));
+      }
   }
 
   inline double nu_lam_impl_face(int i, int j, int k, int l, int compo) const { return nu_2_impl_face(i, j, k, l, compo); }
@@ -148,7 +150,6 @@ public:
       case 2: // Harmonic average
         {
           myViscLam = (mu_solide_ * mu_fluide_) / (mu_fluide_ - indic_arete * (mu_fluide_ - mu_solide_));
-
         }
         break;
       default:
@@ -163,6 +164,7 @@ public:
     return myViscLam;
     // fin EB
   }
+
   // These methods will be overloaded in DIFT operators (See Eval_Dift_VDF_const_Elem for example ...)
   inline int get_ind_Fluctu_Term() const { return 0; }
   inline double get_dv_mvol(const int i) const { throw; } /* seulement pour K-Eps */
@@ -183,8 +185,8 @@ protected:
 
   double mu_solide_;
   double mu_fluide_;
-  int 	 formule_mu_;
-  int   is_solid_particle_=0;
+  int formule_mu_;
+  int is_solid_particle_ = 0;
 };
 
 #endif /* Eval_Diff_VDF_included */

@@ -380,10 +380,15 @@ template<class _TYPE_> template <typename Type_Double>
 void Iterateur_VDF_Face<_TYPE_>::ajouter_blocs_aretes_internes(const int ncomp, matrices_t mats, DoubleTab& secmem, const tabs_t& semi_impl) const
 {
   if(!_TYPE_::CALC_ARR_INT ) return; /* do nothing */
+
   if (!_TYPE_::CALC_ARR_INT_FT)
-    ajouter_blocs_aretes_generique_<true, Type_Flux_Arete::INTERNE, Type_Double>(premiere_arete_interne, derniere_arete_interne, ncomp, mats, secmem, semi_impl);
+    {
+      ajouter_blocs_aretes_generique_<true, Type_Flux_Arete::INTERNE, Type_Double>(premiere_arete_interne, derniere_arete_interne, ncomp, mats, secmem, semi_impl);
+    }
   else
-    ajouter_blocs_aretes_generique_<true, Type_Flux_Arete::INTERNE_FT, Type_Double>(premiere_arete_interne, derniere_arete_interne, ncomp, mats, secmem, semi_impl);
+    {
+      ajouter_blocs_aretes_generique_<true, Type_Flux_Arete::INTERNE_FT, Type_Double>(premiere_arete_interne, derniere_arete_interne, ncomp, mats, secmem, semi_impl);
+    }
 }
 
 template<class _TYPE_> template <typename Type_Double>

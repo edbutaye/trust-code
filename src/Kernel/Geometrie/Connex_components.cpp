@@ -360,6 +360,7 @@ int compute_global_connex_components(IntVect& num_compo, int nb_local_components
     nb_components = max_array(renum) + 1;
   return nb_components;
 }
+
 // EB : copie fonction precedent mais DoubleTab en entree
 int compute_global_connex_components(DoubleTab& num_compo, int nb_local_components)
 {

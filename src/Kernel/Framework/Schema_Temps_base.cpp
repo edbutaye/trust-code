@@ -179,7 +179,6 @@ int Schema_Temps_base::limpr() const
   return ( i>j );
 }
 
-
 // Description:
 //    Renvoie 1 s'il y a lieu d'effectuer une impression des donnes du baltik fpi (cf dt_impr_fpi_)
 //    Renvoie 0 sinon
@@ -223,10 +222,6 @@ int Schema_Temps_base::limpr_fpi() const
   modf(temps_precedent_/dt_impr_fpi_ + epsilon, &j);
   return ( i>j );
 }
-
-
-
-
 
 void Schema_Temps_base::validateTimeStep()
 {

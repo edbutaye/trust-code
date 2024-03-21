@@ -429,7 +429,6 @@ void Matrice_Dense::multiplyToRight(const Matrice_Dense& B, Matrice_Dense& RES) 
   return;
 }
 
-
 // EB
 Matrice_Dense operator+(const Matrice_Dense& A, const Matrice_Dense& B)
 {

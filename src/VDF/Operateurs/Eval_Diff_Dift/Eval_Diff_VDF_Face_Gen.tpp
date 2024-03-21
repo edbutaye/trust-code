@@ -52,6 +52,7 @@ Eval_Diff_VDF_Face_Gen<DERIVED_T>::flux_arete(const DoubleTab& inco, const Doubl
       flux[k] = ((tau + tau_tr) * (visc_lam + visc_turb)) * surf * poros;
     }
 }
+
 // debut EB
 template <typename DERIVED_T> template<Type_Flux_Arete Arete_Type, typename Type_Double> inline std::enable_if_t< Arete_Type == Type_Flux_Arete::INTERNE_FT, void>
 Eval_Diff_VDF_Face_Gen<DERIVED_T>::flux_arete(const DoubleTab& inco, const DoubleTab*, int num_arete, int fac1, int fac2, int fac3, int fac4, Type_Double& flux) const
@@ -67,6 +68,7 @@ Eval_Diff_VDF_Face_Gen<DERIVED_T>::flux_arete(const DoubleTab& inco, const Doubl
     }
 }
 // fin EB
+
 template <typename DERIVED_T> template<Type_Flux_Arete Arete_Type, typename Type_Double> inline std::enable_if_t< Arete_Type == Type_Flux_Arete::MIXTE, void>
 Eval_Diff_VDF_Face_Gen<DERIVED_T>::flux_arete(const DoubleTab& inco, const DoubleTab*, int num_arete, int fac1, int fac2, int fac3, int fac4, Type_Double& flux) const
 {
