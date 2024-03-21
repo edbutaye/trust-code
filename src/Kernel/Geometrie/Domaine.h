@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -289,13 +289,13 @@ public:
   ///
   /// Various
   ///
-  void clear();
+  virtual void clear();
   void fill_from_list(std::list<Domaine*>& lst);
   void merge_wo_vertices_with(Domaine& z);
   inline bool axi1d() const {  return axi1d_;  }
   inline void fixer_epsilon(double eps)  { epsilon_=eps; }
-  inline int deformable() const  {   return deformable_;  }
-  inline int& deformable() {   return deformable_;  }
+  inline bool deformable() const  {   return deformable_;  }
+  inline bool& deformable() {   return deformable_;  }
   inline void set_fichier_lu(Nom& nom)  {    fichier_lu_=nom;   }
   inline const Nom& get_fichier_lu() const  {   return fichier_lu_;  }
   void imprimer() const;
@@ -381,7 +381,7 @@ protected:
 
   int axi1d_;
   double epsilon_;
-  int deformable_;
+  bool deformable_;
   Nom fichier_lu_;
 
 #ifdef MEDCOUPLING_

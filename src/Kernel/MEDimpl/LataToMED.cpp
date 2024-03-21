@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2024, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -144,7 +144,7 @@ void convert_domain_to_Domaine(  const Domain& dom , Domaine& dom_trio)
   dom_trio.fixer_premieres_faces_frontiere();
 
   if (dom.id_.timestep_!=0)
-    dom_trio.deformable()=1;
+    dom_trio.deformable() = true;
 }
 
 // XD format_lata_to_med objet_lecture nul 0 not_set
