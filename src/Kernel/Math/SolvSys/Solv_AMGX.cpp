@@ -207,8 +207,8 @@ bool Solv_AMGX::detect_new_stencil(const Matrice_Morse& mat_morse)
                       bool found = false;
                       trustIdType col = renum_array[tab2(k) - 1];
                       // Boucle pour voir si le coeff est sur le GPU:
-                      int RowGlobal = decalage_local_global_+RowLocal;
-                      for (int kk = rowOffsets[RowLocal]; kk < rowOffsets[RowLocal + 1]; kk++)
+                      trustIdType RowGlobal = decalage_local_global_+RowLocal;
+                      for (trustIdType kk = rowOffsets[RowLocal]; kk < rowOffsets[RowLocal + 1]; kk++)
                         {
                           if (colIndices[kk] == col)
                             {
@@ -241,7 +241,7 @@ int Solv_AMGX::solve(ArrOfDouble& residu)
   computeOnTheDevice(lhs_);
   statistics().begin_count(STD_COUNTERS::gpu_library,statistics().get_last_opened_counter_level()+1);
   // Offer device pointers to AmgX:
-  SolveurAmgX_.solve(addrOnDevice(lhs_), addrOnDevice(rhs_), nRowsLocal, seuil_);
+  SolveurAmgX_.solve(addrOnDevice(lhs_), addrOnDevice(rhs_), static_cast<int>(nRowsLocal), seuil_);
   statistics().end_count(STD_COUNTERS::gpu_library);
   Cout << "[AmgX] Time to solve system on GPU: " << statistics().get_total_time(STD_COUNTERS::gpu_library) << finl;
   return nbiter(residu);

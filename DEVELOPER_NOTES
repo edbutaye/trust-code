@@ -1,4 +1,6 @@
 XX/XX/25 (TRUST) GPU          : Cuda 12.9 and NVHPC 25.5 supported to build TRUST Nvidia version
+XX/XX/25 (TRUST) GPU          : Use public_for_cuda macro to declare protected/private methods with Kokkos regions as Cuda kernels should be implemented into public methods
+XX/XX/25 (TRUST) GPU          : As Cuda build with nvc++ will be soon deprecated, enable it with Kokkos nvcc wrapper with: ./configure -cuda -c++=nvcc_wrapper
 -------------------------------------------------------------
 Developer notes version 1.9.8_beta : Changes since version 1.9.7 :
 -------------------------------------------------------------

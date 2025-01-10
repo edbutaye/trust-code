@@ -217,7 +217,7 @@ cherche_file()
       if [ ${#fic} != 0 ] && [ "`xxx $fic`" = 1 ]
       then
          # Set TRUST_ROOT in the path if necessary:
-         [ $fic != ${fic#$TRUST_ROOT} ] && fic="\$TRUST_ROOT"${fic#$TRUST_ROOT}
+         [ $fic != ${fic#$TRUST_ROOT} ] && a=${fic#$TRUST_ROOT} && fic="\$TRUST_ROOT"$a
          # New 1.6.8: We do NOT take a path from other TRUST installation
          if [ "`echo $fic | grep /TRUST/`" = "" ]
          then
@@ -354,7 +354,13 @@ print_OS()
 print_GNU_VERSION()
 {
    # Verifie que le compilateur est bien GNU:
-   [ "${TRUST_CC_BASE%g++}" != "$TRUST_CC_BASE" ] && $TRUST_CC_BASE -v 2>&1 | awk '/gcc / && /version / {i=1;while(split($(i),a,".")==1) i++;print $(i)}'
+   if [ "${TRUST_CC_BASE%g++}" != "$TRUST_CC_BASE" ]
+   then
+      $TRUST_CC_BASE -v 2>&1 | awk '/gcc / && /version / {i=1;while(split($(i),a,".")==1) i++;print $(i)}'
+   elif [ "${TRUST_CC_BASE_EXTP%g++}" != "$TRUST_CC_BASE_EXTP" ]
+   then
+      $TRUST_CC_BASE_EXTP -v 2>&1 | awk '/gcc / && /version / {i=1;while(split($(i),a,".")==1) i++;print $(i)}'
+   fi
 }
 
 ########################################################
@@ -639,7 +645,9 @@ case $arch in
          if [ "$TRUST_USE_CUDA" = 1 ]
          then
             [ "$TRUST_USE_OPENMP" = 1 ] && echo "OpenMP target is not supported anymore for GPU build. Remove -openmp option." && exit -1
-            USE_NVCPP=1 && [ "$TRUST_FORCE_CC" = nvcc_wrapper ] && USE_NVCPP=0
+            USE_NVCPP=1 # Default
+            [ "$TRUST_FORCE_CC" = nvcc_wrapper ] && USE_NVCPP=0 # Build with nvcc (Kokkos nvcc_wrapper)
+            [ "$TRUST_FORCE_CC" = nvc++ ] && USE_NVCPP=1 # Build with nvc++ (soon deprecated)
             if [ "$USE_NVCPP" = 1 ]
             then
                CUDA_COMPILER=nvc++
@@ -669,12 +677,13 @@ case $arch in
                nvcc_wrapper=$TRUST_ROOT/lib/src/LIBKOKKOS/$TRUST_ARCH"_opt"/bin/nvcc_wrapper
                if [ ! -f $nvcc_wrapper ]
                then
-                  PATH=`dirname $nvcc_wrapper`:$PATH
                   mkdir -p `dirname $nvcc_wrapper`
-                  echo `whence_ $CUDA_COMPILER` \$@ > $nvcc_wrapper
+                  echo "#!/usr/bin/env bash" >> $nvcc_wrapper
+                  echo `whence_ $CUDA_COMPILER` \$@ >> $nvcc_wrapper
                   chmod 777 $nvcc_wrapper
                   echo "Creating $nvcc_wrapper"
                fi
+               PATH=`dirname $nvcc_wrapper`:$PATH
             fi
          fi
          # Support compilateur cray et AOMP de AMD: https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-dev/docs/UBUNTUINSTALL.md
@@ -1102,6 +1111,8 @@ then
    fi
    export TRUST_CC_BASE_EXTP TRUST_cc_BASE_EXTP TRUST_F77_BASE_EXTP
 fi
+TRUST_VERSION_GNU=`print_GNU_VERSION`
+m="# GNU compiler version";e="TRUST_VERSION_GNU=$TRUST_VERSION_GNU && export TRUST_VERSION_GNU";ecrit $m"|"$e"|"$env
 
 # Installing xml2 without dependency to icu, necessary on some systems (Rocky/Fedora 34) for ld and/or mpicxx
 # see https://github.com/conda-forge/libxml2-feedstock/issues/41
@@ -1216,7 +1227,7 @@ then
    ################
    e="`cherche_file TRUST_NVCC nvcc`";eval $e
    NVHPC_ROOT=${TRUST_NVCC%/compilers/bin/nvcc}
-   [ ! -d $NVHPC_ROOT ] && echo "Error, NVHPC_ROOT=$NVHPC_ROOT not found." 
+   [ ! -d $NVHPC_ROOT ] && echo "Error, NVHPC_ROOT=$NVHPC_ROOT not found."
    echo "NVHPC_ROOT=\"$NVHPC_ROOT\" && export NVHPC_ROOT # Path to Nvidia HPC SDK" >> $env
    m="# Wrapper to CUDA compiler";CUDA_NVCC=$TRUST_NVCC;configure_compilateur_ccache
    ecrit $m"|"$e"|"$env;eval $e
@@ -1261,7 +1272,7 @@ then
    then
       echo "Cuda Compute Capability not detected ! TRUST_CUDA_CC should be set."
       exit -1
-   elif [ "$TRUST_CUDA_CC" != 70 ] && [ "$TRUST_CUDA_CC" != 75 ] && [ "$TRUST_CUDA_CC" != 80 ] && [ "$TRUST_CUDA_CC" != 86 ] && [ "$TRUST_CUDA_CC" != 89 ] && [ "$TRUST_CUDA_CC" != 90 ] && [ "$TRUST_CUDA_CC" != 100 ] && [ "$TRUST_CUDA_CC" != 103 ] && [ "$TRUST_CUDA_CC" != 120 ] 
+   elif [ "$TRUST_CUDA_CC" != 70 ] && [ "$TRUST_CUDA_CC" != 75 ] && [ "$TRUST_CUDA_CC" != 80 ] && [ "$TRUST_CUDA_CC" != 86 ] && [ "$TRUST_CUDA_CC" != 89 ] && [ "$TRUST_CUDA_CC" != 90 ] && [ "$TRUST_CUDA_CC" != 100 ] && [ "$TRUST_CUDA_CC" != 103 ] && [ "$TRUST_CUDA_CC" != 120 ]
    then
       echo "TRUST_CUDA_CC=$TRUST_CUDA_CC not supported yet !"
       echo "Update the following files:"
@@ -1876,7 +1887,7 @@ SL_EXTENSION="so" && [ ${TRUST_ARCH#HPPA} != $TRUST_ARCH ] && SL_EXTENSION="sl"
 OPTIMIZE="-O3"
 TRUST_SUPPORTED=0
 case $TRUST_ARCH_CC in
-  linux_g++*|cygw*g++*|linux_cuda-g++*|linux_nvcc*) TRUST_SUPPORTED=1
+  linux_g++*|cygw*g++*|linux_nvcc_wrapper) TRUST_SUPPORTED=1
 	[ "$TRUST_STDCPP" = c++14 ] && TRUST_SUPPORTED=`echo $TRUST_VERSION_GNU | awk -F. '{ver=$1*100+$2*10+$3;if (ver>=530 && ver<=1511) print "(Supportee)";else print "(Not yet supported or not supported anymore)"}'`
 	[ "$TRUST_STDCPP" = c++17 ] && TRUST_SUPPORTED=`echo $TRUST_VERSION_GNU | awk -F. '{ver=$1*100+$2*10+$3;if (ver>=820 && ver<=1521) print "(Supportee)";else print "(Not yet supported or not supported anymore)"}'`
 	m="# GNU compiler version";e="TRUST_VERSION_GNU=$TRUST_VERSION_GNU && export TRUST_VERSION_GNU";ecrit $m"|"$e"|"$env
@@ -1889,9 +1900,16 @@ case $TRUST_ARCH_CC in
 	[ "$TRUST_USE_OPENMP" = 1 ] && PTHREAD="-pthread" # Pour OpenBLAS ?
 	FPIC="-fPIC"
 	[ ${TRUST_ARCH} = cygwin ] && FPIC=""  # sous cygwin pas de -fPIC
-	CppFlags="-O3 $FPIC $PTHREAD -std=$TRUST_STDCPP -fno-common -Wno-long-long -Wall -Wno-unknown-pragmas -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -Wsynth -Wshadow -Wextra -Wno-unused-parameter -pedantic -fabi-version=0 -Wno-cpp"
-	[ "`echo $TRUST_VERSION_GNU | awk -F. '{print ($1>4)}'`" = 1 ] && [ $TRUST_ARCH_CC = linux_g++ ] && CppFlags=$CppFlags" -Wshadow -Werror" # Uniquement si gcc>=5
-	[ "`echo $TRUST_VERSION_GNU | awk -F. '{print ($1==12)}'`" = 1 ] && [ $TRUST_ARCH_CC = linux_g++ ] && CppFlags=$CppFlags" -Wno-use-after-free" # Uniquement si gcc12 (Erreur Kokkos sinon)
+	CppFlags="-O3 $FPIC $PTHREAD -std=$TRUST_STDCPP"
+	if [ $TRUST_ARCH_CC = linux_g++ ]
+	then
+	   CppFlags=$CppFlags" -Werror -Wshadow -Wsign-promo"
+	   [ "`echo $TRUST_VERSION_GNU | awk -F. '{print ($1==12)}'`" = 1 ] && CppFlags=$CppFlags" -Wno-use-after-free" # Uniquement si gcc12 (Erreur Kokkos sinon)
+	elif [ $TRUST_ARCH_CC = linux_nvcc_wrapper ]
+	then
+	   CppFlags=$CppFlags" -arch=sm_$TRUST_CUDA_CC --extended-lambda -Werror"
+	fi
+	CppFlags=$CppFlags" -fno-common -Wno-long-long -Wall -Wno-unknown-pragmas -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsynth -Wextra -Wno-unused-parameter -pedantic -fabi-version=0 -Wno-cpp"
 	CppFlags=$CppFlags" -fno-math-errno" # Operations mathematiques optimisees sans ecarts crees (vient de F5)
 	( [ "$TRUST_INT64" != 1 ] || [ "$TRUST_INT64_NEW" = 1 ] ) && CppFlags=$CppFlags" -Wconversion"
 	# flag -Wsuggest-override available on gcc version >= 5.1; on gcc 5.4.0 (ub 16) this flag suggests to fix mpich 3.2, so we do not add this flag
@@ -1903,11 +1921,6 @@ case $TRUST_ARCH_CC in
 	F77Flags_64b="$F77Flags" && [ "$TRUST_INT64" = "1" ] && F77Flags_64b=$F77Flags" -fdefault-integer-8"
 	ccFLAGS="-O3 $FPIC $PTHREAD"
 	ShLibFlag="\$(TRUST_CC) -shared"
-	if [ "$TRUST_USE_CUDA" = 1 ]
-	then
-	   #CppFlags="-O3 -x cu -arch=sm_$TRUST_CUDA_CC --extended-lambda -ccbin=g++ -Xcompiler=\"$CppFlags\""
-	   CppFlags=$CppFlags" -arch=sm_$TRUST_CUDA_CC --extended-lambda"
-	fi
 	;;
     linux_clang++|linux_armclang++|darwin_clang++) TRUST_SUPPORTED=1
         [ "$TRUST_ARCH_CC" = linux_armclang++ ] && ArmFlags="-armpl -ffast-math" # To add optimized machine-specific library. -ffast-math interessant sur irene-arm (*2 sur HPCG, rien sur GNU)
@@ -2130,7 +2143,7 @@ int main() {
    cout<<"Size of int64_t is " << sizeof(std::int64_t) << " bytes" << endl;
    return sizeof(int64_t);
 }' > test_size_64b.cpp
-   $TRUST_CC -o test_size_64b.out test_size_64b.cpp
+   $TRUST_CC_BASE -o test_size_64b.out test_size_64b.cpp
    ./test_size_64b.out  1>/dev/null
    sizeof64=$?
    if [ "$sizeof64" != 8 ]
@@ -2154,7 +2167,7 @@ int main() {
    $TRUST_F77_BASE $F77Flags_64b -o test_integer test_integer.f && ./test_integer
    if [ $? != 64 ]
    then
-      echo "Error ! F77Flags_64b=$F77Flags_64b is not enough to convert Fortran integer type to 64 bits integer." 
+      echo "Error ! F77Flags_64b=$F77Flags_64b is not enough to convert Fortran integer type to 64 bits integer."
       exit -1
    fi  
    rm -f test_integer.f test_integer
@@ -2454,7 +2467,7 @@ LINK_MALIB = $LINK_MALIB" > $tmp
    ccFLAGS=`echo $ccFLAGS | sed "1,$ s?-O[0-9]?-g?g"`
    CppFlags=`echo $CppFlags | sed "1,$ s?-O[0-9]?-g $NOOPT?g"`
    ### Sur gcc >= 11, -g utilise dwarf5 qui empeche addr2line des versions < 2.35.2 de binutils de convertir les adresses des binaires en numero ligne du code source
-   [[ $(echo $TRUST_VERSION_GNU | cut -d '.' -f 1) -ge 11 ]] && CppFlags=${CppFlags/-g /-gdwarf-4 }
+   [ "`basename $TRUST_CC_BASE`" = g++ ] && [[ $(echo $TRUST_VERSION_GNU | cut -d '.' -f 1) -ge 11 ]] && CppFlags=${CppFlags/-g /-gdwarf-4 }
    ### sur Adastra-gpu avec crayftn, il faut passer -O0 sinon make debug passe pas( _dger_ undefined reference dans dlsode.f)
    [ "$TRUST_ARCH_CC" = "linux_crayCC" ] && F77Flags=`echo $F77Flags | sed "1,$ s?-g?-g -O0?g"`
    [ "$TRUST_ARCH_CC" = "linux_crayCC" ] && F77Flags_64b=`echo $F77Flags_64b | sed "1,$ s?-g?-g -O0?g"`

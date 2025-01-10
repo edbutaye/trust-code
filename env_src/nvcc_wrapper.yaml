@@ -1,0 +1,8 @@
+compilers:
+  - description: Kokkos nvcc_wrapper compiler
+    match-args:
+    match-language: C++
+    match-sources: ".*\\.cpp"
+    defines-text: "
+#define __NVCC__ 1
+"

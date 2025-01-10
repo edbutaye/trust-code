@@ -31,6 +31,10 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_UniqueToken.hpp>
 
+#ifdef __NVCC__
+// PL: flemme de corriger un warning assez obscur...
+#pragma nv_diag_suppress 20011
+#endif
 class ParserView : public Parser
 {
 public:
@@ -78,10 +82,10 @@ private:
 
   struct StackEntry
   {
-    int node_idx;    // Index in PNodes_view array
-    double result;
-    int state;       // 0: new, 1: need right, 2: done
-    bool is_root;    // To identify if this is the root node passed by reference
+    int node_idx=0;    // Index in PNodes_view array
+    double result=0.0;
+    int state=0;       // 0: new, 1: need right, 2: done
+    bool is_root=false;    // To identify if this is the root node passed by reference
   };
   KOKKOS_INLINE_FUNCTION double eval(const PNodePod& node, int threadId) const
   {
@@ -191,4 +195,7 @@ private:
     return stack[0].result;
   }
 };
+#ifdef __NVCC__
+#pragma diag_warning 20011
+#endif
 #endif

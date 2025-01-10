@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -67,13 +67,22 @@ protected:
 
 private:
   template<typename _TYPE_> std::enable_if_t< std::is_same<_TYPE_, double>::value , double>
-  KOKKOS_INLINE_FUNCTION diffu__(const int k, const int l, const int num_elem, const _TYPE_ &diffu) const { return diffu; }
+  inline diffu__(const int comp, const int num_elem, const _TYPE_ &diffu) const { return diffu; }
 
   template<typename _TYPE_> std::enable_if_t< std::is_same<_TYPE_, TRUSTTab<double>>::value , double>
-  KOKKOS_INLINE_FUNCTION diffu__(const int k, const int l, const int num_elem, const _TYPE_ &diffu) const { return diffu(num_elem, k * dimension + l); }
+  inline diffu__(const int comp, const int num_elem, const _TYPE_ &diffu) const { return diffu(num_elem, comp); }
 
   template<typename _TYPE_> std::enable_if_t< std::is_same<_TYPE_, TRUSTArray<double>>::value , double>
-  KOKKOS_INLINE_FUNCTION diffu__(const int k, const int l, const int num_elem, const _TYPE_ &diffu) const { return diffu[k * dimension + l]; }
+  inline diffu__(const int comp, const int num_elem, const _TYPE_ &diffu) const { return diffu(comp); }
+
+  template<typename _TYPE_> std::enable_if_t< std::is_same<_TYPE_, double>::value , double>
+  KOKKOS_INLINE_FUNCTION diffu__view(const int comp, const int num_elem, const _TYPE_ &diffu) const { return diffu; }
+
+  template<typename _TYPE_> std::enable_if_t< std::is_same<_TYPE_, TRUSTTab<double>>::value , double>
+  KOKKOS_INLINE_FUNCTION diffu__view(const int comp, const int num_elem, const _TYPE_ &diffu) const { return diffu(num_elem, comp); }
+
+  template<typename _TYPE_> std::enable_if_t< std::is_same<_TYPE_, TRUSTArray<double>>::value , double>
+  KOKKOS_INLINE_FUNCTION diffu__view(const int comp, const int num_elem, const _TYPE_ &diffu) const { return diffu(comp); }
 };
 
 // ATTENTION le diffu intervenant dans les fonctions n'est que LOCAL (on appelle d_nu apres)
@@ -92,13 +101,13 @@ inline double Op_Diff_VEF_base::viscA(int i, int j, int num_elem, const _TYPE_ &
   if (is_double)
     {
       for (int k = 0; k < dimension; k++)
-        DSiSj += diffu__(k, k, num_elem, diffu) * face_normales(i, k) * face_normales(j, k);
+        DSiSj += diffu__(k * dimension + k, num_elem, diffu) * face_normales(i, k) * face_normales(j, k);
     }
   else
     {
       for (int k = 0; k < dimension; k++)
         for (int l = 0; l < dimension; l++)
-          DSiSj += diffu__(k, l, num_elem, diffu) * face_normales(i, k) * face_normales(j, l);
+          DSiSj += diffu__(k * dimension + l, num_elem, diffu) * face_normales(i, k) * face_normales(j, l);
     }
 
   if ((face_voisins(i, 0) == face_voisins(j, 0)) || (face_voisins(i, 1) == face_voisins(j, 1)))
@@ -116,13 +125,13 @@ KOKKOS_INLINE_FUNCTION double Op_Diff_VEF_base::viscA(int i, int j, int num_elem
   if (is_double)
     {
       for (int k = 0; k < dim; k++)
-        DSiSj += diffu__(k, k, num_elem, diffu) * face_normales_v(i, k) * face_normales_v(j, k);
+        DSiSj += diffu__view(k * dim + k, num_elem, diffu) * face_normales_v(i, k) * face_normales_v(j, k);
     }
   else
     {
       for (int k = 0; k < dim; k++)
         for (int l = 0; l < dim; l++)
-          DSiSj += diffu__(k, l, num_elem, diffu) * face_normales_v(i, k) * face_normales_v(j, l);
+          DSiSj += diffu__view(k * dim + l, num_elem, diffu) * face_normales_v(i, k) * face_normales_v(j, l);
     }
 
   if ((face_voisins_v(i, 0) == face_voisins_v(j, 0)) || (face_voisins_v(i, 1) == face_voisins_v(j, 1)))

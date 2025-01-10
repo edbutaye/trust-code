@@ -61,7 +61,7 @@ if [ ! -f $KOKKOS_ROOT_DIR/lib64/libkokkos.a ]; then
            # Or le configure de TRUST fixe aussi CUDA_ROOT parfois a la racine $NVHPC et specifie parfois NVHPC_CUDA_HOME
            # C'est un peu le bazar tout cela...
            [ "$NVHPC_CUDA_HOME" != "" ] && export CUDA_ROOT=$NVHPC_CUDA_HOME
-           CMAKE_OPT="$CMAKE_OPT -DKokkos_ENABLE_CUDA=ON -DKokkos_ENABLE_CUDA_LAMBDA=ON"
+           CMAKE_OPT="$CMAKE_OPT -DKokkos_ENABLE_CUDA=ON" # -DKokkos_ENABLE_CUDA_LAMBDA=ON"
            # KOKKOS ARCH (Cuda Compute Capability):
            if [ "$TRUST_CUDA_CC" = 70 ]
            then

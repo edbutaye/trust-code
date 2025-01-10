@@ -68,8 +68,8 @@ TEST(TRUSTArrayKokkos, KokkosAccessorWO) {
         //Can I write ?
         Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int i) {
         view_wo(i) = 2*i;
-        });        
-        
+        });
+
         //Is the array correctly modified ?
         for (int i = 0; i < N; ++i) {EXPECT_EQ(array[i], 2*i);}
 
@@ -81,19 +81,25 @@ TEST(TRUSTArrayKokkos, KokkosAccessorRW) {
         int N=100;
         ArrOfDouble array(100);
         for (int i = 0; i < N; ++i) {array[i]=i;}
-        
+
         //This does H2D
         auto view_rw = array.view_rw();
 
         //Can I read / write ?
         Kokkos::parallel_for("DoubleElements", N, KOKKOS_LAMBDA(const int i) {
         view_rw(i) = 2 * view_rw(i);
-        });        
+        });
 
         //Is the array correctly modified and transferred back to the host ?
         for (int i = 0; i < N; ++i) {EXPECT_EQ(array[i], 2*i);}
 
     }
+}
+
+void add_one(DoubleArrView view_rw)
+{
+        Kokkos::parallel_for("Kernel 1", view_rw.size(), KOKKOS_LAMBDA(int i) {view_rw(i) += 1; });
+        Kokkos::fence();
 }
 
 TEST(TRUSTArrayKokkos, KokkosAccessorSync) {
@@ -104,9 +110,8 @@ TEST(TRUSTArrayKokkos, KokkosAccessorSync) {
 
         auto view_rw = array.view_rw();
 
-        Kokkos::parallel_for("Kernel 1", N, KOKKOS_LAMBDA(int i) {view_rw(i) += 1; });
-        Kokkos::fence();
-        Kokkos::parallel_for("Kernel 2", N, KOKKOS_LAMBDA(int i) {view_rw(i) += 1; });
+        add_one(view_rw);
+        add_one(view_rw);
 
         for (int i = 0; i < N; ++i) {EXPECT_EQ(read_device_value(view_rw, i), 2);}
     }
@@ -126,7 +131,7 @@ TEST(TRUSTArrayKokkos, KokkosAccessorSyncError) {
         auto view_rw = array.view_rw();
         // CPU: 0, GPU: 0
 
-        Kokkos::parallel_for("Kernel 1", N, KOKKOS_LAMBDA(int i) {view_rw(i) += 1; });
+        add_one(view_rw);
         // CPU: 0, GPU: 1
 
         Kokkos::fence();
@@ -134,7 +139,7 @@ TEST(TRUSTArrayKokkos, KokkosAccessorSyncError) {
         for (int i = 0; i < N; ++i) {array[i] += 1;} //implicit D2H copy
         // CPU: 2, GPU: 1
 
-        Kokkos::parallel_for("Kernel 2", N, KOKKOS_LAMBDA(int i) {view_rw(i) += 1; });
+        add_one(view_rw);
         // CPU: 2, GPU: 2
 
 #ifdef TRUST_USE_GPU //sur GPU ?
@@ -157,10 +162,8 @@ TEST(TRUSTArrayKokkos, KokkosAccessorSyncErrorFixed) {
         auto view_rw = array.view_rw();
         //CPU: 0, GPU: 0
 
-        Kokkos::parallel_for("Kernel 1", N, KOKKOS_LAMBDA(int i) {view_rw(i) += 1; });
+        add_one(view_rw);
         //CPU: 0, GPU: 1
-
-        Kokkos::fence();
 
         for (int i = 0; i < N; ++i) {array[i] += 1;}
         //CPU: 2, GPU: 1
@@ -168,7 +171,7 @@ TEST(TRUSTArrayKokkos, KokkosAccessorSyncErrorFixed) {
         view_rw = array.view_rw(); //mark device as modified
         //CPU: 2, GPU: 2
 
-        Kokkos::parallel_for("Kernel 2", N, KOKKOS_LAMBDA(int i) {view_rw(i) += 1; });
+        add_one(view_rw);
         //CPU: 2, GPU: 3
 
 #ifdef TRUST_USE_GPU //sur GPU ?

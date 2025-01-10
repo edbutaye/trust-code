@@ -499,7 +499,7 @@ void Process::imprimer_ram_totale(int all_process)
 #ifdef TRUST_USE_GPU
         int Go = 1024 * Mo;
         double allocated = mp_max((double)DeviceMemory::allocatedBytesOnDevice());
-        size_t total = DeviceMemory::deviceMemGetInfo(1);
+        double total = static_cast<double>(DeviceMemory::deviceMemGetInfo(1));
         Cout << 0.1*(int)(10*allocated/Go) << " GBytes of maximal RAM allocated on a GPU (" <<  int(100 * allocated / total) << "%)" << finl;
 #endif
 #endif /* ndef __APPLE__ */
