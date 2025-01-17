@@ -31,6 +31,7 @@ src/MAIN/instancie_appel*
 *.swp
 .idea/
 *egg-info
+.externalToolBuilders/
 
 # XDATA stuff
 Outils/TRIOXDATA/IHMTRIO.sh
@@ -53,7 +54,11 @@ Outils/TRIOXDATA/XTriou/triou.py
 Outils/TRIOXDATA/XTriou/update_xd
 Outils/TRIOXDATA/XTriou/TRAD_2.mod
 Outils/trustify/install/
+Outils/Gmsh/fltk/
 Outils/TRIOXDATA/test_complet/lance_test_modif
+Outils/gnuplot/gnuplot-5.2.7.tar.gz
+Outils/gnuplot/gnuplot-5.2.7/
+Outils/trustpy/install/
 
 # ICoCo
 Outils/ICoCo/ICoCo_src/README.BALTIK
@@ -87,6 +92,7 @@ doc/TRUST/Tutorial/Baltik_tutorial.pdf
 doc/TRUST/exercices/Tutorial_solutions/Tutorial_solutions.pdf
 doc/tmp
 doc/tmp_files
+doc/TRUST/exercices/Tutorial_solutions/Tutorial_solutions.pdf
 
 # Eclipse
 .cproject
@@ -103,6 +109,7 @@ ThirdPart/src/LIBROCALUTION/rocALUTION/
 Outils/valgrind/configure.help
 Outils/valgrind/valgrind-3.18.1/
 Outils/Gmsh/fltk/
+ThirdPart/src/LIBPETSC/configure.help
 
 # VisIt installed version
 Outils/VisIt/src/*.tar.gz
