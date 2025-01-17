@@ -854,7 +854,7 @@ static void echanger_tableau_aretes(const IntTab& elem_aretes, int nb_aretes_ree
   // Dans ce cas, pe_arete est maintenant correctement rempli pour les aretes reelles.
 
   IntTab tmp;
-  tmp.copy(elem_aretes, Array_base::NOCOPY_NOINIT); // copier uniquement la structure
+  tmp.copy(elem_aretes, RESIZE_OPTIONS::NOCOPY_NOINIT); // copier uniquement la structure
 
   // Copier tab_aretes dans la structure tmp (on sait echanger tmp, pas tab_aretes)
   for (i = 0; i < nb_elem; i++)
@@ -918,13 +918,11 @@ void Domaine::creer_structure_parallelle_aretes(const int nb_aretes_reelles, Int
 
   // Construction de pe_voisins
   ArrOfInt pe_voisins;
-  pe_voisins.set_smart_resize(1);
   for (int i=0; i<n_aretes_tot; i++)
     if (pe_aretes[i]!=moi)
       pe_voisins.append_array(pe_aretes[i]);
 
   ArrOfInt liste_pe;
-  liste_pe.set_smart_resize(1);
   reverse_send_recv_pe_list(pe_voisins, liste_pe);
 
 
@@ -941,12 +939,7 @@ void Domaine::creer_structure_parallelle_aretes(const int nb_aretes_reelles, Int
   VECT(ArrOfInt) aretes_communes_to_recv(nb_voisins);
   VECT(ArrOfInt) blocs_aretes_virt(nb_voisins);
   VECT(ArrOfInt) aretes_to_send(nb_voisins);
-  for (int i = 0; i < nb_voisins; i++)
-    {
-      aretes_communes_to_recv[i].set_smart_resize(1);
-      blocs_aretes_virt[i].set_smart_resize(1);
-      aretes_to_send[i].set_smart_resize(1);
-    }
+
   // Parcours des aretes: recherche des aretes a recevoir d'un autre processeur.
   // Aretes reeles (items communs)
   for (int i = 0; i < nb_aretes_reelles; i++)

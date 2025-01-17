@@ -394,7 +394,6 @@ int compute_global_connex_components(DoubleTab& num_compo, int nb_local_componen
   markers = 0;
   // Tableau de correspondances entre composantes connexes locales et distantes
   IntTab graph;
-  graph.set_smart_resize(1);
   int graph_size = 0;
   // Parcours des elements virtuels uniquement
   for (int i = nbelem; i < nbelem_tot; i++)

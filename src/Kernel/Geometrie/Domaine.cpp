@@ -509,7 +509,7 @@ ArrOfInt& Domaine::chercher_elements_FT(const DoubleTab& positions,
         for (int i = 0; i < cached_positions_FT_.size(); i++)
           if (sameDoubleTab(positions, cached_positions_FT_[i]))
             {
-              elements.resize_tab(cached_positions_FT_[i].dimension(0), ArrOfInt::NOCOPY_NOINIT);
+              elements.resize_tab(cached_positions_FT_[i].dimension(0), RESIZE_OPTIONS::NOCOPY_NOINIT);
               elements = cached_elements_FT_[i];
               return elements;
             }
@@ -519,7 +519,7 @@ ArrOfInt& Domaine::chercher_elements_FT(const DoubleTab& positions,
   const int dim = positions.dimension(1);
   // resize_tab est virtuelle, si c'est un Vect ou un Tab elle appelle le
   // resize de la classe derivee:
-  elements.resize_tab(sz, ArrOfInt::NOCOPY_NOINIT);
+  elements.resize_tab(sz, RESIZE_OPTIONS::NOCOPY_NOINIT);
   double x, y=0, z=0;
   for (int i=0; i<sz; i++)
     {

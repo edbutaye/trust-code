@@ -582,7 +582,7 @@ IntTab  Domaine_VF::set_arete_virt_pe_num(int na, int na_tot) // EB
   Cerr << "Domaine_VF::set_arete_virt_pe_num" << finl;
 
   IntTab tmp (na_tot,2);
-  creer_tableau_aretes(tmp,Array_base::NOCOPY_NOINIT);
+  creer_tableau_aretes(tmp,RESIZE_OPTIONS::NOCOPY_NOINIT);
   tmp=-1;
   const int moi = Process::me();
   for (i = 0; i < na; i++)
@@ -755,7 +755,7 @@ void Domaine_VF::marquer_aretes_multiple_contrib(const Conds_lim& conds_lim)
   const int na_tot=domaine().nb_aretes_tot();
 
   aretes_multiples_.resize(na_tot);
-  creer_tableau_aretes(aretes_multiples_,Array_base::NOCOPY_NOINIT);
+  creer_tableau_aretes(aretes_multiples_,RESIZE_OPTIONS::NOCOPY_NOINIT);
   aretes_multiples_=0;
   aretes_multiples_pe_num_.resize(domaine().nb_aretes(),6);
   aretes_multiples_pe_num_=-1;
@@ -764,7 +764,7 @@ void Domaine_VF::marquer_aretes_multiple_contrib(const Conds_lim& conds_lim)
 
   //const int nb_aretes_virt=na_tot-na;
   aretes_multiples_virt_pe_num_.resize(na_tot,8);
-  creer_tableau_aretes(aretes_multiples_virt_pe_num_,Array_base::NOCOPY_NOINIT);
+  creer_tableau_aretes(aretes_multiples_virt_pe_num_,RESIZE_OPTIONS::NOCOPY_NOINIT);
   aretes_multiples_virt_pe_num_=-1;
   // marquage des aretes items communs
   ////////////////////////////////////////////////
