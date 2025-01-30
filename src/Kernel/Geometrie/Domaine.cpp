@@ -490,9 +490,10 @@ typename Domaine_32_64<_SZ_>::SmallArrOfTID_t& Domaine_32_64<_SZ_>::chercher_ele
 // Effets de bord:
 // Postcondition: la methode ne modifie pas l'objet
 static double cached_memory_FT=0;
-ArrOfInt& Domaine::chercher_elements_FT(const DoubleTab& positions,
-                                        ArrOfInt& elements,
-                                        int reel) const
+template<typename _SZ_>
+typename Domaine_32_64<_SZ_>::SmallArrOfTID_t& Domaine_32_64<_SZ_>::chercher_elements_FT(const DoubleTab& positions,
+                                                                                         SmallArrOfTID_t& elements,
+                                                                                         int reel) const
 {
   bool set_cache = false;
   // PL: On devrait faire un appel a chercher_elements(x,y,z,elem) si positions.dimension(0)=1 ...
@@ -550,172 +551,14 @@ ArrOfInt& Domaine::chercher_elements_FT(const DoubleTab& positions,
 }
 
 // debut EB
-void Domaine::reset_cache_elem_pos_FT() const  // EB
+template <>
+void Domaine_32_64<int>::reset_cache_elem_pos_FT() const  // EB
 {
   cached_elements_FT_.reset();
   cached_positions_FT_.reset();
   cached_memory_FT=0;
 }
 // fin EB
-
-/*! @brief Renvoie le nombre de faces qui sont des bords.
- *
- * @return (int) le nombre de faces qui sont des bords
- */
-int Domaine::nb_faces_bord() const
-{
-  return mes_faces_bord_.nb_faces();
-}
-
-/*! @brief Renvoie le nombre de joints du domaine.
- *
- * @return (int) le nombre de joints du domaine
- */
-int Domaine::nb_faces_joint() const
-{
-  return mes_faces_joint_.nb_faces();
-}
-
-/*! @brief Renvoie le nombre de raccords du domaine.
- *
- * @return (int) le nombre de raccords du domaine
- */
-int Domaine::nb_faces_raccord() const
-{
-  return mes_faces_raccord_.nb_faces();
-}
-
-/*! @brief Renvoie le nombre de face de bord internes du domaine.
- *
- * @return (int) le nombre de face bords internes du domaine
- */
-int Domaine::nb_faces_bords_int() const
-{
-  return mes_bords_int_.nb_faces();
-}
-
-/*! @brief Renvoie le nombre de faces dans les Groupe_Faces du domaine.
- *
- * @return (int) le nombre de faces dans les Groupe_Faces du domaine
- */
-int Domaine::nb_faces_groupes_faces() const
-{
-  return mes_groupes_faces_.nb_faces();
-}
-
-/*! @brief Renvoie le nombre de sommets du domaine.
- *
- * @return (int) le nombre de sommets du domaine
- */
-int Domaine::nb_som() const
-{
-  return sommets_.dimension(0);
-}
-
-/*! @brief Renvoie le nombre total de sommets du domaine.
- *
- * i.e. le nombre de sommets reels et virtuels
- *     sur le processeur courant.
- *
- * @return (int) le nombre total de sommets du domaine
- */
-int Domaine::nb_som_tot() const
-{
-  return sommets_.dimension_tot(0);
-}
-
-/*! @brief Renvoie le nombre de faces du i-ieme bord.
- *
- * @param (int i) le numero du bord dont on veut connaitre le nombre de faces
- * @return (int) le nombre de faces du i-ieme bord
- */
-int Domaine::nb_faces_bord(int i) const
-{
-  return mes_faces_bord_(i).nb_faces();
-}
-
-/*! @brief Renvoie le nombre de faces du i-ieme joint.
- *
- * @param (int i) le numero du joint dont on veut connaitre le nombre de faces
- * @return (int) nombre de faces du i-ieme joint
- */
-int Domaine::nb_faces_joint(int i) const
-{
-  return mes_faces_joint_(i).nb_faces();
-}
-
-/*! @brief Renvoie le nombre de faces du i-ieme raccord.
- *
- * @param (int i) le numero du raccord dont on veut connaitre le nombre de faces
- * @return (int) le nombre de faces du i-ieme raccord
- */
-int Domaine::nb_faces_raccord(int i) const
-{
-  return mes_faces_raccord_(i)->nb_faces();
-}
-/*! @brief Renvoie le nombre de faces de la i-ieme liste de faces de bords internes
- *
- * @param (int i) le numero de la liste de bords internes dont on veut connaitre le nombre de faces
- * @return (int i) le nombre de faces de la i-ieme liste de bords internes
- */
-int Domaine::nb_faces_bords_int(int i) const
-{
-  return mes_bords_int_(i).nb_faces();
-}
-
-/*! @brief Renvoie le nombre de faces de la i-ieme liste de groupes de faces
- *
- * @param (int i) le numero de la liste de groupes de faces dont on veut connaitre le nombre de faces
- * @return (int i) le nombre de faces de la i-ieme liste de groupes de faces
- */
-int Domaine::nb_faces_groupes_faces(int i) const
-{
-  return mes_groupes_faces_(i).nb_faces();
-}
-
-/*! @brief Renumerotation des noeuds: Le noeud de numero k devient le noeud de numero Les_Nums[k]
- *
- * @param (IntVect& Les_Nums) le vecteur contenant la nouvelle numerotation Nouveau_numero_noeud_i = Les_Nums[Ancien_numero_noeud_i]
- */
-void Domaine::renum(const IntVect& Les_Nums)
-{
-  int dim0 = mes_elems_.dimension(0);
-  int dim1 = mes_elems_.dimension(1);
-
-  for (int i = 0; i < dim0; i++)
-    for (int j = 0; j < dim1; j++)
-      mes_elems_(i, j) = Les_Nums[mes_elems_(i, j)];
-
-  for (int i = 0; i < nb_bords(); i++)
-    mes_faces_bord_(i).renum(Les_Nums);
-  for (int i = 0; i < nb_joints(); i++)
-    mes_faces_joint_(i).renum(Les_Nums);
-  for (int i = 0; i < nb_raccords(); i++)
-    mes_faces_raccord_(i)->renum(Les_Nums);
-  for (int i = 0; i < nb_frontieres_internes(); i++)
-    mes_bords_int_(i).renum(Les_Nums);
-  for (int i = 0; i < nb_groupes_faces(); i++)
-    mes_groupes_faces_(i).renum(Les_Nums);
-}
-
-/*! @brief Renumerotation des noeuds et des elements presents dans les items communs des joints Le noeud de numero k devient le noeud de numero Les_Nums[k]
- *
- *       l'element de numero e devient l'element de numero e+elem_offset
- *
- * @param (IntVect& Les_Nums) le vecteur contenant la nouvelle numerotation Nouveau_numero_noeud_i = Les_Nums[Ancien_numero_noeud_i]
- */
-void Domaine::renum_joint_common_items(const IntVect& Les_Nums, const int elem_offset)
-{
-  for (int i_joint = 0; i_joint < nb_joints(); i_joint++)
-    {
-      ArrOfInt& sommets_communs = mes_faces_joint_[i_joint].set_joint_item(Joint::SOMMET).set_items_communs();
-      for (int index = 0; index < sommets_communs.size_array(); index++)
-        sommets_communs[index] = Les_Nums[sommets_communs[index]];
-
-      ArrOfInt& elements_distants = mes_faces_joint_[i_joint].set_joint_item(Joint::ELEMENT).set_items_distants();
-      elements_distants += elem_offset;
-    }
-}
 
 /*! @brief Renvoie -1 si face n'est pas une face de bord interne Renvoie le numero de la face dupliquee sinon.
  *

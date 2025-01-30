@@ -126,7 +126,6 @@ public:
   inline int_t nb_elem() const  { return mes_elems_.dimension(0); }
   inline int_t nb_elem_tot() const { return mes_elems_.dimension_tot(0); }
   inline int nb_som_elem() const;
-<<<<<<< HEAD
   inline int nb_faces_elem(int=0) const;
   /// @brief Renvoie le numero (global) du j-ieme sommet du i-ieme element
   inline int_t sommet_elem(int_t i, int j) const  {  return mes_elems_(i,j); }
@@ -134,19 +133,12 @@ public:
   //
   // Aretes
   //
-=======
-  inline int nb_faces_elem(int=0) const ;
-  inline int sommet_elem(int , int ) const;
-  ArrOfInt& chercher_elements_FT(const DoubleTab& ,ArrOfInt& ,int reel=0) const; // EB cache reset a chaque iteration, sinon il explose en multi-particules (lits fluidises)
+  SmallArrOfTID_t& chercher_elements_FT(const DoubleTab& pos, SmallArrOfTID_t& elem, int reel=0) const;
   void reset_cache_elem_pos_FT() const; // EB
   ///
   /// Aretes
   ///
-  inline int nb_aretes() const;
-  inline int nb_aretes_tot() const;
-  void creer_aretes();
   void creer_structure_parallelle_aretes(const int nb_aretes_reelles, IntTab& Aretes_som, IntTab& Elem_Aretes); // EB
->>>>>>> acb033dbd (Receiving patches from triocfd)
 
   /// Renvoie le nombre d'aretes reelles.
   inline int_t nb_aretes() const { return aretes_som_.dimension(0); }

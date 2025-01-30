@@ -896,7 +896,9 @@ static void echanger_tableau_aretes(const IntTab& elem_aretes, int nb_aretes_ree
         tab_aretes[a] = tmp(i, j);
       }
 }
-void Domaine::creer_structure_parallelle_aretes(const int nb_aretes_reelles, IntTab& Les_Aretes_som, IntTab& Les_Elem_Aretes)
+
+template<>
+void Domaine_32_64<int>::creer_structure_parallelle_aretes(const int nb_aretes_reelles, IntTab& Les_Aretes_som, IntTab& Les_Elem_Aretes)
 {
 
   Cerr << "Domaine::creer_structure_parallelle_aretes" << finl;
@@ -1005,6 +1007,6 @@ void Domaine::creer_structure_parallelle_aretes(const int nb_aretes_reelles, Int
   md.copy(md_aretes);
   // Attache le descripteur au tableau
   Les_Aretes_som.set_md_vector(md);
-// Scatter::calculer_renum_items_communs(mes_aretes_joint, Joint::ARETE);
+// Scatter::calculer_renum_items_communs(mes_aretes_joint, JOINT_ITEM::ARETE);
 }
 

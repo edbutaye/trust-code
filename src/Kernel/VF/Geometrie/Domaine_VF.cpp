@@ -776,7 +776,7 @@ void Domaine_VF::marquer_aretes_multiple_contrib(const Conds_lim& conds_lim)
     {
       const Joint& joint     = joints[njoint];
       const int pe_voisin = joint.PEvoisin(); // EB
-      const IntTab& indices_aretes_joint = joint.joint_item(Joint::ARETE).renum_items_communs(); // ne contient PAS la zone de joint, uniquement les aretes communes entre 2 procs
+      const IntTab& indices_aretes_joint = joint.joint_item(JOINT_ITEM::ARETE).renum_items_communs(); // ne contient PAS la zone de joint, uniquement les aretes communes entre 2 procs
       const int nbaretes = indices_aretes_joint.dimension(0);
       for (int j = 0; j < nbaretes; j++)
         {
