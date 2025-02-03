@@ -46,14 +46,14 @@ public:
 
   inline void associer_indicatrices(const DoubleTab& indic_elem, const DoubleVect& indic_arete) override// EB
   {
-    Eval_Dift_VDF_Face& eval_diff_turb = dynamic_cast<Eval_Dift_VDF_Face&> (iter->evaluateur());
+    Eval_Dift_VDF_Face& eval_diff_turb = dynamic_cast<Eval_Dift_VDF_Face&> (iter_->evaluateur());
     eval_diff_turb.associer_indicatrices(indic_elem,indic_arete);
   }
 
   // EB
   inline void associer_proprietes_fluide(const int formule_mu, const double mu_particule, const double mu_fluide) override// EB
   {
-    Eval_Dift_VDF_Face& eval_diff_turb = dynamic_cast<Eval_Dift_VDF_Face&> (iter->evaluateur());
+    Eval_Dift_VDF_Face& eval_diff_turb = dynamic_cast<Eval_Dift_VDF_Face&> (iter_->evaluateur());
     eval_diff_turb.associer_proprietes_fluide(formule_mu,mu_particule,mu_fluide);
   }
 };
@@ -77,13 +77,13 @@ public:
   inline const Champ_base& diffusivite() const override { return diffusivite_impl<Eval_Dift_VDF_Face_FT>(); }
   inline void associer_indicatrices(const DoubleTab& indic_elem, const DoubleVect& indic_arete) override// EB
   {
-    Eval_Dift_VDF_Face_FT& eval_diff_turb = dynamic_cast<Eval_Dift_VDF_Face_FT&> (iter->evaluateur());
+    Eval_Dift_VDF_Face_FT& eval_diff_turb = dynamic_cast<Eval_Dift_VDF_Face_FT&> (iter_->evaluateur());
     eval_diff_turb.associer_indicatrices(indic_elem,indic_arete);
   }
   // EB
   inline void associer_proprietes_fluide(const int formule_mu, const double mu_particule, const double mu_fluide) override// EB
   {
-    Eval_Dift_VDF_Face_FT& eval_diff_turb = dynamic_cast<Eval_Dift_VDF_Face_FT&> (iter->evaluateur());
+    Eval_Dift_VDF_Face_FT& eval_diff_turb = dynamic_cast<Eval_Dift_VDF_Face_FT&> (iter_->evaluateur());
     eval_diff_turb.associer_proprietes_fluide(formule_mu,mu_particule,mu_fluide);
   }
 };

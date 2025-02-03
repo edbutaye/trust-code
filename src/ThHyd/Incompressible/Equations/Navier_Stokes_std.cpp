@@ -37,7 +37,6 @@
 #include <Param.h>
 #include <Avanc.h>
 #include <Debog.h>
-#include <Schema_Temps.h>
 #include <Domaine_VF.h>
 
 Implemente_instanciable_sans_constructeur(Navier_Stokes_std,"Navier_Stokes_standard",Equation_base);

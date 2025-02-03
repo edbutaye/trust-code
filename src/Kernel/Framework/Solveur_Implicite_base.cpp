@@ -28,36 +28,3 @@ bool Solveur_Implicite_base::iterer_eqs(LIST(OBS_PTR(Equation_base)) eqs, int n,
   return false;
 }
 
-Entree& Modele_turbulence_hyd::readOn(Entree& s)
-{
-  Motcle typ;
-  s >> typ;
-  Motcle nom1("Modele_turbulence_hyd_");
-  nom1 += typ;
-  Nom discr = equation().discretisation().que_suis_je();
-  if (typ.debute_par("SOUS_MAILLE") || discr == "VDF_Hyper" || typ.debute_par("LONGUEUR_MELANGE") || (typ == "K_Epsilon_V2"))
-    {
-      if (dimension == 2 && discr != "VDF_Hyper")
-        {
-          Cerr << "Vous traitez un cas turbulent en dimension 2 avec un modele sous maille" << finl;
-          Cerr << "Attention a l'interpretation des resultats !!" << finl;
-        }
-
-      nom1 += "_";
-      // les operateurs de diffusion sont communs aux discretisations VEF et VEFP1B
-      if (discr == "VEFPreP1B") discr = "VEF";
-      if (discr=="VDF+") discr="VDF"; // EB
-      nom1 += discr;
-    }
-  if (nom1 == "MODELE_TURBULENCE_HYD_SOUS_MAILLE_LM_VEF")
-    {
-      Cerr << "Le mot cle Sous_maille_LM s'appelle desormais Longueur_Melange pour etre coherent en VDF et VEF." << finl;
-      Cerr << "Changer votre jeu de donnees." << finl;
-      exit();
-    }
-  DERIV(Modele_turbulence_hyd_base)::typer(nom1);
-  valeur().associer_eqn(equation());
-  valeur().associer(equation().domaine_dis(), equation().domaine_Cl_dis());
-  s >> valeur(); // on lit !
-  return s;
-}
