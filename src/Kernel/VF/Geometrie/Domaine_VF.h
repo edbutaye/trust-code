@@ -242,8 +242,6 @@ protected:
   IntTab aretes_multiples_virt_pe_num_; // EB
   IntTab arete_virt_pe_num_; // EB
 
-  virtual void remplir_elem_faces()=0;
-
   DoubleTab n_y_elem_ ; // vecteur normal entre le bord le plus proche et l'element
   DoubleTab n_y_faces_; // vecteur normal entre le bord le plus proche et la face
 

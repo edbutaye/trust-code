@@ -71,8 +71,8 @@ public:
     completer_impl<Type_Operateur::Op_DIFT_FACE,Eval_Dift_VDF_Face_FT>();
     associer_pb<Eval_Dift_VDF_Face_FT>(equation().probleme());
   }
-  inline void associer(const Domaine_dis& dd, const Domaine_Cl_dis& dcd, const Champ_Inc& ch) override { associer_impl<Type_Operateur::Op_DIFT_FACE,Eval_Dift_VDF_Face_FT>(dd,dcd,ch); }
-  inline void associer_diffusivite_turbulente(const Champ_Fonc& ch) { associer_diffusivite_turbulente_impl<Type_Operateur::Op_DIFT_FACE,Eval_Dift_VDF_Face_FT>(ch); }
+  inline void associer(const Domaine_dis_base& dd, const Domaine_Cl_dis_base& dcd, const Champ_Inc_base& ch) override { associer_impl<Type_Operateur::Op_DIFT_FACE,Eval_Dift_VDF_Face_FT>(dd,dcd,ch); }
+  inline void associer_diffusivite_turbulente(const Champ_Fonc_base& ch) { associer_diffusivite_turbulente_impl<Type_Operateur::Op_DIFT_FACE,Eval_Dift_VDF_Face_FT>(ch); }
   inline void associer_diffusivite(const Champ_base& ch) override { associer_diffusivite_impl<Eval_Dift_VDF_Face_FT>(ch); }
   inline const Champ_base& diffusivite() const override { return diffusivite_impl<Eval_Dift_VDF_Face_FT>(); }
   inline void associer_indicatrices(const DoubleTab& indic_elem, const DoubleVect& indic_arete) override// EB
