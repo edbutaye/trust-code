@@ -55,12 +55,11 @@ public:
     IJK_Field_local_template<_TYPE_,_TYPE_ARRAY_>(),
     localisation_(Domaine_IJK::Localisation::ELEM)
   { }
-  void allocate(const Domaine_IJK& d, Domaine_IJK::Localisation l, int ghost_size, int additional_k_layers=0, int nb_compo=1, const Nom& name=Nom());
+  void allocate(const Domaine_IJK& d, Domaine_IJK::Localisation l, int ghost_size, int additional_k_layers=0, int nb_compo=1, const Nom& name=Nom(), bool external_storage = false, int monofluide=0, double rov=0., double rol=0., int use_inv_rho_in_pressure_solver=0);
   void allocate(const Domaine_IJK& d, Domaine_IJK::Localisation l, int ghost_size, const Nom& name)
   {
     allocate(d,l,ghost_size,0,1,name);
   }
-  void allocate_shear_BC(int monofluide, double rov, double rol, int use_inv_rho_in_pressure_solver=0);
 
   virtual void dumplata_scalar(const char *filename, int step) const;
 

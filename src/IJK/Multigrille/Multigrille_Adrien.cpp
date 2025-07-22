@@ -92,8 +92,7 @@ void Multigrille_Adrien::initialize(const Domaine_IJK& split)
   IJK_Field_float rho;
   if (IJK_Shear_Periodic_helpler::defilement_==1)
     {
-      rho.allocate(split, Domaine_IJK::ELEM, 0, 0 ,1);
-      rho.allocate_shear_BC(2, IJK_Shear_Periodic_helpler::rho_vap_ref_for_poisson_, IJK_Shear_Periodic_helpler::rho_liq_ref_for_poisson_);
+      rho.allocate(split, Domaine_IJK::ELEM, 0, 0 ,1, "RHO", false, 2, IJK_Shear_Periodic_helpler::rho_vap_ref_for_poisson_, IJK_Shear_Periodic_helpler::rho_liq_ref_for_poisson_);
     }
   else
     {

@@ -66,7 +66,7 @@ void runge_kutta3_update_surfacic_fluxes(IJK_Field_double& dv, IJK_Field_double&
 void force_zero_on_walls(IJK_Field_double& vz);
 
 template<class T, int N>
-void allocate_velocity(IJK_Field_vector<T, N>& v, const Domaine_IJK& s, int ghost, const Nom& nam=Nom())
+void allocate_velocity(IJK_Field_vector<T, N>& v, const Domaine_IJK& s, int ghost, const Nom& nam=Nom(), double DU=0.)
 {
   assert(static_cast<int>(N) == 3);
 
@@ -77,6 +77,9 @@ void allocate_velocity(IJK_Field_vector<T, N>& v, const Domaine_IJK& s, int ghos
   v[0].allocate(s, Domaine_IJK::FACES_I, ghost);
   v[1].allocate(s, Domaine_IJK::FACES_J, ghost);
   v[2].allocate(s, Domaine_IJK::FACES_K, ghost);
+  v[0].get_shear_BC_helpler().set_dU_(DU);
+  v[1].get_shear_BC_helpler().set_dU_(0.);
+  v[2].get_shear_BC_helpler().set_dU_(0.);
 
   v.nommer(nam);
   v.localisation() = Entity::FACE;
