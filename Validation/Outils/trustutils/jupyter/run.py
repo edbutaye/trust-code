@@ -124,7 +124,7 @@ class TRUSTCase(object):
 
     _UNIQ_ID_START = -1
 
-    def __init__(self, directory, datasetName, nbProcs=1, execOptions="", excluNR=False):
+    def __init__(self, directory, datasetName, nbProcs=1, execOptions="", excluNR=False, pre_run=None, post_run=None):
         """ 
         Initialisation of the class
 
@@ -156,6 +156,20 @@ class TRUSTCase(object):
         self.last_run_err_ = ""  # error message returned when last running the case
         self.execOptions = execOptions
         self.excluNR = excluNR
+        
+        self.has_python_pre_run=False
+        if pre_run is not None:
+            if not callable(pre_run):
+                raise ValueError("pre_run should be a function")
+            self.has_python_pre_run=True
+            self.pre_run=pre_run
+        
+        self.has_python_post_run=False
+        if post_run is not None:
+            if not callable(post_run):
+                raise ValueError("post_run should be a function")
+            self.has_python_post_run=True
+            self.post_run=post_run
 
     def _fullDir(self):
         """
@@ -360,16 +374,30 @@ class TRUSTCase(object):
             _runCommand(cmd, verbose)
 
     def _preRun(self, verbose):
-        self._runScript("pre_run", verbose)
+        if self.has_python_pre_run:
+            case_path=os.path.join(BUILD_DIRECTORY, self.dir_)
+            if os.path.exists("pre_run"):
+                pre_run_path=os.path.join(case_path,'pre_run')
+                raise Exception(f"Error in case {self.name_}: pre_run script exists when pre_run function was given to the test case. You should delete {pre_run_path}")
+            self.pre_run(case_path, self.name_)
+        else:
+            self._runScript("pre_run", verbose)
 
     def _postRun(self, verbose):
-        self._runScript("post_run", verbose)
+        if self.has_python_post_run:
+            if os.path.exists("post_run"):
+                post_run_path=os.path.join(case_path,'post_run')
+                raise Exception(f"Error in case {self.name_}: post_run script exists when pre_run function was given to the test case. You should delete {post_run_path}")
+            case_path=os.path.join(BUILD_DIRECTORY, self.dir_)
+            self.post_run(case_path, self.name_)
+        else:
+            self._runScript("post_run", verbose)
 
     def _generateExecScript(self):
         """ Generate a shell script doing the
             - pre_run
             - launching the case
-            - and doing hte post_run
+            - and doing the post_run
         """
         uniq_id = "{:04d}".format(self.id_)
         scriptFl = os.path.join(BUILD_DIRECTORY, "cmds_%s.sh" % uniq_id)
@@ -385,23 +413,26 @@ class TRUSTCase(object):
             s += "( echo;\n"
             s += '  echo "-> Running the calculation of the %s data file in the %s directory ...";\n' % (n, d)
             s += "  cd %s ; \n" % fullD
+            
             # Running and checking pre_run was OK:
-            s += "  if [ -f pre_run ]; then\n"
-            s += "     chmod +x pre_run\n"
-            s +=f'     echo "-> Running the pre_run script in the {d} directory ..."\n'
-            s +=f"     (./pre_run {n} || (echo '  FAILED!' && exit -1)) || exit -1 \n"
-            s += "fi\n"
+            if not self.has_python_pre_run:
+                s += "  if [ -f pre_run ]; then\n"
+                s += "     chmod +x pre_run\n"
+                s +=f'     echo "-> Running the pre_run script in the {d} directory ..."\n'
+                s +=f"     (./pre_run {n} || (echo '  FAILED!' && exit -1)) || exit -1 \n"
+                s += "fi\n"
 
             # Running case
             s += "  trust %s %s %s 1>%s.out 2>%s.err;\n" % (n, para, e, n, n)
             s += "  if [ ! $? -eq 0 ]; then exit -1; fi; \n"
 
             # Running and checking post_run was OK:
-            s += "  if [ -f post_run ]; then\n"
-            s += "     chmod +x post_run\n"
-            s +=f'     echo "-> Running the post_run script in the {d} directory ..."\n'
-            s +=f"     (./post_run {n} || (echo '  FAILED!' && exit -1)) || exit -1\n"
-            s += "fi\n"
+            if not self.has_python_post_run:
+                s += "  if [ -f post_run ]; then\n"
+                s += "     chmod +x post_run\n"
+                s +=f'     echo "-> Running the post_run script in the {d} directory ..."\n'
+                s +=f"     (./post_run {n} || (echo '  FAILED!' && exit -1)) || exit -1\n"
+                s += "fi\n"
 
             s += "  exit 0;"
             s += ") 1>%s 2>&1 \n" % fullL
@@ -683,6 +714,9 @@ class TRUSTSuite(object):
                 else:
                     # Invoke Salloc to schedule test case execution:
                     cmdLst = [salloc, "-n", str(case.nbProcs_), script]
+                
+                if case.has_python_pre_run:
+                    case._preRun(verbose)
                 #   We don't track Salloc output (should we?)
                 th = subprocess.Popen(cmdLst, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 th_lst.append(th)
@@ -693,6 +727,8 @@ class TRUSTSuite(object):
                     print(err_msg % (case.dir_, case.name_))
                     print(getLastLines_(log_lst[i]))
                     raise ValueError ("at least one case has failed ! See previous logs to get more information")
+                elif case.has_python_post_run:
+                    case._postRun(verbose)
         else:
             for case in lstC:
                 try:
@@ -909,7 +945,7 @@ def dumpText(fiche, list_keywords=[]):
 
     print("".join(test))
 
-def addCaseFromTemplate(templateData, targetDirectory, dic, nbProcs=1, targetData=None, execOptions="",excluNR=False):
+def addCaseFromTemplate(templateData, targetDirectory, dic, nbProcs=1, targetData=None, execOptions="",excluNR=False, pre_run=None, post_run=None):
     """ Add a case to run to the list of globally recorded cases.
     
     Parameters
@@ -951,12 +987,12 @@ def addCaseFromTemplate(templateData, targetDirectory, dic, nbProcs=1, targetDat
     from shutil import copyfile
 
     copyfile(fullDir, pthTgt)
-    tc = addCase(targetDirectory, targetData, nbProcs, execOptions, excluNR)
+    tc = addCase(targetDirectory, targetData, nbProcs, execOptions, excluNR, pre_run=pre_run, post_run=post_run)
     tc.substitute_template(dic)
     return tc
 
 
-def addCase(directoryOrTRUSTCase, datasetName="", nbProcs=1, execOptions="", excluNR=False):
+def addCase(directoryOrTRUSTCase, datasetName="", nbProcs=1, execOptions="", excluNR=False, pre_run=None, post_run=None):
     """ 
     Add a case to run to the list of globally recorded cases.
 
@@ -989,7 +1025,7 @@ def addCase(directoryOrTRUSTCase, datasetName="", nbProcs=1, execOptions="", exc
     elif isinstance(directoryOrTRUSTCase, str):
         if datasetName == "":
             raise ValueError("addCase() method can either be called with a single argument (a TRUSTCase object) or with at least 2 arguments (directory and case name)")
-        tc = TRUSTCase(directoryOrTRUSTCase, datasetName, nbProcs,execOptions=execOptions,excluNR=excluNR)
+        tc = TRUSTCase(directoryOrTRUSTCase, datasetName, nbProcs,execOptions=execOptions,excluNR=excluNR, pre_run=pre_run, post_run=post_run)
         initCaseSuite()
         defaultSuite_.addCase(tc)
         return tc
