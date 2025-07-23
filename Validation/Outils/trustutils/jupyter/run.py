@@ -575,6 +575,16 @@ class TRUSTSuite(object):
         image_files.append(list(desktop.rglob("*.jpeg")))
         for image in image_files:
             saveFileAccumulator(str(image))
+        
+        import sys
+        # add imports directory to path and save contained scripts
+        import_path=os.path.join(BUILD_DIRECTORY, "python_modules")
+        if not os.path.exists(import_path):
+            os.makedirs(import_path)
+        sys.path.append(import_path)
+        imports = list(pathlib.Path(import_path).rglob("*.py"))
+        for f in imports:
+            saveFileAccumulator(str(f))
 
     def addCase(self, case):
         self.cases_.append(case)
