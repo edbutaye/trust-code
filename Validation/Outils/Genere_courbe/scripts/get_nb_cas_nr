@@ -1,8 +1,14 @@
 #!/bin/bash
+
 DIR=`dirname $0`
 DIR=`(cd $DIR;pwd)`
 mot=liste_cas_nr
-
+if [ "$1" = "-exclu" ]
+then
+   shift
+   mot=not_in_nr
+   echo cases not taken account for nr
+fi
 
 if [[ "$1" == *.prm ]] || ls $1/src/*.prm 1>/dev/null 2>&1; then
   $DIR/../Run $* -get_nb_cas_nr | grep $mot | sed "s/$mot //" | wc -w
@@ -12,11 +18,15 @@ else
   if [[ "$1" == *.ipynb ]]; then           ze_file=$1;              fi
   if ls $1/*.ipynb 1>/dev/null 2>&1; then  ze_file=`ls $1/*.ipynb`; fi
   if [ "$ze_file" != "" ]; then
+    # Uses Run but only for 'prepare' phase:
+    $DIR/../Run $* -prepare_only 1>/dev/null
     # Make sure we build/execute in the proper dir! A potential '-dest' option is passed in the JUPYTER_RUN_OPTIONS variable:
     # This will be interpreted by the run.py API.
+    shift
     # Some notebooks invoke local Python scripts, so amend PYTHONPATH temporarily:
     src_dir=`readlink -f $(dirname $ze_file)`/src
     PYTHONPATH=$src_dir:$PYTHONPATH
+    # Make sure the pipe fails when invoking get_nr_cases_jup.py if the script itself fails: 
 
     if [ "$DEBUG_NR_CASES" = "1" ]
     then
@@ -30,14 +40,12 @@ else
     env JUPYTER_RUN_OPTIONS="$*" python $DIR/get_nr_cases_jup.py $ze_file 2>/dev/null | grep "@@@CAS_NR_JY@@@" | wc -l
 
     if [ "${PIPESTATUS[0]}" != "0" ]; then
-       # error in the Python
-       exit -1
+        # An error happened while running the Python
+        exit -1
     fi
 
   else
-
     echo "Something wrong ... neither PRM nor Jupyter in this folder, NR cases should be removed"
     exit -1
-
   fi
 fi

@@ -12,8 +12,11 @@ validation form (i.e. a directory containing at least a 'src' subdirectory).
 
 import os
 import subprocess
+import argparse
+
 from string import Template
 
+from time import time, sleep, strftime
 
 def saveFormOutput():
     """ Dummy method to indicate that the output of the notebook should be saved.
@@ -75,7 +78,51 @@ def useLataTools():
     import LataLoader
     
 ######## PRIVATE STUFF #########
-ORIGIN_DIRECTORY = os.getcwd()
+
+def _print(*args, also_to_nb=False):
+    """
+    Private. When jupyter is run non-interactively, print to terminal rather than to the notebook.
+    Useful for debugging in parallel runs.
+    Usage is the same as python builtin print.
+    Also takes kwarg also_to_nb=False/True, to also print to the notebook cell.
+    
+    Printing only to console and not to jupyter cell output is pretty hard.
+    
+    This is because of ipythonkernel PR 630 (https://github.com/ipython/ipykernel/pull/630)
+    where the goal was to capture outputs of calls such as os.system(...).
+    
+    This was partially solved in PR https://github.com/ipython/ipykernel/pull/752
+    but requires adding options to kernel used by jupyter, I do not know how to do that dynamically
+    (requires editing some user config files afaik)
+    
+    Solution used here is drastic, as it completely disables the feature of PR 630
+    It comes from https://github.com/ipython/ipykernel/issues/795
+    
+    To change when a better solution is added to jupyter (or add it yourself if you are motivated ;)
+    
+    """
+    import sys
+    
+    if isExtractingNR():
+        return
+    
+    for std, __std__ in [
+        (sys.stdout, sys.__stdout__),
+        (sys.stderr, sys.__stderr__),
+    ]:
+        if getattr(std, "_original_stdstream_copy", None) is not None:
+            # redirect captured pipe back to original FD
+            os.dup2(std._original_stdstream_copy, __std__.fileno())
+            std._original_stdstream_copy = None
+            
+            
+    terminal = sys.__stdout__
+
+        
+    print(*args, file=terminal, flush=True)
+
+    if also_to_nb:
+        print(*args)
 
 def _initBuildDir():
     """
@@ -86,14 +133,46 @@ def _initBuildDir():
     # Compute correct build directory if overriden:
     opt = os.environ.get("JUPYTER_RUN_OPTIONS", "")
     a = opt.split(" ")
+    if '' in a:
+        a=a.remove('') or []
     if "-dest" in a:
         idx = a.index("-dest")
         if idx >= 0 and len(a) >= idx + 2:
             ret = os.path.join(a[idx + 1], "build")
+    
+    
+    # Choose run option
+    # can be parallel, sequential or not_run
+    # default is sequential
+    _set_run_sequential()
+    
+    # if Sserver detected, use it
+    if ("-parallel_sjob" in opt) or _detectSserver():
+        _set_use_sserver()
+        _set_run_parallel()
+    
+    if ("-not_run" in opt):
+        _set_not_run()
+        
+    if ("-parallel_run" in opt):
+        _set_run_parallel()
+        
+
+        
+
+    # not used yet
+    # ~ parser=argparse.ArgumentParser()
+    # ~ parser.add_argument("-dest")
+    # ~ parser.add_argument("-parallel_sjob", action="store_true")
+    # ~ parser.add_argument("-parallel_run", action="store_true")
+    # ~ parser.add_argument("-export_pdf", action="store_true")
+    # ~ parser.add_argument("-timeout")  # TODO for timeout values
+    # ~ parser.print_help()
+    # ~ if a and len(a)>0:
+        # ~ JUPYTER_RUN_OPTIONS=parser.parse_args(a)
+        
     return ret
 
-defaultSuite_ = None  # a TRUSTSuite instance
-BUILD_DIRECTORY = _initBuildDir()
 
 def _runCommand(cmd, verbose):
     """ Private method to run a command, print the logs if verbose or if it fails, and throw an exception
@@ -114,6 +193,16 @@ def _runCommand(cmd, verbose):
         msg += "and with following output:\n\n"
         msg += (complProc.stdout if complProc.stdout else "")
         raise RuntimeError(msg)
+
+def _detectSserver():
+    """ Detect whether the Sserver is running on the machine
+    """
+    squeue = os.path.join(os.environ["TRUST_ROOT"], "bin", "Sjob", "Squeue")
+    try:
+        subprocess.check_call([squeue], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 ######## End PRIVATE STUFF #########
 
@@ -184,6 +273,14 @@ class TRUSTCase(object):
         fullPath = os.path.join(self._fullDir(), self.name_)
         return fullPath + ".data"
 
+    def _relPath(self):
+        """
+        relative path of the test case in the build directory
+        """
+        fullPath = os.path.join(self._fullDir(), self.name_)
+        relPath = os.path.relpath(fullPath, start = BUILD_DIRECTORY)
+        return relPath + ".data"
+
     def substitute(self, find, replace):
         """ 
         Substitute (in place and in the build directory) a part of the dataset
@@ -234,9 +331,12 @@ class TRUSTCase(object):
             
         with open(path, "w") as file: file.write(result)
 
-    def copy(self, targetName, targetDirectory=None, nbProcs=1, execOptions="", excluNR=False):
+    def copy(self, targetName, targetDirectory=None, nbProcs=1, execOptions="", excluNR=False, pre_run=None, post_run=None):
         """ 
-            Copy a TRUST Case
+            Copy a TRUST Case. 
+            Only copies the datafile and not other optionnal atributes, such as excluNR, nbProcs, pre and post_run...
+            These must be given again to the copy method
+            
 
         Parameters
         ---------
@@ -265,7 +365,7 @@ class TRUSTCase(object):
 
         copyfile(self._fullPath(), pthTgt)
 
-        return TRUSTCase(targetDirectory, targetName, nbProcs=nbProcs, execOptions=execOptions, excluNR=False)
+        return TRUSTCase(targetDirectory, targetName, nbProcs=nbProcs, execOptions=execOptions, excluNR=False, pre_run=pre_run, post_run=post_run)
 
     def dumpDataset(self, user_keywords=[]):
         """ 
@@ -400,9 +500,13 @@ class TRUSTCase(object):
             - and doing the post_run
         """
         uniq_id = "{:04d}".format(self.id_)
-        scriptFl = os.path.join(BUILD_DIRECTORY, "cmds_%s.sh" % uniq_id)
+        
+        # script names has additionnal details about the report and case names
+        # this is useful to check the state of a running validation via Sserver
+        scriptName=".cmds_%s_%s.sh" % (uniq_id, self.name_)
+        scriptFl = os.path.join(BUILD_DIRECTORY, scriptName)
 
-        logName = "cmds_%s.log" % uniq_id
+        logName = scriptName.replace(".sh", ".log")
         n, d, e = self.dataFileName_, self.dir_, self.execOptions
         fullD, fullL = os.path.join(BUILD_DIRECTORY, d), os.path.join(BUILD_DIRECTORY, logName)
         para = ""
@@ -503,50 +607,116 @@ class TRUSTCase(object):
         saveFileAccumulator(f"{baseName}_csv.TU")
 
         return ok
-
-    def runCase(self, verbose=False):
+        
+    def run(self, verbose=False):
         """ 
-        Move to the case directory and execute the current test case:
-        - calls pre_run if any
-        - run the case
-        - calls post_run if any
-
+        Execute the current test case.
+        
+        In parallel mode (default):
+            - runs the pre_run, which may also run some TRUSTCases.
+            - if that happens, add the case to a waiting list. It will be started by TRUSTSuite.runCases() when pre_run is finished.
+            - otherwise, directly submit the job via subprocess.Popen(...) and store it in _RUNNING_CASES.
+            - post_run is called when the case is finished by TRUSTSuite.runCases()
+        
+        In sequential mode (when preventConcurrent=True is passed to TRUSTSuite.runCases()):
+            - runs the pre_run
+            - wait for potential cases started by pre_run to finish
+            - run the case and wait for it to finish
+            - run the post_run and wait for potential cases started by post_run to finish
+            
+        Sserver usage is independent of parallel/sequential mode.
+        Jobs are submitted to SSserver if it is detected, so that preventConcurrent does not overloads cpus during complete validation
+        
         Parameters
         ---------
         verbose: bool
         
         The results of the run are stored in members self.last_run_ok_ and self.last_run_err_
         """
-        ok, err = True, ""
-        os.chdir(self._fullDir())
-
-        ### Run pre_run ###
-        self._preRun(verbose)
-
-        ### Run Case ###
-        err_file = self.dataFileName_ + ".err"
-        out_file = self.dataFileName_ + ".out"
-        para = ""
-        if self.nbProcs_ != 1:
-            para = str(self.nbProcs_)
-        cmd = "trust %s %s %s 2>%s 1>%s" % (self.dataFileName_, para, self.execOptions, err_file, out_file)
-        output = subprocess.run(cmd, shell=True, executable="/bin/bash", stderr=subprocess.STDOUT)
-        if verbose:
-            print(cmd)
-            print(output.stdout)
-        if output.returncode != 0:
-            ok = False
-            err = getLastLines_(self.dataFileName_ + ".err")
-
-        ### Run post_run ###
-        if ok:
-            self._postRun(verbose)
-
-        ### Return to initial directory ###
-        os.chdir(ORIGIN_DIRECTORY)
-        self.last_run_ok_, self.last_run_err_ = ok, err
-        return ok, err
-
+        
+        # Very specific to the validation process. Sometimes we want the core
+        # method 'runCases()' not to do anything ... see script 'archive_resultat' for example.
+        if _NOT_RUN:
+            return
+        
+        (script, logFile,) = self._generateExecScript()  # Generate the shell script doing pre_run, case and post_run
+        cmdLst = ["bash", script, "&"]
+        
+        if _USE_SSERVER:
+            # Invoke Salloc to schedule test case execution:
+            salloc = os.path.join(os.environ["TRUST_ROOT"], "bin", "Sjob", "Salloc")
+            cmdLst = [salloc, "-n", str(self.nbProcs_), script]
+            
+        case_popen=lambda: subprocess.Popen(cmdLst, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        case_info={"case":self, "script":script, "logFile":logFile, "callback":lambda: None, "callbackDone": False, "popen": case_popen}
+        
+        if self.has_python_post_run:
+            case_info["callback"]=lambda: self._postRun(verbose)
+        
+        if _RUN_PARALLEL:
+            
+            nj=len(_RUNNING_CASES)
+            
+            if self.has_python_pre_run:
+                self._preRun(verbose)
+                
+            if len(_RUNNING_CASES)>nj:
+                # that means pre_run started some jobs. We store the case in a waiting list with newest jobs as dependency
+                lj=[a for a in range(nj, len(_RUNNING_CASES))] # the list of dependencies
+                
+                _print(f"pre_run of case {self._relPath()} started {len(lj)} jobs. Adding the case to waiting list.", also_to_nb=verbose)
+                _print(f"Deps of case {self._relPath()} are {lj}.")
+                
+                # ~ _WAITING_CASES.append({"depends":lj, "popen": case_popen, "info": case_info})
+                _RUNNING_CASES.append({"process":None, **case_info, "depends":lj})
+                
+            else:
+                # Launch the case. 
+                # For cases in _WAITING_CASES, they will be launched in TRUSTSuite.runCases()
+                
+                # Wait for cpu availability if Sserver is not managing the jobs
+                if not(_USE_SSERVER):
+                    _wait_for_available_procs(self.nbProcs_)
+                
+                # Launch and store in _RUNNING_CASES
+                p = case_popen()
+                _print(f"Starting case {self._relPath()}", also_to_nb=verbose)
+                _RUNNING_CASES.append({"process":p, **case_info, "depends":[]})
+                
+        elif _RUN_SEQUENTIAL:
+            # case of sequential run
+            # we add to the _RUNNING_CASES global list because to facilitate keeping track of failed runs
+            if self.has_python_pre_run:
+                self._preRun(verbose)
+                
+            # wait till all runs from pre_run are done
+            for r in _RUNNING_CASES:
+                r["process"].wait()
+                
+            p = case_popen()
+            _print(f"Starting case {self._relPath()}", also_to_nb=verbose)
+            _RUNNING_CASES.append({"process":p, **case_info})
+            
+            # wait till I am done
+            p.wait()
+            
+            # do the post_run myself, otherwise it would only be done after all case ran
+            _RUNNING_CASES[-1]["callbackDone"] = True
+            if self.has_python_post_run:
+                self._postRun(verbose)
+                
+            # wait till all runs from post_run are done
+            for r in _RUNNING_CASES:
+                r["process"].wait()
+                
+            
+        else:
+            raise Exception("Invalid run option, this should not be reachable.")
+                
+            
+    
+            
     def _addPerfToTable(self, zeTable):
         """ Extract performances for this case and add it to the global table
             passed in parameter.
@@ -635,15 +805,6 @@ class TRUSTSuite(object):
     def getCases(self):
         return self.cases_
 
-    def detectSserver(self):
-        """ Detect whether the Sserver is running on the machine
-        """
-        squeue = os.path.join(os.environ["TRUST_ROOT"], "bin", "Sjob", "Squeue")
-        try:
-            subprocess.check_call([squeue], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return True
-        except subprocess.CalledProcessError:
-            return False
 
 
     def runCases(self, verbose=False, preventConcurrent=False):
@@ -656,92 +817,49 @@ class TRUSTSuite(object):
         preventConcurrent: bool 
             run the cases in the order they were provided, even if the Sserver is up and running, and the -parallel_sjob option was passed.
         """
-        opt = os.environ.get("JUPYTER_RUN_OPTIONS", "")
+            
         # Very specific to the validation process. Sometimes we want the core
         # method 'runCases()' not to do anything ... see script 'archive_resultat' for example.
-        if "-not_run" in opt:
+        if _NOT_RUN:
             return
-        ## Check run environment - should we run // ?
-        ## We do so if JUPYTER_RUN_OPTIONS is not there, or if it is there with value '-parallel_sjob'
-        ## Hence, s.o. who runs the Sserver on its machine will benefit from it directly, and on the other hand
-        ## the validation process can control this finely.
-        if "-parallel_run" in opt:
-            runParallel = not preventConcurrent
-        else:
-            runParallel = not preventConcurrent and ((opt == "" or "-parallel_sjob" in opt.split(" ")) and self.detectSserver())
-            extra = {True: "**with Sserver**", False: ""}[runParallel]
-            print("Running %s..." % extra)
+            
+        if preventConcurrent:
+            _set_run_sequential()
+            _print("runCases: Running sequential because preventConcurrent = True (Run_fiche -parallel_run will be ignored)", also_to_nb=verbose)
+        
+        if _USE_SSERVER and not(_detectSserver()):
+            raise Exception("Sserver not detected when runCases was asked to use it.")
 
-        from time import time, sleep
+        if _RUN_PARALLEL and not _USE_SSERVER:
+            _print("runCases: Running parallel without Sserver", also_to_nb=verbose)
+            
+        if _RUN_PARALLEL and _USE_SSERVER:
+            _print("runCases: Running parallel with Sserver", also_to_nb=verbose)
+
+            
 
         t0 = time()
         stream = os.popen("echo Returned output")
         if verbose:
             print(stream.read())
 
-        ### Change the root to build file ###
 
         allOK = True
-        lstC = self.getCases()
 
-        th_lst, log_lst = [], []
-        err_msg = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-        err_msg += "Case '%s/%s.data' FAILED !! Here are the last 20 lines of the log file:\n"
-        err_msg += "(If you don't see anything suspicious, also check pre/post_run scripts!!)\n"
-        err_msg += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+        
+        allOK = _wait_for_prepare(verbose)
 
-        if runParallel:
-            salloc = os.path.join(os.environ["TRUST_ROOT"], "bin", "Sjob", "Salloc")
-            for case in lstC:
-                (script, logFile,) = case._generateExecScript()  # Generate the shell script doing pre_run, case and post_run
-                log_lst.append(logFile)
-                if "-parallel_run" in opt:
-                    host = os.environ.get("TRUST_WITHOUT_HOST","")
-                    nb_procs = int(os.environ.get("TRUST_NB_PROCS",""))
-                    # On personnal computer, limit the number of process
-                    while (host=="1"):
-                        current_number = 0
-                        for th in th_lst:
-                            if th.poll() is None:
-                                current_number += case.nbProcs_
-                        if (current_number < nb_procs):
-                            break
-                        if (case.nbProcs_ > nb_procs):
-                            print("Insufficient number of processors to perform parallel calculations.\n Increase TRUST_NB_PROCS")
-                            break
-                        sleep(1)
-                    cmdLst = ["bash", script, "&"]
-                else:
-                    # Invoke Salloc to schedule test case execution:
-                    cmdLst = [salloc, "-n", str(case.nbProcs_), script]
                 
-                if case.has_python_pre_run:
-                    case._preRun(verbose)
-                #   We don't track Salloc output (should we?)
-                th = subprocess.Popen(cmdLst, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                th_lst.append(th)
-            for i, th in enumerate(th_lst):
-                th.wait()
-                if th.returncode != 0:
-                    allOK, case = False, lstC[i]
-                    print(err_msg % (case.dir_, case.name_))
-                    print(getLastLines_(log_lst[i]))
-                    raise ValueError ("at least one case has failed ! See previous logs to get more information")
-                elif case.has_python_post_run:
-                    case._postRun(verbose)
-        else:
-            for case in lstC:
-                try:
-                    case.runCase(verbose=verbose)
-                    allOK = allOK and case.last_run_ok_
-                    if not allOK:
-                        print(err_msg % (case.dir_, case.name_))
-                        print(case.last_run_err_)
-                        raise ValueError ("at least one case has failed ! open notebook to get more information ")
+        # start the cases
+        lstC = self.getCases()
+        for case in lstC:
+            case.run(verbose)
+            
+        allOK = wait_run(verbose)
+            
 
-                except Exception as e:
-                    os.chdir(ORIGIN_DIRECTORY)  # Restore initial directory
-                    raise e
+
+
         t1 = time()
         if allOK:
             dt = t1 - t0
@@ -757,8 +875,10 @@ class TRUSTSuite(object):
                 _runCommand(cmd, False)
                 os.chdir(ORIGIN_DIRECTORY)
 
-            print("  => A total of %d cases were (successfully) run in %.1fs." % (len(lstC), dt))
-
+            _print("  => A total of %d cases were (successfully) run in %.1fs." % (len(lstC), dt), also_to_nb=True)
+        else:
+            raise ValueError ("at least one case has failed ! See previous logs to get more information")
+        
     def tablePerf(self):
         """ Prints the table of performance
         """
@@ -773,30 +893,59 @@ class TRUSTSuite(object):
         zeTable.sum("Total CPU Time")
         return zeTable.df
 
-    def extractNRCases(self):
+    def extractNRCases(self, verbose=False):
         """
         Prints out the list of cases in a suitable format for processing by validation and lance_test tools.
-
+        
+        verbose does nothing, just in case we forgot to remove it when actually extracting the cases 
+        (we do a complicated sed on the notebook at this step)
+        
+        Teo Boutin: IMO, this shouldn't exist. 
+        concatenating the python parts of the report, doing various replacements and executing that is just a bad idea.
+        test case extraction/lauch should be controlled by options given ro Run_fiche
+        passed through the env var JUPYTER_RUN_OPTIONS which is parser in this file (should use argparse btw)
+        
+        with args such as 
+        -get_list_cas_nr
+        -get_nb_cas_nr
+        -run_single_nr_case <test_name.data>
+        
+        for now I will change this method to take care of executing all pre_runs of registered tests
+        
         WARNING:
         do not modify this without looking at scripts get_list_cas_nr and get_nb_cas_nr in Validation/Outils/Genere_Courbe/scripts
         """
         import numpy as np
-
+        
+        # have to wait for cases launched in the prepare to complete (probably)
+        # at least to avoid errors when deleting directories
+        allOK = _wait_for_prepare()
+        
+        # do the pre_run of the cases if they are in python and not bash scripts
+        lstC = self.getCases()
+        for case in lstC:
+            if case.has_python_pre_run:
+                case._preRun(verbose)
+            
+        allOK = wait_run()
+        
+        
         list_exclu_nr = []
         if os.path.exists("src/liste_cas_exclu_nr"):
             list_cases = np.loadtxt("src/liste_cas_exclu_nr", dtype=str)
             list_exclu_nr = list(map(lambda a: os.path.normpath(a), list_cases))
 
         for c in self.getCases():
-            if c.excluNR: continue
             if c.dir_ != ".":
                 t = os.path.join(c.dir_, c.name_ + ".data")
-                # t = c.dir_ + "/" + c.name_ + ".data"
             else:
                 t = c.name_ + ".data"
             t = os.path.normpath(t)
-            if not t in list_exclu_nr:
-                print("@@@CAS_NR_JY@@@ " + t)
+            
+            if c.excluNR: continue
+            if t in list_exclu_nr: continue
+            
+            print("@@@CAS_NR_JY@@@ " + t)
 
     def printCases(self):
         """
@@ -1133,10 +1282,13 @@ def printCases():
     return defaultSuite_.printCases()
 
 
-def extractNRCases():
+def extractNRCases(verbose=False):
     """
     Prints out the list of cases in a suitable format for processing by validation and lance_test tools.
-
+    
+    verbose does nothing, just in case we forgot to remove it when actually extracting the cases 
+    (we do a complicated sed on the notebook at this step)
+    
     WARNING:
     do not modify this without looking at scripts get_list_cas_nr and get_nb_cas_nr in Validation/Outils/Genere_Courbe/scripts
     """
@@ -1180,3 +1332,212 @@ def initBuildDirectory():
     """
     global defaultSuite_
     defaultSuite_ = TRUSTSuite()
+
+
+
+# Handling of parallelism of trust cases
+# at global level. Other solution would be to handle this at the trust suite level. but then rogue cases in eg pre_run couldn't be handled
+# default is parallel. Sserver usage is independent of parallelism
+_NOT_RUN=False
+_RUN_SEQUENTIAL=False
+_RUN_PARALLEL=True
+_USE_SSERVER=False
+
+def _set_not_run():
+    global _NOT_RUN
+    global _RUN_SEQUENTIAL
+    global _RUN_PARALLEL
+    _NOT_RUN=True
+    _RUN_SEQUENTIAL=False
+    _RUN_PARALLEL=False
+    _print("Not running trust cases")
+    
+def _set_run_sequential():
+    global _NOT_RUN
+    global _RUN_SEQUENTIAL
+    global _RUN_PARALLEL
+    _NOT_RUN=False
+    _RUN_SEQUENTIAL=True
+    _RUN_PARALLEL=False
+    _print("Set sequential run")
+    
+def _set_run_parallel():
+    global _NOT_RUN
+    global _RUN_SEQUENTIAL
+    global _RUN_PARALLEL
+    _NOT_RUN=False
+    _RUN_SEQUENTIAL=False
+    _RUN_PARALLEL=True
+    _print("Set parallel run")
+    
+def _set_use_sserver(v=True):
+    global _USE_SSERVER
+    _USE_SSERVER=v
+    if v:
+        _print("Using Sserver")
+    else:
+        _print("Disabling Sserver")
+        
+    
+    
+# for storing jobs opened vie subprocess.Popen    
+# see in TRUSTSuite.runCases and TRUSTCase.run methods
+_RUNNING_CASES=[]
+
+def _count_running():
+    # A case is considered over when the callback (post_run) is done
+    c=0
+    for r in _RUNNING_CASES:
+        if r["process"] != None and not(r["callbackDone"]):
+            c+=1
+    return c
+def _count_running_deps(deps):
+    # A case is considered over when the callback (post_run) is done
+    c=0
+    for index in deps:
+        r=_RUNNING_CASES[index]
+        if r["process"] == None or not(r["callbackDone"]):
+            c+=1
+    return c
+
+def _has_waiting_cases():
+    for r in _RUNNING_CASES:
+        if r["process"] == None:
+            return True
+    return False
+
+def _count_waiting_cases():
+    c=0
+    for r in _RUNNING_CASES:
+        if r["process"] == None:
+            c+=1
+    return c
+
+def _count_procs_usage():
+    return sum([(r["case"].nbProcs_ if (r["process"] and r["process"].poll() == None) else 0) for r in _RUNNING_CASES])
+
+def _wait_for_available_procs(n_procs):
+    max_procs = int(os.environ.get("TRUST_NB_PROCS","")) # if not set, then what ? should not happen anyway...
+    used = _count_procs_usage()
+    free = max_procs - used
+    if n_procs > max_procs:
+        _print("\nAsking for more procs than TRUST_NB_PROCS. Case will run when all procs are free.\n")
+    
+    # this loop ends if either there are at least <n_procs> which are free, 
+    # or if all procs are free (to allow the case n_cpu > max_used_procs)
+    while used > 0 and free < n_procs:
+        _print(f"\nWaiting for {n_procs} free procs: {used}/{max_procs} used.\n")
+        sleep(1)
+        used = _count_procs_usage()
+        free = max_procs - used
+        
+def wait_run(verbose=False):
+    
+    allOK = True
+    
+    err_msg = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    err_msg += "Case '%s/%s.data' FAILED !! Here are the last 20 lines of the log file:\n"
+    err_msg += "(If you don't see anything suspicious, also check pre/post_run scripts!!)\n"
+    err_msg += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    
+    run_count=_count_running()
+    waiting=_count_waiting_cases()
+    while allOK and (waiting>0 or (run_count>0)):
+        tf=strftime('%H:%M:%S')
+        _print(f"\n[{tf}]")
+        _print("Running:", run_count, "| Waiting for pre_run:", waiting, "| Finished:", len(_RUNNING_CASES) - run_count - waiting, "| Total:", len(_RUNNING_CASES), "\n")
+        
+        for i,r in enumerate(_RUNNING_CASES):
+            p=r["process"]
+            
+            if p is not None and p.poll() is not None:
+                case = r["case"]
+                if p.returncode != 0:
+                    allOK = False
+                    _print(err_msg % (case.dir_, case.name_), also_to_nb=True)
+                    _print(getLastLines_(r["logFile"]), also_to_nb=True)
+                if allOK and not(r["callbackDone"]):
+                    _print("Finished case", case._relPath(), also_to_nb=verbose)
+                    r["callback"]()
+                    r["callbackDone"]=True
+                    
+        if allOK: # handle deps of running cases
+            for i,r in enumerate(_RUNNING_CASES):
+                p=r["process"]
+                
+                if p is None:
+                    case = r["case"]
+                    deps = r["depends"]
+                    deps_running=_count_running_deps(deps)
+                    if deps_running == 0:
+                        # Wait for cpu availability if Sserver is not managing the jobs
+                        if not(_USE_SSERVER):
+                            _wait_for_available_procs(case.nbProcs_)
+                            
+                        _print("Starting case", case._relPath(), "from waiting list", also_to_nb=verbose)
+                        
+                        r["process"] = r["popen"]()
+                
+        
+        if not allOK:
+            _print("ABORTING, a case failed")
+            while len(_WAITING_CASES)>0:
+                _WAITING_CASES.pop()
+            for r in _RUNNING_CASES:
+                r["process"].terminate()
+            return False
+        
+        # IMPORTANT
+        # update variables used in while condition
+        run_count=_count_running()
+        waiting=_count_waiting_cases()
+        
+        # Sleep for a bit to avoid polling too frequently
+        sleep(1)
+        
+    _print("Total runs:", len(_RUNNING_CASES))
+    
+    return allOK
+    
+    
+def _wait_for_prepare(verbose=False):
+    # wait till all runs that may have been started manually before runCases are done 
+    # (the part that we call 'prepare' as it replaces the old prepare from prm reports)
+    # pre and post_run at this point are not handled. Maybe done later.
+    
+    allOK=True
+    
+    err_msg = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    err_msg += "Case '%s/%s.data' FAILED !! Here are the last 20 lines of the log file:\n"
+    err_msg += "(If you don't see anything suspicious, also check pre/post_run scripts!!)\n"
+    err_msg += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    
+    if _has_waiting_cases():
+        raise Exception("Cases with pre_run that launches other cases are not allowed in prepare.")
+    _print(f"\nrunCases: Waiting for cases in prepare\n")
+    for r in _RUNNING_CASES:
+        p=r["process"]
+        case = r["case"]
+        p.wait()
+        if p.returncode != 0:
+            allOK = False
+            _print(f"\nTRUST run error in prepare:")
+            _print(err_msg % (case.dir_, case.name_), also_to_nb=True)
+            _print(getLastLines_(r["logFile"]), also_to_nb=True)
+        
+        # post run is called, but post_run are not allowed to start more TRUSTCases
+        nj= len(_RUNNING_CASES)
+        r["callback"]()
+        if len(_RUNNING_CASES) > nj or _has_waiting_cases():
+            raise Exception(f"Cases with post_run that launches other cases are not allowed in prepare.\n From case {case._relPath()}")
+        r["callbackDone"]=True
+    
+    return allOK
+        
+ORIGIN_DIRECTORY = os.getcwd()
+
+JUPYTER_RUN_OPTIONS=None
+
+defaultSuite_ = None  # a TRUSTSuite instance
+
+BUILD_DIRECTORY = _initBuildDir()

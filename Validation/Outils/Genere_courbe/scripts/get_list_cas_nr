@@ -37,7 +37,6 @@ else
        echo "" >> $TMP_BUILD/log
     fi
 
-    # env JUPYTER_RUN_OPTIONS="$*" python $DIR/get_nr_cases_jup.py $ze_file
     env JUPYTER_RUN_OPTIONS="$*" python $DIR/get_nr_cases_jup.py $ze_file 2>/dev/null | grep "@@@CAS_NR_JY@@@" | cut -d' ' -f2
 
     if [ "${PIPESTATUS[0]}" != "0" ]; then
@@ -46,7 +45,7 @@ else
     fi
 
   else
-    echo "Something wrong ..."
+    echo "Something wrong ... neither PRM nor Jupyter in this folder, NR cases should be removed"
     exit -1
   fi
 fi

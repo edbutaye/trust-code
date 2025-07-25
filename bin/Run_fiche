@@ -394,7 +394,7 @@ then
           curr_dir=`pwd`
           pdf=$(basename $pdf)
           pdf=$curr_dir/build/$pdf
-          env JUPYTER_RUN_OPTIONS="-parallel_run" jupyter-nbconvert --ExecutePreprocessor.timeout=432000 --to pdf --no-input --output "$pdf" --execute $prm 2>& 1| tee -a Run.log
+          env JUPYTER_RUN_OPTIONS="$options" jupyter-nbconvert --ExecutePreprocessor.timeout=432000 --to pdf --no-input --output "$pdf" --execute $prm 2>& 1| tee -a Run.log
           error=${PIPESTATUS[0]}
           if [ "$error" != 0 ]
              then
