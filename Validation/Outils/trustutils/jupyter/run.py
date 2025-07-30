@@ -204,7 +204,20 @@ class TRUSTCase(object):
         """
         path = self._fullPath()
         with open(path, "r") as file: filedata = Template(file.read())
-        result = filedata.substitute(subs_dict)
+        try:
+            result = filedata.substitute(subs_dict)
+        except KeyError as e:
+            _print(f"TRUSTCase: in template substitution of case {self.dir_}/{self.name_}.data", also_to_nb = True)
+            _print("Missing a keyword in dict given:", e, also_to_nb = True)
+            pattern="$"+str(e).replace("'", "")
+            index = filedata.template.find(pattern)
+            ln = 1+filedata.template[0:index].count("\n")
+            _print("At line", ln, also_to_nb = True)
+            lt = filedata.template.split("\n")[ln-1]
+            raise Exception(f"Missing keyword {e} in dict given to case template {self.dir_}/{self.name_}.data.\nOccurs in dataset at line {ln}:\n{lt}")
+        except ValueError as e:
+            raise Exception(f"Error in template substitution for case {self.dir_}/{self.name_}.data:\n{e}")
+            
         with open(path, "w") as file: file.write(result)
 
     def copy(self, targetName, targetDirectory=None, nbProcs=1, execOptions="", excluNR=False):
