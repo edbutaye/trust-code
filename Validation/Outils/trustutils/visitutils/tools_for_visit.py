@@ -564,6 +564,9 @@ class Show(object):
         from glob import glob
 
         listFiles = glob(os.path.join(BUILD_DIRECTORY, fName + "*.png"))
+        if len(listFiles) == 0:
+            print(f"No visit images found. See {os.path.join(BUILD_DIRECTORY, 'visit.log')}!!")
+            return False
         listFiles.sort(key=os.path.getmtime)
         pth = listFiles[-1]
         # pth = os.path.join(BUILD_DIRECTORY, fName)
