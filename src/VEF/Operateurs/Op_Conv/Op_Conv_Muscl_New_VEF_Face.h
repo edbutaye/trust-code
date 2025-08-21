@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -63,26 +63,28 @@ public:
   //test
   void         modifier_pour_Cl(Matrice_Morse&, DoubleTab&) const override;
 
+  public_for_cuda
+  void calculer_flux_bords(const DoubleTab&, const DoubleTab&, const DoubleTab&) const;
+  void calculer_coefficients_operateur_centre(DoubleTab&,DoubleTab&,DoubleTab&,DoubleTab&,const int, const DoubleTab& vitesse) const;
+  void calculer_flux_operateur_centre(DoubleTab&,const DoubleTab&,const DoubleTab&,const DoubleTab&,const DoubleTab&,const int,const DoubleTab&,const DoubleTab&) const;
+  DoubleTab& ajouter_operateur_centre(const DoubleTab&,const DoubleTab&, const DoubleTab&, DoubleTab&) const;
+  DoubleTab& ajouter_diffusion(const DoubleTab&,const DoubleTab&, const DoubleTab&, DoubleTab&) const;
+  DoubleTab& ajouter_antidiffusion_v1(const DoubleTab&, const DoubleTab&, const DoubleTab&, DoubleTab&) const;
+  DoubleTab& ajouter_antidiffusion_v2(const DoubleTab&, const DoubleTab&, const DoubleTab&, DoubleTab&) const;
+  void mettre_a_jour_pour_periodicite(const DoubleTab&,const DoubleTab&,DoubleTab&) const;
+
 private :
 
   //Methodes annexes
-  void calculer_flux_bords(const DoubleTab&, const DoubleTab&, const DoubleTab&) const;
 
   //Methodes pour l'explicite
 
-  void calculer_coefficients_operateur_centre(DoubleTab&,DoubleTab&,DoubleTab&,DoubleTab&,const int, const DoubleTab& vitesse) const;
-  void calculer_flux_operateur_centre(DoubleTab&,const DoubleTab&,const DoubleTab&,const DoubleTab&,const DoubleTab&,const int,const DoubleTab&,const DoubleTab&) const;
   void modifier_flux_operateur_centre(DoubleTab&,const DoubleTab&,const DoubleTab&,const DoubleTab&,const DoubleTab&,const int,const DoubleTab&,const DoubleTab&) const;
 
-  DoubleTab& ajouter_operateur_centre(const DoubleTab&,const DoubleTab&, const DoubleTab&, DoubleTab&) const;
-  DoubleTab& ajouter_diffusion(const DoubleTab&,const DoubleTab&, const DoubleTab&, DoubleTab&) const;
   DoubleTab& ajouter_antidiffusion(const DoubleTab&, const DoubleTab&, const DoubleTab&, DoubleTab&) const;
-  DoubleTab& ajouter_antidiffusion_v1(const DoubleTab&, const DoubleTab&, const DoubleTab&, DoubleTab&) const;
-  DoubleTab& ajouter_antidiffusion_v2(const DoubleTab&, const DoubleTab&, const DoubleTab&, DoubleTab&) const;
 
 
   KOKKOS_INLINE_FUNCTION void calculer_senseur(CDoubleTabView3, CDoubleTabView4, CDoubleArrView, const int, const int, const int, CIntTabView, CIntTabView, CIntTabView, double&, double&, double&, double&) const;
-  void mettre_a_jour_pour_periodicite(const DoubleTab&,const DoubleTab&,DoubleTab&) const;
   void calculer_data_pour_dirichlet();
 
   //Attributs de la classe

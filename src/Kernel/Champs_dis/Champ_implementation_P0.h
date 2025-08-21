@@ -33,8 +33,10 @@ public:
   int remplir_coord_noeuds_et_polys(DoubleTab& positions, IntVect& polys) const override;
   int imprime_P0(Sortie&, int) const;
 
-protected:
+  public_for_cuda
   DoubleTab& valeur_aux_sommets_impl(DoubleTab& result) const override;
+
+protected:
   DoubleVect& valeur_aux_sommets_compo_impl(DoubleVect& result, int ncomp) const override;
   int affecter_(const Champ_base&);
   inline DoubleTab& trace(const Frontiere_dis_base& fr, const DoubleTab& y, DoubleTab& x, int distant) const;

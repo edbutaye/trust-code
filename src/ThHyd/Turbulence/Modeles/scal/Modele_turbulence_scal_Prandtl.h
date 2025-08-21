@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -39,6 +39,7 @@ protected:
   Nom definition_fonction_; // stockage de la chaine du jdd
   Parser_U fonction_; // fonction de calcul de alpha_t
   Parser_U fonction1_; // fonction de calcul de Prandtl variant en espace
+  public_for_cuda
   virtual Champ_Fonc_base& calculer_diffusivite_turbulente();
 };
 

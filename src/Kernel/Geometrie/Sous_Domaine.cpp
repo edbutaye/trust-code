@@ -115,6 +115,13 @@ Sortie& Sous_Domaine_32_64<_SIZE_>::printOn(Sortie& os) const
 template <typename _SIZE_>
 Entree& Sous_Domaine_32_64<_SIZE_>::readOn(Entree& is)
 {
+  build(is);
+  return is;
+}
+
+template <typename _SIZE_>
+void Sous_Domaine_32_64<_SIZE_>::build(Entree& is)
+{
   Motcles les_mots(13);
   {
     les_mots[0] = "Liste";
@@ -1040,7 +1047,6 @@ Entree& Sous_Domaine_32_64<_SIZE_>::readOn(Entree& is)
       Cerr << "instead of " << motlu << finl;
       Process::exit();
     }
-  return is;
 }
 
 

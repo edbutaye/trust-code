@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -18,6 +18,7 @@
 
 #include <TRUSTTabs_forward.h>
 #include <TRUST_Ref.h>
+#include <kokkos++.h>
 
 class Domaine_Cl_VEF;
 class Equation_base;
@@ -30,8 +31,11 @@ class Source_Fluide_Dilatable_VEF_Proto
 protected:
   void associer_domaines_impl(const Domaine_dis_base& domaine,const Domaine_Cl_dis_base& domaine_cl);
   void associer_volume_porosite_impl(const Domaine_dis_base& domaine, DoubleVect& volumes, DoubleVect& porosites);
+
+  public_for_cuda
   void ajouter_impl(const Equation_base& eqn, const DoubleVect& g, const int dimension, const double rho_m, const DoubleTab& tab_rho, DoubleTab& resu) const;
 
+protected:
   OBS_PTR(Domaine_VEF) le_dom;
   OBS_PTR(Domaine_Cl_VEF) le_dom_Cl;
 };

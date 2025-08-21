@@ -44,3 +44,8 @@
 #pragma diag_warning 47
 #endif
 
+#ifdef TRUST_USE_CUDA
+#define public_for_cuda public:
+#else
+#define public_for_cuda protected:
+#endif

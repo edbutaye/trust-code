@@ -53,8 +53,8 @@ KOKKOS_INLINE_FUNCTION double chakravarthy(double grad1, double grad2)
   double gradlim=0.;
   if ((grad1*grad2)>0)
     {
-      gradlim=std::min(grad1/grad2,1.8); // 1<<beta<<2
-      gradlim=std::max(gradlim,0.);
+      gradlim=Kokkos::min(grad1/grad2,1.8); // 1<<beta<<2
+      gradlim=Kokkos::max(gradlim,0.);
       gradlim*=grad2;
     }
   return gradlim;
@@ -71,10 +71,10 @@ KOKKOS_INLINE_FUNCTION double superbee(double grad1, double grad2)
   if ((grad1*grad2)>0)
     {
       double gradlim1,gradlim2;
-      gradlim1=std::min(2*(grad1/grad2),1.);
-      gradlim2=std::min(grad1/grad2,2.);
-      gradlim=std::max(gradlim1,gradlim2);
-      gradlim=std::max(gradlim,0.);
+      gradlim1=Kokkos::min(2*(grad1/grad2),1.);
+      gradlim2=Kokkos::min(grad1/grad2,2.);
+      gradlim=Kokkos::max(gradlim1,gradlim2);
+      gradlim=Kokkos::max(gradlim,0.);
       gradlim*=grad2;
     }
   return gradlim;

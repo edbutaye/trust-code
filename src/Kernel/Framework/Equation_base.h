@@ -256,6 +256,9 @@ public :
   }
   inline const bool& diffusion_multi_scalaire() const { return diffusion_multi_scalaire_; }
 
+  public_for_cuda
+  void Gradient_conjugue_diff_impl(DoubleTrav& secmem, DoubleTab& solution, int size_terme_mul, const DoubleTab& term_mul);
+
 protected :
 
   Nom nom_;
@@ -304,7 +307,6 @@ protected :
   bool diffusion_multi_scalaire_ = false;
 
 private :
-  void Gradient_conjugue_diff_impl(DoubleTrav& secmem, DoubleTab& solution, int size_terme_mul, const DoubleTab& term_mul);
   virtual void derivee_en_temps_inco_sources(DoubleTrav& ) { /* Don nothing */ }
   virtual void verify_scheme() { /* Don nothing */ }
 

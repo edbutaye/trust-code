@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -56,11 +56,12 @@ public:
   void contribuer_a_avec(const DoubleTab&, Matrice_Morse&) const override { }
   void contribuer_au_second_membre(DoubleTab&) const override { }
 
+  public_for_cuda
+  void volumique_P0(DoubleTab&) const;
+
 private:
   OBS_PTR(Domaine_VEF) le_dom_vef;
   OBS_PTR(Domaine_Cl_VEF) la_zcl_vef;
-
-  void volumique_P0(DoubleTab&) const;
 
   mutable IntVect nb_degres_liberte_;
   mutable bool corrige_sommets_sans_degre_liberte_ = false;

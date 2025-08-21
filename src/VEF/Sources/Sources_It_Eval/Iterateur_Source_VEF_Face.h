@@ -70,6 +70,7 @@ private:
   mutable DoubleTab tab_coef_;
   DoubleVect volumes_cl_dirichlet_;
 
+  public_for_cuda
   template <typename Type_Double>  DoubleTab& ajouter_faces_standard(const int, DoubleTab& ) const;
   template <typename Type_Double> DoubleTab& ajouter_faces_non_standard(const int, DoubleTab& ) const;
 };

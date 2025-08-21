@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -30,8 +30,10 @@ class Modele_turbulence_hyd_LES_Smago_VEF: public Modele_turbulence_hyd_LES_VEF_
 public:
   void set_param(Param& param) override;
 
-protected:
+  public_for_cuda
   Champ_Fonc_base& calculer_viscosite_turbulente() override;
+
+protected:
   virtual void calculer_S_barre();
 
   double cs_ = 0.18;

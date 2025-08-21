@@ -601,7 +601,6 @@ void Calcul_integrale_locale::calculer(const double x, const double y, const dou
 
   const int nb_items = liste_elems_.size_array();
   const int dim = Objet_U::dimension;
-  const int dim3 = (dim == 3);
   filter_coords_.resize(nb_items, dim);
   for (int i = 0; i < nb_items; i++)
     {
@@ -609,7 +608,7 @@ void Calcul_integrale_locale::calculer(const double x, const double y, const dou
       assert(item < nb_items_reels_);
       filter_coords_(i, 0) = coord_items(item, 0) - x;
       filter_coords_(i, 1) = coord_items(item, 1) - y;
-      if (dim3)
+      if (dim == 3)
         filter_coords_(i, 2) = coord_items(item, 2) - z;
     }
   filter_results_.resize_array(nb_items);

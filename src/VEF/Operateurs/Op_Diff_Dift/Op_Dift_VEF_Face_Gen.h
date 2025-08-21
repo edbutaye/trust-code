@@ -65,6 +65,8 @@ protected:
   mutable DoubleTab grad_, Re_;
 
 private:
+
+  public_for_cuda
   template <Type_Champ _TYPE_, Type_Schema _SCHEMA_, bool _IS_STAB_ = false, bool _IS_RANS_ = false >
   void ajouter_bord_perio_gen__(const int , const DoubleTab&, DoubleTab* /* Si explicite */ , Matrice_Morse* /* Si implicite */, const DoubleTab&, const DoubleTab&, const DoubleVect& , DoubleTab* flux_bord = nullptr /* flux_bords */) const;
 

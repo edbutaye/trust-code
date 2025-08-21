@@ -162,7 +162,7 @@ void Solv_AMGX::Update_matrix(Mat& MatricePetsc, const Matrice_Morse& mat_morse)
   statistics().begin_count(STD_COUNTERS::gpu_copytodevice,statistics().get_last_opened_counter_level()+1);
   SolveurAmgX_.updateA(nRowsLocal, nNz, values);  // ToDo erreur valgrind au premier appel de updateA...
   Cout << "[AmgX] Time to update matrix (copy+resetup) on GPU: " << statistics().get_time_since_last_open(STD_COUNTERS::gpu_copytodevice) << finl; // Attention balise lue par fiche de validation
-  statistics().end_count(STD_COUNTERS::gpu_copytodevice,1 , static_cast<double>(sizeof(double)*(double)nNz));
+  statistics().end_count(STD_COUNTERS::gpu_copytodevice, 1, sizeof(double)*nNz);
 }
 
 // Check and return true if new stencil

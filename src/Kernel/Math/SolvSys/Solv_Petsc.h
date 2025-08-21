@@ -119,6 +119,10 @@ public :
     if (SolveurPetsc_!=nullptr) KSPSetTolerances(SolveurPetsc_, seuil_relatif_, seuil_, (divtol_==0 ? PETSC_DEFAULT : divtol_), nb_it_max_);
   }
 #endif
+
+  public_for_cuda
+  virtual void Update_matrix(Mat& MatricePetsc, const Matrice_Morse& mat_morse); // Fill the (previously allocated) PETSc matrix with mat_morse coefficients
+
   static int instance;               // Nombre d'instances en cours de la classe
   static int numero_solveur;         // Compte les solveurs crees et utilises pour le prefix des options
 
@@ -133,7 +137,6 @@ protected :
   virtual void Create_vectors(const DoubleVect&); // Construit les vecteurs Petsc x et b
   virtual void Update_vectors(const DoubleVect& secmem, DoubleVect& solution); // Remplit les vecteurs Petsc x et b
   void Create_MatricePetsc(Mat&, int, const Matrice_Morse&); // Construit et remplit une matrice Petsc depuis la matrice_morse
-  virtual void Update_matrix(Mat& MatricePetsc, const Matrice_Morse& mat_morse); // Fill the (previously allocated) PETSc matrix with mat_morse coefficients
   virtual void Update_solution(DoubleVect& solution);
   virtual int solve(ArrOfDouble& residual); // Solve Ax=b and return residual
   virtual void finalize() {};

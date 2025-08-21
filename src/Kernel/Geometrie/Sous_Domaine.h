@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -34,6 +34,7 @@ class Sous_Domaine_32_64 : public Objet_U
   Declare_instanciable_32_64(Sous_Domaine_32_64);
 
 public :
+  void build(Entree& is);
 
   using int_t = _SIZE_;
   using ArrOfInt_t = ArrOfInt_T<_SIZE_>;

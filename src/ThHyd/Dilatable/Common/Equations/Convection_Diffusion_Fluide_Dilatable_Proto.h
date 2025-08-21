@@ -44,9 +44,11 @@ public:
   virtual ~Convection_Diffusion_Fluide_Dilatable_Proto() {}
 
 protected:
-  void calculer_div_rho_u_impl(DoubleTab& res, const Convection_Diffusion_Fluide_Dilatable_base& eqn ) const;
+  public_for_cuda
   void assembler_impl(Convection_Diffusion_Fluide_Dilatable_base& eqn,
                       Matrice_Morse& mat_morse, const DoubleTab& present, DoubleTab& secmem);
+protected:
+  void calculer_div_rho_u_impl(DoubleTab& res, const Convection_Diffusion_Fluide_Dilatable_base& eqn ) const;
   void assembler_blocs(Convection_Diffusion_Fluide_Dilatable_base& eqn,matrices_t matrices, DoubleTab& secmem, const tabs_t& semi_impl);
 
   DoubleTab& derivee_en_temps_inco_sans_solveur_masse_impl(Convection_Diffusion_Fluide_Dilatable_base& eqn,

@@ -35,6 +35,7 @@ public :
   void calculer_masse_volumique() override;
   double calculer_masse_volumique(double,double) const override;
 protected:
+  public_for_cuda
   void compute_tab_rho(DoubleTab&) override;
 };
 

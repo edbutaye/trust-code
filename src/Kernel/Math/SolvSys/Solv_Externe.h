@@ -45,10 +45,12 @@ protected:
   void construit_renum(const DoubleVect&);
   void MorseSymToMorse(const Matrice_Morse_Sym& MS, Matrice_Morse& M);
   void Create_lhs_rhs_onDevice();
+  public_for_cuda
   template<typename ExecSpace>
   void Update_lhs_rhs(const DoubleVect& b, DoubleVect& x);
   template<typename ExecSpace>
   void Update_solution(DoubleVect& x);
+protected:
   const ArrOfInt& indice_coeff_to_keep(const Matrice_Morse&);
 
   TIDTab renum_;                // Tableau de renumerotation globale lignes matrice TRUST -> matrice CSR

@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -54,13 +54,13 @@ private:
   mutable double cumulative_;
 
   // private methods called from derivee_en_temps_inco_impl
-  void prepare_and_solve_u_star(Navier_Stokes_std& eqn,const Fluide_Dilatable_base& fluide_dil,DoubleTab& rhoU,DoubleTab& vpoint);
-  void update_vpoint_on_boundaries(const Navier_Stokes_std& eqn,const Fluide_Dilatable_base& fluide_dil,DoubleTab& vpoint);
   void solve_pressure_increment(Navier_Stokes_std& eqn,const Fluide_Dilatable_base& fluide_dil,DoubleTab& rhoU,
                                 DoubleTab& secmem,DoubleTab& inc_pre,DoubleTab& vpoint );
   void correct_and_compute_u_np1(Navier_Stokes_std& eqn,const Fluide_Dilatable_base& fluide_dil,DoubleTab& rhoU,
                                  DoubleTab& Mmoins1grad,DoubleTab& inc_pre,DoubleTab& gradP,DoubleTab& vpoint);
-
+  public_for_cuda
+  void prepare_and_solve_u_star(Navier_Stokes_std& eqn,const Fluide_Dilatable_base& fluide_dil,DoubleTab& rhoU,DoubleTab& vpoint);
+  void update_vpoint_on_boundaries(const Navier_Stokes_std& eqn,const Fluide_Dilatable_base& fluide_dil,DoubleTab& vpoint);
 };
 
 #endif /* Navier_Stokes_Fluide_Dilatable_Proto_included */

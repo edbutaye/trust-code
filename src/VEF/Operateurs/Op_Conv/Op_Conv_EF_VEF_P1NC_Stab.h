@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -62,28 +62,30 @@ public:
   //test
   void         modifier_pour_Cl(Matrice_Morse&, DoubleTab&) const override;
 
-private :
-
-  //Methodes annexes
+  public_for_cuda
   void calculer_flux_bords(const DoubleTab&, const DoubleTab&, const DoubleTab&) const;
-
-  //Methodes pour l'explicite
-  void reinit_conv_pour_Cl(const DoubleTab&,const IntList&, const DoubleTabs&, const DoubleTab&, DoubleTab&) const;
   void calculer_coefficients_operateur_centre(DoubleTab&,const int, const DoubleTab& vitesse) const;
   DoubleTab& ajouter_partie_compressible(const DoubleTab&, DoubleTab&, const DoubleTab& vitesse) const;
   DoubleTab& ajouter_operateur_centre(const DoubleTab&, const DoubleTab&, DoubleTab&) const;
   DoubleTab& ajouter_diffusion(const DoubleTab&, const DoubleTab&, DoubleTab&) const;
   DoubleTab& ajouter_antidiffusion(const DoubleTab&, const DoubleTab&, DoubleTab&) const;
+  void ajouter_contribution_operateur_centre(const DoubleTab&, const DoubleTab&, Matrice_Morse&) const;
+  void ajouter_contribution_diffusion(const DoubleTab&, const DoubleTab&, Matrice_Morse&) const;
+  void mettre_a_jour_pour_periodicite(DoubleTab&) const;
+
+private :
+
+  //Methodes annexes
+
+  //Methodes pour l'explicite
+  void reinit_conv_pour_Cl(const DoubleTab&,const IntList&, const DoubleTabs&, const DoubleTab&, DoubleTab&) const;
 
   KOKKOS_INLINE_FUNCTION void calculer_senseur(CDoubleTabView3, CDoubleArrView, const int, const int, CIntTabView, CIntTabView, CIntTabView, double*, double*, double*, double*) const;
   inline void calculer_senseur(const DoubleTab&, const DoubleVect&, const int, const int, const IntTab&, const IntTab&, const IntTab&, ArrOfDouble&, ArrOfDouble&, ArrOfDouble&, ArrOfDouble&) const;
-  void mettre_a_jour_pour_periodicite(DoubleTab&) const;
   void ajouter_old(const DoubleTab& , DoubleTab&, const DoubleTab& vitesse) const;
   void calculer_data_pour_dirichlet();
 
   //Methodes pour l'implicite
-  void ajouter_contribution_operateur_centre(const DoubleTab&, const DoubleTab&, Matrice_Morse&) const;
-  void ajouter_contribution_diffusion(const DoubleTab&, const DoubleTab&, Matrice_Morse&) const;
   void ajouter_contribution_antidiffusion(const DoubleTab&,const DoubleTab&,Matrice_Morse&) const;
   void ajouter_contribution_partie_compressible(const DoubleTab&,const DoubleTab&,Matrice_Morse&) const;
 
@@ -118,7 +120,6 @@ private :
   DoubleVect alpha_ssz;
   Noms noms_ssz_alpha;
   bool ssz_alpha = false;
-
 };
 
 inline void Op_Conv_EF_VEF_P1NC_Stab::contribuer_a_avec(const DoubleTab& inco,
