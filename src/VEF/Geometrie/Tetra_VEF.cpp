@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -639,7 +639,20 @@ void Tetra_VEF::calcul_vc(const ArrOfInt& Face,ArrOfDouble& vc,
                           const ArrOfDouble& vs,const DoubleTab& vsom,
                           const Champ_Inc_base& vitesse,int type_cl, const DoubleVect& porosite_face) const
 {
-  calcul_vc_tetra(Face.addr(), vc.addr(), vs.addr(), vsom.addr(), vitesse.valeurs().addr(), (True_int)type_cl, porosite_face.addr());
+  DoubleTab poro(4);
+  DoubleTab vfa(4,3);
+  for (int i=0; i<4; i++)
+    for (int j=0; j<3; j++)
+      {
+        vfa(i,j) = vitesse.valeurs()(Face[i],j);
+      }
+
+  for (int i=0; i<4; i++)
+    {
+      poro(i) = porosite_face(Face[i]);
+    }
+
+  calcul_vc_tetra(Face.addr(), vc.addr(), vs.addr(), vsom.addr(), vfa.addr(), (True_int)type_cl, poro.addr());
 }
 
 /*! @brief calcule les coord xg du centre d'un element non standard calcule aussi idirichlet=nb de faces de Dirichlet de l'element
