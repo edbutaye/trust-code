@@ -19,6 +19,7 @@
 #include <TRUSTTabs_forward.h>
 #include <solv_iteratif.h>
 #include <TRUSTVects.h>
+#include <TRUSTTab.h>
 class Matrice_Morse_Sym;
 class Matrice_Morse;
 class Param;
@@ -41,11 +42,15 @@ protected :
   int lire_motcle_non_standard(const Motcle&, Entree&) override;
 
   int Gmres(const Matrice_Morse&, const DoubleVect&, DoubleVect& );
+  int gmres_local( const Matrice_Morse& A, const DoubleVect& b, DoubleVect& tab_x1);
 
   DoubleVects v; //espcace Krilov
   bool is_local_gmres = false;
-  bool precond_diag = false;
+  bool precond_diag_ = false;
   int nb_it_max_, controle_residu_, dim_espace_Krilov_;
+  DoubleVect tab_v0, tab_v1, tab_Diag; // Created once
+  DoubleTab h;
+  DoubleVect r;
 };
 
 #endif /* Solv_Gmres_included */
