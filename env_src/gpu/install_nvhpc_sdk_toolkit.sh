@@ -1,17 +1,11 @@
 #!/bin/bash
-# NVIDIA HPC SDK: select version according to driver
+# NVIDIA HPC SDK
 NVIDIA_VERSION=`nvidia-smi 2>/dev/null | awk '/CUDA Version/ {v=$(NF-1);gsub("\\\.","",v);print v}'`
-if [ "$NVIDIA_VERSION" = "" ] || [ $NVIDIA_VERSION -le 121 ]
-then
-   SDK_VERSION=23.5  && CUDA_VERSION=12.1 && installer=nvhpc_2023_235_Linux_x86_64_cuda_$CUDA_VERSION  && installer_md5sum=eff38d63c4d08ca5c2962dad049a6833
-elif [ $NVIDIA_VERSION -le 125 ]
-then
-   SDK_VERSION=24.7  && CUDA_VERSION=12.5 && installer=nvhpc_2024_247_Linux_x86_64_cuda_$CUDA_VERSION  && installer_md5sum=c7fd37d1a1605f60b2c54890ee0c805e
-else
-   SDK_VERSION=24.11 && CUDA_VERSION=12.6 && installer=nvhpc_2024_2411_Linux_x86_64_cuda_$CUDA_VERSION && installer_md5sum=77e0a195e6830ce9749ba6a85bf48fc5
-fi
-# Keep 23.5 cause performance regression on Op_Conv_VEF_Face::ajouter kernel 20 to 40% ! Seen with 24.7 and 24.11 ...
-SDK_VERSION=23.5  && CUDA_VERSION=12.1 && installer=nvhpc_2023_235_Linux_x86_64_cuda_$CUDA_VERSION  && installer_md5sum=eff38d63c4d08ca5c2962dad049a6833
+# Cuda12.9 works on Driver 12.x. Issue for major version only. E.g: Cuda13.x on Cuda12.x
+# Keep 23.5 if issue on orcus or jean-zay...
+# SDK_VERSION=23.5  && CUDA_VERSION=12.1 && installer=nvhpc_2023_235_Linux_x86_64_cuda_$CUDA_VERSION  && installer_md5sum=eff38d63c4d08ca5c2962dad049a6833
+# Support Blackwell: 
+SDK_VERSION=25.5 && CUDA_VERSION=12.9 && installer=nvhpc_2025_255_Linux_x86_64_cuda_$CUDA_VERSION && installer_md5sum=748302adcb483bc332214a34dad1e31d
 
 INSTALL=$TRUST_ROOT/env/gpu/install
 NVHPC=$INSTALL/nvhpc-$SDK_VERSION/Linux_x86_64/$SDK_VERSION/compilers
