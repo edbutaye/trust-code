@@ -85,7 +85,7 @@ then
             PETSC_P=$PETSC_P" \$ENV{CUDA_ROOT}/lib64 \$ENV{CUDA_ROOT}/lib64/stubs `echo $CUDA_ROOT | sed '1,$ s?/cuda?/math_libs?g'`/lib64"
             PETSC_L=$PETSC_L" cuda cublas cublasLt cufft cusparse cusolver curand"
             # -lnvToolsExt: ajoute suite undefined reference sur cobalt:
-            PETSC_L=$PETSC_L" nvToolsExt"
+            # PETSC_L=$PETSC_L" nvToolsExt"
             # -lnvJitLink : ajout necessaire sur JeanZay si MPI GPU-Aware:
             PETSC_L=$PETSC_L" nvJitLink"
             # En statique:
