@@ -1,0 +1,76 @@
+                                             # Global performance file #
+
+This is the global file for tracking performance in TRUST. It stores aggregated quantities.
+More detailed statistics can be found in the OpenMP_Iterateur_csv.TU file
+For time loop, only standard counters of level 1 are printed alongside your custom counters
+Time is given in seconds
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                              Context of the computation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Date:     09-11-2025 -- 10:40:09
+OS:       b300__Linux__x86_64__6.8.0-87-generic__#88-Ubuntu SMP PREEMPT_DYNAMIC Sat Oct 11 09:28:41 UTC 2025
+CPU:      Model name:  AMD EPYC 9575F 64-Core Processor ; Thread(s) per core:  1
+GPU:      | NVIDIA-SMI 580.95.05  Driver Version: 580.95.05  CUDA Version: 13.0  |
+|  0  NVIDIA B300 SXM6 AC  On  |  00000000:03
+Nb procs: 1
+TRUST version: 1.9.7_beta
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                           Computation start-up statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Total time of the start-up:                                                0.382234       
+Percent of untracked time during computation start-up:                     1.04648e-06    
+
+Number of calls to the linear solver per time step:                        2              
+Average time of the resolution of the linear problem per call:             0.0914376      
+Average number of iteration of the linear solver per call:                 48             
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                 Time loop statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The first time step is not accounted for the computation of the time loop statistics
+Total time of the time loop:                                               0.200487       
+Number of time steps:                                                      9              
+Skipped time steps:                                                        1              
+Average time per time step:                                                0.0222763      
+Standard deviation between time steps:                                     0.00285341     
+Time elapsed in the skipped time steps:                                    0.00449926     
+
+
+Standard counter description             | Time/step       | % loop time | Call(s)/step   
+------------------------------------------------------------------------------------------
+Linear solver resolutions Ax=B           | 0.0191424       | 85.9        | 1              
+Convection operator                      | 0.000309777     |  1.4        | 1              
+Diffusion operator                       | 0.0001171991    |  0.5        | 1              
+Gradient operator                        | 0.0001469248    |  0.7        | 2              
+Divergence operator                      | 9.823389e-05    |  0.4        | 2              
+Update ::mettre_a_jour                   | 0.00020096      |  0.9        | 1              
+Computation of the time step dt          | 0.0001436293    |  0.6        | 2              
+Post-treatment operations                | 0.001458718     |  6.5        | 1              
+Other operations                         | 0.0006584629    |  3.0        | 
+
+Untracked time                           | 1.6e-05         | 0.00798     | 
+
+
+Average number of iteration of the linear solver per call:                 41.8           
+
+
+-----------------------------------------------------------------------------------------------------------
+                                                    GPU statistics
+-----------------------------------------------------------------------------------------------------------
+Counter description                      | Time per step   | % loop time | Call(s)/step    | Bandwidth 
+-----------------------------------------------------------------------------------------------------------
+Libraries:                               | 0.0190946       | 85.7        | 1               | 
+Kernels:                                 | 0.00141833      |  6.4        | 98              | 
+Copy host to device:                     | 9.82792e-05     |  0.4        | 8               | 2.2 GB/s
+Copy device to host:                     | 9.06987e-05     |  0.4        | 4               | 6.0 GB/s
+Alloc/Free on device:                    | 0               |  0.0        | 0               | 
+GPU: 92% Copy H<->D: 0.85% Alloc/free: 0% Comm: 0% CPU & I/O: 7.1%
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                              Post-resolution statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Time of the post-resolution:                                               0.00119828     
+
+Total time for the whole computation                                       0.588419       
+

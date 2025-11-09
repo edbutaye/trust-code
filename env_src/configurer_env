@@ -1256,15 +1256,11 @@ then
       # nvidia-smi trop anciens ne supporte pas query-gpu=compute_cap:
       [ "$TRUST_CUDA_CC" = "" ] && [ "`nvidia-smi 2>&1 | grep -e A[123456]000`" != "" ] && TRUST_CUDA_CC=86 # Cartes A3000-A6000
    fi
-   if [ "$TRUST_CUDA_CC" != "" ]
+   if [ "$TRUST_CUDA_CC" = "" ]
    then
-      m="# Cuda Compute Capability:";e="TRUST_CUDA_CC=\"$TRUST_CUDA_CC\" && export TRUST_CUDA_CC";
-      ecrit $m"|"$e"|"$env;eval $e
-   else
       echo "Cuda Compute Capability not detected ! TRUST_CUDA_CC should be set."
       exit -1
-   fi
-   if [ "$TRUST_CUDA_CC" != 70 ] && [ "$TRUST_CUDA_CC" != 75 ] && [ "$TRUST_CUDA_CC" != 80 ] && [ "$TRUST_CUDA_CC" != 86 ] && [ "$TRUST_CUDA_CC" != 89 ] && [ "$TRUST_CUDA_CC" != 90 ] && [ "$TRUST_CUDA_CC" != 100 ] && [ "$TRUST_CUDA_CC" != 120 ] 
+   elif [ "$TRUST_CUDA_CC" != 70 ] && [ "$TRUST_CUDA_CC" != 75 ] && [ "$TRUST_CUDA_CC" != 80 ] && [ "$TRUST_CUDA_CC" != 86 ] && [ "$TRUST_CUDA_CC" != 89 ] && [ "$TRUST_CUDA_CC" != 90 ] && [ "$TRUST_CUDA_CC" != 100 ] && [ "$TRUST_CUDA_CC" != 103 ] && [ "$TRUST_CUDA_CC" != 120 ] 
    then
       echo "TRUST_CUDA_CC=$TRUST_CUDA_CC not supported yet !"
       echo "Update the following files:"
@@ -1274,6 +1270,9 @@ then
       echo "env_src/configurer_env"
       exit -1
    fi
+   [ "$TRUST_CUDA_CC" = 103 ] && TRUST_CUDA_CC=100 && echo "Warning, B300 (cc=103) not well supported in Kokkos and NVHPC. Switching to cc=100"
+   m="# Cuda Compute Capability:";e="TRUST_CUDA_CC=\"$TRUST_CUDA_CC\" && export TRUST_CUDA_CC";
+   ecrit $m"|"$e"|"$env;eval $e
    #########################
    # Detection CUDA run time
    #########################
@@ -1975,8 +1974,7 @@ case $TRUST_ARCH_CC in
            CppFlags="-cuda" # nvc++ compile cuda code to avoid use of "nvcc -ccbin=nvc++"
            # Si CUDA_VERSION est specifie explicitement dans le HOST sinon on prend le SDK:
            [ "$CUDA_VERSION" = "" ] && CUDA_VERSION=`ls $CUDA_ROOT | grep "[0-9]\.[0-9]" | tail -1`
-           cc=cc$TRUST_CUDA_CC && [ "$TRUST_CUDA_CC" = 89 ] && cc=cc86 # Bizarre nvc++ 23.5 ne supporte pas encore cc89...
-           gpu=" -gpu=nordc,$cc,cuda$CUDA_VERSION"
+           gpu=" -gpu=nordc,cc$TRUST_CUDA_CC,cuda$CUDA_VERSION"
            #TRUST_USE_UVM=1 # Provisoire
            [ "$TRUST_USE_UVM" = 1 ] && gpu=$gpu",managed" && Defines=$Defines" -DTRUST_USE_UVM"
            CppFlags=$CppFlags$gpu
@@ -2224,7 +2222,7 @@ then
        LD_LIBRARY_PATH=$CUDA_LIB:$LD_LIBRARY_PATH
        rm -r -f nvc_get_devices
        tar xfz $TRUST_ROOT/externalpackages/AmgX/nvc_get_devices.tgz
-       cd nvc_get_devices && ./build.sh || exit -1
+       cd nvc_get_devices && ./build.sh 1>/dev/null 2>&1 || exit -1
        # Test eventuel (plus bloquant si echec):
        export exec=`pwd`/nvc_get_devices
        rm -f $TRUST_ENV/card.log
