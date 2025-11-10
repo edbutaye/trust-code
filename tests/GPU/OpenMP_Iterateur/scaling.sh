@@ -2,7 +2,7 @@
 # Scaling a mesh on several GPU
 [ "$TRUST_ROOT" = "" ] && echo "TRUST_ROOT empty." && exit
 ROOT=`pwd`
-echo -e "Config     [MTET] [MDOF] TimeStep[s] Solver[s] [its] [ms/it] Kernels[s] RAM[GB] DRAM[GB] [MDOF/s] Solver Kernels Conv Diff Grad  Div"
+echo -e "Config     [MTET]  [MDOF] TimeStep[s] Solver[s] [its] [ms/it] Kernels[s] RAM[GB] DRAM[GB] [MDOF/s] Solver Kernels Conv Diff Grad  Div"
 
 versions=cpu && [ "$TRUST_USE_GPU" = 1 ] && versions=gpu
 for version in $versions
@@ -61,18 +61,18 @@ do
             dof=$row
             #dof=`echo 1*$faces | bc -l` # En VDF
             #dof=`echo 3*$faces | bc -l` # En VEF
-            awk -v mpi=$mpi -v gpu=$gpu -v elems=$elems -v row=$row -v dof=$dof -v hram=$hram -v dram=$dram '\
+            dt=`TU.sh $jdd.TU -dt`
+            its=`TU.sh $jdd.TU -its`            
+            awk -v mpi=$mpi -v gpu=$gpu -v elems=$elems -v row=$row -v dof=$dof -v hram=$hram -v dram=$dram -v dt=$dt -v its=$its '\
 	    BEGIN {config=mpi"MPI"(gpu==0?"":"+"gpu"GPU");mdof=dof/1e6;mtet=elems/1e6} \
-            /Secondes/ && /pas de temps/ {dt=$NF;dts=mdof/dt} \
-            /Dont solveurs/ {ts=$4;b=dt-ts;ls=mdof/ts} \
-            / operateurs convection / { gsub("\\(","",$6);conv=mdof/$4*$6 } \
-            / operateurs diffusion /  { gsub("\\(","",$6);diff=mdof/$4*$6 } \
-            / operateurs gradient /   { gsub("\\(","",$6);grad=mdof/$4*$6 } \
-            / operateurs divergence / { gsub("\\(","",$6);dive=mdof/$4*$6 } \
-            /Iterations / && / solveur/ {its=$NF;ms_it=1000*ts/its} \
-            /Kernels / {ks=int(mdof/$3)} \
+            /Linear solver/       {ts=$6;b=dt-ts;ls=mdof/ts} \
+            /Convection operator/ { conv=mdof/$4*$8 } \
+            /Diffusion operator/  { diff=mdof/$4*$8 } \
+            /Gradient operator/   { grad=mdof/$4*$8 } \
+            /Divergence operator/ { dive=mdof/$4*$8 } \
+            /Kernels:/            { ks=int(mdof/$3) } \
             END {printf("%s %7.3f %7.3f %11.3f %9.3f %5d %7.1f %10.3f %7.1f %8.1f %8.1f %6.1f %7d %4d %4d %4d %4d\n", \
-	             config, mtet, mdof, dt, ts, its, ms_it,    b,   hram, dram,  dts,  ls,  ks, conv, diff, grad, dive)}' $jdd.TU
+	             config, mtet, mdof, dt, ts, its, 1000*ts/its,    b,   hram, dram,  mdof/dt,  ls,  ks, conv, diff, grad, dive)}' $jdd.TU
 	    # Clean
 	    rm -f *.sauv *.xyz *.*lata*	*.lml    
          done
