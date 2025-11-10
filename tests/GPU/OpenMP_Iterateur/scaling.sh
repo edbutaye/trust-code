@@ -8,7 +8,7 @@ versions=cpu && [ "$TRUST_USE_GPU" = 1 ] && versions=gpu
 for version in $versions
 do
    gpus="1"
-   sizes="3x3x2 5x5x2 8x8x2 10x10x3 15x15x4 20x20x5 24x24x7 31x31x10 41x41x14 51x51x17 61x61x20 74x74x25 92x92x32 116x116x40 145x145x50 181x181x63"
+   sizes="3x3x2 5x5x2 8x8x2 10x10x3 15x15x4 20x20x5 24x24x7 31x31x10 41x41x14 51x51x17 61x61x20 74x74x25 92x92x32 116x116x40 145x145x50 164x164x57 181x181x63"
    [ $HOST = adastra ] && mpis=192 && gpus="1 2 3 4 5 6 7 8"   
    [ $HOST = topaze ]  && mpis=128 && gpus="1 2 3 4"           
    [ $HOST = orcus-amd ]  && mpis=128 && gpus="1 2 3 4"        
