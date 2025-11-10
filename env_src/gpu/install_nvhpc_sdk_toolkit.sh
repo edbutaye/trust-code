@@ -9,8 +9,7 @@ SDK_VERSION=25.5 && CUDA_VERSION=12.9 && installer=nvhpc_2025_255_Linux_x86_64_c
 
 INSTALL=$TRUST_ROOT/env/gpu/install
 NVHPC=$INSTALL/nvhpc-$SDK_VERSION/Linux_x86_64/$SDK_VERSION/compilers
-if [ ! -f $NVHPC/bin/nvc++ ]
-then
+
    echo "It may take some minutes to download NVidia HPC SDK $SDK_VERSION ($installer) ..."
    (
    if [ ! -f $TRUST_TMP/$installer.tar.gz ]
@@ -48,4 +47,4 @@ then
    cd - 1>/dev/null 2>&1
    rm -r -f $installer
    )
-fi
+

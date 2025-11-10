@@ -651,8 +651,9 @@ case $arch in
                TRUST_CC_BASE="nvcc_wrapper"
             fi
             # Si n'est pas dans le PATH, on download NVHPC:
-            $CUDA_COMPILER --version 1>/dev/null 2>&1
-            if [ $? != 0 ]
+            $CUDA_COMPILER --version 1>/dev/null 2>&1 || INSTALL_NVHPC=1
+	    [ -d ../env_src/gpu/install ] && [ ../env_src/gpu/install_nvhpc_sdk_toolkit.sh -nt ../env_src/gpu/install ] && INSTALL_NVHPC=1 # Cas NVHPC mis a jour
+            if [ "$INSTALL_NVHPC" = 1 ]
             then
                source ../env_src/gpu/install_nvhpc_sdk_toolkit.sh
                echo "ADD_PATH $NVHPC/bin" >>$env
@@ -1306,15 +1307,16 @@ then
    echo "ADD_LD_LIBRARY_PATH \$TRUST_ROOT/lib/src/LIBAMGX/AmgX/lib" >> $env
 
    # On prend le MPI Cuda-Aware du NVHPC SDK telecharge:
-   # Actuellement OpenMPI 3.1.5, un peu lent au demarrage et use_mpirun=1 !
+   # OpenMPI 4 avec 25.5 (hpcx defaut est Cuda-Aware mais non reconnu par PETSc)
    [ "$USE_NVHPC_MPI" = "" ] && USE_NVHPC_MPI=0 # && [ ${NVHPC_ROOT#$TRUST_ROOT} != $NVHPC_ROOT ] && USE_NVHPC_MPI=1
    if [ "$USE_NVHPC_MPI" = 1 ]
    then
+      MPI=`cd $NVHPC_ROOT;find comm_libs -name latest | grep openmpi4`
       export TRUST_FORCE_SYSTEM_MPI=1
-      export PATH=$NVHPC_ROOT/comm_libs/mpi/bin:$PATH
-      export LD_LIBRARY_PATH=$NVHPC_ROOT/comm_libs/mpi/lib:$LD_LIBRARY_PATH
-      echo "ADD_PATH \$NVHPC_ROOT/comm_libs/mpi/bin" >> $env
-      echo "ADD_LD_LIBRARY_PATH \$NVHPC_ROOT/comm_libs/mpi/lib" >> $env
+      export PATH=$NVHPC_ROOT/$MPI/bin:$PATH
+      export LD_LIBRARY_PATH=$NVHPC_ROOT/$MPI/lib:$LD_LIBRARY_PATH
+      echo "ADD_PATH \$NVHPC_ROOT/$MPI/bin" >> $env
+      echo "ADD_LD_LIBRARY_PATH \$NVHPC_ROOT/$MPI/lib" >> $env
    fi
 fi
 m="# TRUST will use CUDA ?";e="TRUST_USE_CUDA=\"$TRUST_USE_CUDA\" && export TRUST_USE_CUDA";ecrit $m"|"$e"|"$env
@@ -1694,9 +1696,11 @@ else
    # Ecriture des variables
    m="# Path to MPI"; e="MPI_ROOT=\"$MPI_ROOT\" && export MPI_ROOT"; ecrit $m"|"$e"|"$env;eval $e
    m="# Path to MPI includes directory"; e="MPI_INCLUDE=\"$MPI_INCLUDE\" && export MPI_INCLUDE"; ecrit $m"|"$e"|"$env;eval $e
-   if [ "`basename $MPI_ROOT`" = openmpi ] && [ "$TRUST_FORCE_SYSTEM_MPI" != 1 ]
+   OPAL_PREFIX=0 && [ "`basename $MPI_ROOT`" = ompi ] && OPAL_PREFIX=1 # orcus
+   [ "`basename $MPI_ROOT`" = openmpi ] && [ "$TRUST_FORCE_SYSTEM_MPI" != 1 ] && OPAL_PREFIX=1 # needed if TRUST relocated
+   if [ $OPAL_PREFIX = 1 ]
    then
-      m="# needed if TRUST relocated"; e="OPAL_PREFIX=\$MPI_ROOT && export OPAL_PREFIX"; ecrit $m"|"$e"|"$env;eval $e
+      m="# OPAL_PREFIX"; e="OPAL_PREFIX=\$MPI_ROOT && export OPAL_PREFIX"; ecrit $m"|"$e"|"$env;eval $e
    fi
    # On fait attention si MPI_LIB est vide (-L peut causer des soucis...)
    if [ "$MPI_LIB" != "" ]
