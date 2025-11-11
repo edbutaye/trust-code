@@ -8,8 +8,11 @@ then
       trust $type 1>$type.out_err 2>&1
       compare_lata poise_VEF.lml $type.lml 1>$type.log 2>&1 
       [ $? != 0 ] && cat $type.log && exit -1
+      if [ -f $type"_petsc.TU" ]
+      then
       echo "poise_VEF with $type pcfieldsplit :"
       grep "solveurs A" $type.TU
       grep "MatMult " $type"_petsc.TU"
+      fi
    done
 fi

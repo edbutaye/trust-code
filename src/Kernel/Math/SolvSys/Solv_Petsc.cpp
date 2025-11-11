@@ -278,8 +278,11 @@ void Solv_Petsc::create_solver(Entree& entree)
 #ifdef TRUST_USE_GPU
       //if (instance==1) PetscLogGpuTime(); // Slow down calculation ! Use -log_view_gpu_time
 #endif
+#ifndef TRUST_USE_CUDA
+      // Unexplained segfault when build with nvcc, we disable:
       add_option("log_view",petsc_TU); 	// Monitor performances at the end of the calculation
       PetscLogDefaultBegin(); 		// Necessary cause if not Event logs not printed in petsc_TU file ... I don't know why...
+#endif
     }
 #ifdef NDEBUG
   // PETSc 3.14 active par defaut les exceptions, on desactive en production ?
