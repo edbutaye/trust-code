@@ -80,6 +80,8 @@ build_and_test_mc()
     (cd $src_dir; patch -p1 -f < $TRUST_ROOT/ThirdPart/src/LIBMEDCOUPLING/apple.patch ) || exit -1
     echo "Applying patch for OverlapDEC accessors in Python ..."
     (cd $src_dir; patch -p1 < $TRUST_ROOT/ThirdPart/src/LIBMEDCOUPLING/py_odec_accessors.patch )
+    # Hack to build with nvcc:
+    sed -i "1,$ s?const med_int?const INT?g" `find $src_dir -name MEDFileBasis.hxx` || exit -1
 
     # Better detection of SWIG on Ubuntu 16
     SWIG_EXECUTABLE=`type -p swig`
@@ -125,6 +127,7 @@ build_and_test_mc()
     
     # patch MEDCouplingConfig.cmake to not have absolute paths for MED and HDF5 inside it
     sed -i "s@$TRUST_ROOT@\${PACKAGE_PREFIX_DIR}/../../../..@g" $install_dir/cmake_files/MEDCouplingConfig.cmake
+    
 }
 
 
