@@ -57,7 +57,7 @@ define_soumission_batch()
    else
       qos="" && cpu=30 # 30 mn
    fi
-   if [ "`id | grep cin3364`" != "" ] && [ "$ROCM_ARCH" = gfx942 ] # MI300A
+   if [ "`id | grep cin3364_fini`" != "" ] && [ "$ROCM_ARCH" = gfx942 ] # MI300A
    then
       project="cin3364"
    elif [ "`id | grep genden15`" != "" ]
