@@ -213,7 +213,7 @@ std::array< std::array<double,4> ,4> Counter::compute_min_max_avg_sd_() const
     min = Process::mp_min(value);
     max = Process::mp_max(value);
     avg = Process::mp_sum(value)/Process::nproc();
-    sd = sqrt(Process::mp_sum((value-avg)*(value-avg))/Process::nproc());
+    sd = sqrt(std::max(0., Process::mp_sum((value-avg)*(value-avg))/Process::nproc()));
     std::array<double,4> result = {min,max,avg,sd};
     return result;
   };
@@ -865,7 +865,7 @@ void Perf_counters::Impl::print_performance_to_csv(const std::string& message)
     line_items[18] = tmp_item.str(); ///< Maximum time elapsed by time step for the operation tracked by the counter on the overall simulation step
     tmp_item.str("");
 
-    tmp_item<< sqrt(sd_time_per_step);
+    tmp_item<< sqrt(std::max(0., sd_time_per_step));
     line_items[19] = tmp_item.str(); ///< Standard Deviation of time elapsed by time step for the operation tracked by the counter on the overall simulation step
     tmp_item.str("");
 
@@ -897,7 +897,7 @@ void Perf_counters::Impl::print_performance_to_csv(const std::string& message)
     avg_time_per_step = c_lambda.avg_time_per_step_;
     min_time_per_step = c_lambda.min_time_per_step_;
     max_time_per_step = c_lambda.max_time_per_step_;
-    sd_time_per_step = std::sqrt(c_lambda.var_time_per_step_);
+    sd_time_per_step = std::sqrt(std::max(0., c_lambda.var_time_per_step_));
     min_time = 0.;
     max_time = 0.;
     SD_time = 0.;
@@ -996,7 +996,7 @@ inline std::array< std::array<double,4> ,3> compute_min_max_avg_sd(double& time,
         min = Process::mp_min(value);
         max = Process::mp_max(value);
         avg = Process::mp_sum(value)/Process::nproc();
-        sd = sqrt(Process::mp_sum((value-avg)*(value-avg))/Process::nproc());
+        sd = sqrt(std::max(0., Process::mp_sum((value-avg)*(value-avg))/Process::nproc()));
         std::array<double,4> result = {min,max,avg,sd};
         return result;
       };
@@ -1308,7 +1308,7 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
           file_header <<  std::left <<std::setw(text_width) << "Number of time steps: " <<  std::left <<std::setw(number_width) << nb_ts << std::endl;
           file_header <<  std::left <<std::setw(text_width) << "Skipped time steps: " <<  std::left <<std::setw(number_width) << nb_steps_elapsed_ << std::endl;
           file_header <<  std::left <<std::setw(text_width) << "Average time per time step: " <<  std::left <<std::setw(number_width) << time_tl/nb_ts << endl;
-          file_header <<  std::left <<std::setw(text_width) << "Standard deviation between time steps: " <<  std::left <<std::setw(number_width) << std::sqrt(c_timeloop.var_time_per_step_) << std::endl;
+          file_header <<  std::left <<std::setw(text_width) << "Standard deviation between time steps: " <<  std::left <<std::setw(number_width) << std::sqrt(std::max(0., c_timeloop.var_time_per_step_)) << std::endl;
           file_header <<  std::left <<std::setw(text_width) << "Time elapsed in the skipped time steps: " <<  std::left <<std::setw(number_width) << time_skipped_ts_.count() <<std::endl << std::endl;
           if (Process::is_parallel())
             file_header <<  std::left <<std::setw(text_width) << "Percent of total time spend in communication: " <<  std::left <<std::setw(number_width) << 100* total_comm_time / total_time << std::endl;
@@ -1405,7 +1405,7 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
         double max_time = c_.time_alone_.count();
         double calls = c_.count_/nb_ts;
         double t_ts = max_time/nb_ts;
-        double bw = static_cast<double>(c_.quantity_)/(1024.*1024.*1024*max_time);
+        double bw = max_time>0 ? static_cast<double>(c_.quantity_)/(1024.*1024.*1024*max_time) : 0.;
         double percent = 100*max_time/time_tl;
         perfs_GPU << std::left << std::setw(counter_description_width) << str <<separator << std::setw(time_per_step_width) << t_ts<<separator  << std::setw(percent_loop_time_width) << fmt("%4.1f", percent) <<separator<< std::setw(count_per_ts_width) << calls <<separator;
         if (bw >1.0e-10)

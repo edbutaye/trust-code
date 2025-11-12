@@ -504,6 +504,7 @@ void Process::imprimer_ram_totale(int all_process)
 #endif
 #endif /* ndef __APPLE__ */
       }
+#ifdef TRUST_USE_ROCM /* Seulement sur adastra */
       // sUnreclaim sur chaque process:
       std::ifstream meminfo("/proc/meminfo");
       std::string line;
@@ -530,6 +531,7 @@ void Process::imprimer_ram_totale(int all_process)
             }
         }
       Process::Journal() << "[RAM] SUnreclaim: " << sunreclaim_kb/1024 << " MB MemAvailable: " << mem_available_kb/1024 << " MB MemTotal: " << mem_total_kb/1024 << " MB " << finl;
+#endif
     }
 }
 
