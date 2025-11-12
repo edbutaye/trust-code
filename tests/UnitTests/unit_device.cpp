@@ -39,6 +39,19 @@
 
 #ifdef TRUST_USE_GPU 
 
+// Helper functions to avoid NVCC lambda restrictions
+void copy_array_kernel(CDoubleArrView a_v, DoubleArrView b_v, int N) {
+    Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int i) {
+        b_v[i] = a_v[i];
+    });
+}
+
+void fill_array_kernel(DoubleArrView a_v, int N) {
+    Kokkos::parallel_for(N * 2, KOKKOS_LAMBDA(const int i) {
+        a_v[i] = 2;
+    });
+}
+
 TEST(DeviceTest, KokkosReductionBug) {
     DoubleTab a(2);
     a(0) = 1;
@@ -104,9 +117,7 @@ TEST(DeviceTest, AccessMethod0)
     CDoubleArrView a_v = static_cast<const ArrOfDouble&>(a).view_ro();
     DoubleArrView b_v = static_cast<ArrOfDouble&>(b).view_wo();
 
-    Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int i) {
-      b_v[i] = a_v[i];
-    });
+    copy_array_kernel(a_v, b_v, N);
     Kokkos::fence();
 
     const DoubleTab& const_a = a;
@@ -143,9 +154,7 @@ TEST(DeviceTest, AccessMethod1)
     CDoubleArrView a_v = static_cast<const ArrOfDouble&>(a).view_ro();
     DoubleArrView b_v = static_cast<ArrOfDouble&>(b).view_wo();
 
-    Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int i) {
-      b_v[i] = a_v[i];
-    });
+    copy_array_kernel(a_v, b_v, N);
     Kokkos::fence();
 
     const DoubleTab& const_a = a;
@@ -183,9 +192,7 @@ TEST(DeviceTest, UpdateOnDevice0)
     CDoubleArrView a_v = static_cast<const ArrOfDouble&>(a).view_ro();
     DoubleArrView b_v = static_cast<ArrOfDouble&>(b).view_wo();
 
-    Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int i) {
-      b_v[i] = a_v[i];
-    });
+    copy_array_kernel(a_v, b_v, N);
     Kokkos::fence();
 
     const DoubleTab& const_a = a;
@@ -213,9 +220,7 @@ TEST(DeviceTest, UpdateOnDevice0)
     CDoubleArrView a_v = static_cast<const ArrOfDouble&>(a).view_ro();
     DoubleArrView b_v = static_cast<ArrOfDouble&>(b).view_wo();
 
-    Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int i) {
-      b_v[i] = a_v[i];
-    });
+    copy_array_kernel(a_v, b_v, N);
     Kokkos::fence();
 
     const DoubleTab& const_a = a;
@@ -401,9 +406,7 @@ TEST(DeviceTest, RefTabChunkTest)
   EXPECT_EQ(a.get_data_location(), DataLocation::HostDevice);
 
   DoubleArrView a_v = static_cast<ArrOfDouble&>(a).view_wo();
-  Kokkos::parallel_for(2 * N, KOKKOS_LAMBDA(const int i) {
-    a_v[i] = 2;
-  });
+  fill_array_kernel(a_v, N);
   Kokkos::fence();
 
   // Après lecture, a doit être entièrement sur le device, puis basculer sur le host

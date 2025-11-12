@@ -44,6 +44,25 @@ double read_device_value(CDoubleArrView& view, const int i){
     return value;
 }
 
+// Helper functions to avoid NVCC lambda restrictions
+void fill_view_wo(DoubleArrView view_wo, int N) {
+    Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int i) {
+        view_wo(i) = 2*i;
+    });
+}
+
+void double_view_rw(DoubleArrView view_rw, int N) {
+    Kokkos::parallel_for("DoubleElements", N, KOKKOS_LAMBDA(const int i) {
+        view_rw(i) = 2 * view_rw(i);
+    });
+}
+
+void add_one_kernel(DoubleArrView view_rw) {
+    Kokkos::parallel_for("Kernel 1", view_rw.size(), KOKKOS_LAMBDA(int i) {
+        view_rw(i) += 1; 
+    });
+}
+
 TEST(TRUSTArrayKokkos, KokkosAccessorRO) {
     {
         int N=100;
@@ -66,9 +85,7 @@ TEST(TRUSTArrayKokkos, KokkosAccessorWO) {
         auto view_wo = array.view_wo();
 
         //Can I write ?
-        Kokkos::parallel_for(N, KOKKOS_LAMBDA(const int i) {
-        view_wo(i) = 2*i;
-        });
+        fill_view_wo(view_wo, N);
 
         //Is the array correctly modified ?
         for (int i = 0; i < N; ++i) {EXPECT_EQ(array[i], 2*i);}
@@ -86,9 +103,7 @@ TEST(TRUSTArrayKokkos, KokkosAccessorRW) {
         auto view_rw = array.view_rw();
 
         //Can I read / write ?
-        Kokkos::parallel_for("DoubleElements", N, KOKKOS_LAMBDA(const int i) {
-        view_rw(i) = 2 * view_rw(i);
-        });
+        double_view_rw(view_rw, N);
 
         //Is the array correctly modified and transferred back to the host ?
         for (int i = 0; i < N; ++i) {EXPECT_EQ(array[i], 2*i);}
@@ -98,7 +113,7 @@ TEST(TRUSTArrayKokkos, KokkosAccessorRW) {
 
 void add_one(DoubleArrView view_rw)
 {
-        Kokkos::parallel_for("Kernel 1", view_rw.size(), KOKKOS_LAMBDA(int i) {view_rw(i) += 1; });
+        add_one_kernel(view_rw);
         Kokkos::fence();
 }
 

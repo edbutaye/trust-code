@@ -15,6 +15,66 @@
 #include <Kokkos_UniqueToken.hpp>
 #include <TRUSTTrav.h>
 
+// Helper functions to avoid NVCC lambda restrictions
+void double_tab_kernel(DoubleTabView b_v, int nb_elem, int nb_compo) {
+    Kokkos::parallel_for("DoubleTabViewKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
+        assert(b_v(i, 0) == 2);
+        for (int j = 0; j < nb_compo; j++)
+            b_v(i, j) = 2 * b_v(i, j);
+    });
+}
+
+void check_tab_kernel(CDoubleTabView a_v, int nb_elem) {
+    Kokkos::parallel_for("CDoubleTabViewKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
+        assert(a_v(i, 0) == 1);
+    });
+}
+
+void basic_loop_kernel(CDoubleTabView a_v, DoubleTabView b_v, int nb_elem, int nb_compo) {
+    Kokkos::parallel_for("BasicLoopKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
+        for (int j = 0; j < nb_compo; j++) {
+            b_v(i, j) = 2 * b_v(i, j) + a_v(i, j);
+        }
+    });
+}
+
+void basic_vect_kernel(CDoubleArrView a_v, DoubleArrView b_v, int nb_elem) {
+    Kokkos::parallel_for("BasicLoopVectKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
+        b_v(i) = 2 * b_v(i) + a_v(i);
+    });
+}
+
+void set_vect_kernel(DoubleArrView vect_v, int nb_elem) {
+    Kokkos::parallel_for("DoubleVectAsDoubleTabKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
+        vect_v(i) = 2;
+    });
+}
+
+void set_alias_kernel(DoubleArrView vect_v, int size) {
+    Kokkos::parallel_for("DoubleVectAliasingKernel", size, KOKKOS_LAMBDA(const int i) {
+        vect_v(i) = 2;
+    });
+}
+
+void parser_kernel(DoubleArrView f_v, ParserView parser, int nb_elem) {
+    Kokkos::parallel_for("ParserKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
+        int threadId = parser.acquire();
+        double x = static_cast<double>(i);
+        parser.setVar(0, x, threadId);
+        f_v(i) = parser.eval(threadId);
+        parser.release(threadId);
+    });
+}
+
+void check_tabs_kernel(Kokkos::Array<CDoubleTabView, 5> tabs, int nb_elem, int nb) {
+    Kokkos::parallel_for(nb_elem, KOKKOS_LAMBDA(const int i) {
+        for (int n = 0; n < nb; ++n) {
+            auto tab_v = tabs[n];
+            assert(tab_v(i, 0) == n);
+        }
+    });
+}
+
 TEST(KokkosTest, DoubleTabView)
 {
   const int nb_elem = 3;
@@ -28,12 +88,7 @@ TEST(KokkosTest, DoubleTabView)
     // Get a read-write view.
     DoubleTabView b_v = b.view_rw();
     // Launch a Kokkos kernel to check and update the values.
-    Kokkos::parallel_for("DoubleTabViewKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
-      // Note: Using assert() in device code is acceptable if it is enabled.
-      assert(b_v(i, 0) == 2);
-      for (int j = 0; j < nb_compo; j++)
-        b_v(i, j) = 2 * b_v(i, j);
-    });
+    double_tab_kernel(b_v, nb_elem, nb_compo);
     Kokkos::fence();
     // Check on the host that the value was doubled.
     EXPECT_EQ(b(0, 0), 4);
@@ -53,9 +108,7 @@ TEST(KokkosTest, CDoubleTabView)
   
   {
     CDoubleTabView a_v = a.view_ro();
-    Kokkos::parallel_for("CDoubleTabViewKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
-      assert(a_v(i, 0) == 1);
-    });
+    check_tab_kernel(a_v, nb_elem);
     Kokkos::fence();
     EXPECT_EQ(a(0, 0), 1);
   }
@@ -74,12 +127,7 @@ TEST(KokkosTest, DoubleTabViewBasicLoop)
   CDoubleTabView a_v = a.view_ro();
   DoubleTabView b_v = b.view_rw();
   
-  Kokkos::parallel_for("BasicLoopKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
-    for (int j = 0; j < nb_compo; j++)
-    {
-      b_v(i, j) = 2 * b_v(i, j) + a_v(i, j);
-    }
-  });
+  basic_loop_kernel(a_v, b_v, nb_elem, nb_compo);
   Kokkos::fence();
   EXPECT_TRUE(est_egal(b(0, 0), 5));
 }
@@ -96,9 +144,7 @@ TEST(KokkosTest, DoubleVectBasicLoop)
   CDoubleArrView a_v = u.view_ro();
   DoubleArrView b_v = v.view_rw();
   
-  Kokkos::parallel_for("BasicLoopVectKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
-    b_v(i) = 2 * b_v(i) + a_v(i);
-  });
+  basic_vect_kernel(a_v, b_v, nb_elem);
   Kokkos::fence();
   EXPECT_TRUE(est_egal(v(0), 5));
 }
@@ -112,9 +158,7 @@ TEST(KokkosTest, DoubleVectAsDoubleTabBasicLoop)
   // Cast to DoubleVect and get a writable view.
   DoubleArrView vect_v = static_cast<DoubleVect&>(tab).view_rw();
   
-  Kokkos::parallel_for("DoubleVectAsDoubleTabKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
-    vect_v(i) = 2;
-  });
+  set_vect_kernel(vect_v, nb_elem);
   Kokkos::fence();
   
   // Verify on host that every element was set to 2.
@@ -133,9 +177,7 @@ TEST(KokkosTest, DoubleTabAliasedByDoubleVect)
   DoubleArrView vect_v = vect.view_rw();
   int size = vect.size_array();
   
-  Kokkos::parallel_for("DoubleVectAliasingKernel", size, KOKKOS_LAMBDA(const int i) {
-    vect_v(i) = 2;
-  });
+  set_alias_kernel(vect_v, size);
   Kokkos::fence();
   
   // Verify that every entry is now 2.
@@ -201,13 +243,7 @@ TEST(KokkosTest, CppObjectInKokkosRegion)
   parser.parseString();
   
   DoubleArrView f_v = f.view_rw();
-  Kokkos::parallel_for("ParserKernel", nb_elem, KOKKOS_LAMBDA(const int i) {
-    int threadId = parser.acquire();
-    double x = static_cast<double>(i);
-    parser.setVar(0, x, threadId);
-    f_v(i) = parser.eval(threadId);
-    parser.release(threadId);
-  });
+  parser_kernel(f_v, parser, nb_elem);
   Kokkos::fence();
   
   EXPECT_EQ(f(0), 2);
@@ -231,11 +267,5 @@ TEST(KokkosTest, VectOfDoubleTrav)
     tabs[n] = tab_view;
   }
   
-  Kokkos::parallel_for(nb_elem, KOKKOS_LAMBDA(const int i) {
-    for (int n = 0; n < nb; ++n)
-    {
-      auto tab_v = tabs[n];
-      assert(tab_v(i, 0) == n);
-    }
-  });
+  check_tabs_kernel(tabs, nb_elem, nb);
 }
