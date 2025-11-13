@@ -14,6 +14,7 @@ Release notes version 1.9.8_beta : Enhancements, modifications and corrected bug
 --------------------------------------------------------------------------------------------------
 Release notes version 1.9.7 : Enhancements, modifications and corrected bugs since version 1.9.6 :
 --------------------------------------------------------------------------------------------------
+13/11/25 (TRUST) Change       : Rename PolyMAC discretisation family: PolyMAC-->PolyMAC_CDO ; PolyMAC_P0-->PolyMAC_MPFA ; PolyMAC_P0P1NC-->PolyMAC_HFV ; Option_PolyMAC-->Option_PolyMAC_family ; is_polymac_family-->is_poly_family. Old names are can still be used in .data files, but will be depreciated after TRUST 1.9.9
 12/11/25 (TRUST) Bug fix      : Restart with PDI must be done wih the same number of MPI nodes as the checkpoint.
 10/11/25 (TRUST) I/O          : Checkpoint/restart mechanism for different partition (.xyz format) disabled by default. Add "EcritureLectureSpecial 1" into datafile to enable it
 10/11/25 (TRUST) GPU          : Fine tune AMG solver with AmgX for Nvidia and output more infos about GAMG preconditioner
