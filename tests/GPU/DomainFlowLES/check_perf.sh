@@ -23,6 +23,7 @@ check()
    echo $ref $new | awk '// {if (2*($2-$1)/($1+$2)>0.05) {exit 1}}' # On verifie qu'on ne depasse pas +5% de la performance
    err=$?
    ecart=`echo $ref $new | awk '// {printf("%2.1f\n",200*($2-$1)/($1+$2))}'`
+   [ "$UPDATE_REFERENCE" = 1 ] && cp -f $TU $TU_REF && echo "Forced update of $TU_REF"
    if [ $err = 1 ]
    then
       sdiff -w 200 $TU_REF $TU
@@ -41,7 +42,6 @@ check()
          [ $its_ref != $its_new ] && echo "Solver convergence is different ($its_ref != $its_new) ! Possible regression..." && exit -1
       fi
    fi
-   [ "$UPDATE_REFERENCE" = 1 ] && cp -f $TU $TU_REF && echo "Forced update of $TU_REF"
 }
 run()
 {
