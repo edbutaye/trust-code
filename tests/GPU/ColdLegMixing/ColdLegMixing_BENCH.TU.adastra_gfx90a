@@ -1,53 +1,78 @@
-Statistiques d'initialisation du calcul
+                                             # Global performance file #
 
-Temps total                       48.6364
+This is the global file for tracking performance in TRUST. It stores aggregated quantities.
+More detailed statistics can be found in the ColdLegMixing_BENCH_csv.TU file
+For time loop, only standard counters of level 1 are printed alongside your custom counters
+Time is given in seconds
 
-Statistiques de resolution du probleme
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                              Context of the computation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Date:     16-11-2025 -- 09:05:13
+OS:       g1013__Linux__x86_64__4.18.0-553.22.1.el8_10.x86_64__#1 SMP Wed Sep 11 18:02:00 EDT 2024
+CPU:      Model name:  AMD EPYC 7A53 64-Core Processor ; Thread(s) per core:  2
+GPU:        Marketing Name:  AMD Instinct MI250X  
 
-Temps total                       12.79
+Nb procs: 1
+TRUST version: 1.9.7_beta
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                           Computation start-up statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Total time of the start-up:                                                48.7659        
+Percent of untracked time during computation start-up:                     1.15039e-08    
+
+Number of calls to the linear solver per time step:                        2              
+Average time of the resolution of the linear problem per call:             1.25905        
+Average number of iteration of the linear solver per call:                 0              
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                 Time loop statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The first time step is not accounted for the computation of the time loop statistics
+Total time of the time loop:                                               11.6938        
+Number of time steps:                                                      9              
+Skipped time steps:                                                        1              
+Average time per time step:                                                1.29931        
+Standard deviation between time steps:                                     0.209802       
+Time elapsed in the skipped time steps:                                    1.92135        
 
 
-Timesteps                         10
-Secondes / pas de temps           1.279
-Dont solveurs Ax=B                0.194128 15% (2 appels/pas de temps)
-Dont solveur diffusion_implicite  0.030119  2% (4 appels/pas de temps)
-Dont assemblage matrice_implicite 0.095025  7% (4 appels/pas de temps)
-Dont mettre_a_jour                0.275411 21% (4 appels/pas de temps)
-Dont operateurs convection        0.254840 19% (9.6 appels/pas de temps)
-Dont operateurs diffusion         0.170913 13% (18 appels/pas de temps)
-Dont operateurs gradient          0.106913  8% (5 appels/pas de temps)
-Dont operateurs divergence        0.041632  3% (6 appels/pas de temps)
-Dont operateurs source            0.002569  0% (4 appels/pas de temps)
-Dont operations postraitement     0.068191  5% (1 appel/pas de temps)
-Dont calcul dt                    0.023580  1% (6 appels/pas de temps)
-Dont calcul divers                0.015672  1% (0 appels/pas de temps)
-Nb solveur / pas de temps         2
-Secondes / solveur                0.0970639
-Iterations / solveur              22.2
-GPU statistics per time step (experimental):
-Libraries : 0.193719 s 15.1%  2.0 calls
-Kernels   : 0.990240 s 77.4% 1098.1 calls
-Copy H2D  : 0.013675 s  1.1% 56.9 calls 20.8 GB/s
-Copy D2H  : 0.002063 s  0.2% 45.2 calls 15.2 GB/s
-Alloc/Free: 0.001781 s  0.1% 46.3 calls
-GPU: 92.5% Copy H<->D: 1.2% Alloc/Free: 0.1% Comm: 0% CPU & Others: 6%
-I/O:
+Standard counter description             | Time/step       | % loop time | Call(s)/step   
+------------------------------------------------------------------------------------------
+Linear solver resolutions Ax=B           | 0.198086        | 15.2        | 2              
+Convection operator                      | 0.2576915       | 19.8        | 10             
+Diffusion operator                       | 0.1675407       | 12.9        | 18             
+Gradient operator                        | 0.1199017       |  9.2        | 5              
+Divergence operator                      | 0.04506372      |  3.5        | 6              
+Source terms                             | 0.00116986      |  0.1        | 4              
+Update ::mettre_a_jour                   | 0.3064915       | 23.6        | 4              
+Solver for implicit diffusion            | 0.02813339      |  2.2        | 4              
+Computation of the time step dt          | 0.02587356      |  2.0        | 6              
+Post-treatment operations                | 0.07683058      |  5.9        | 1              
+Other operations                         | 0.07253157      |  5.6        | 
 
-Timesteps = number of time steps
-Nb solveur = number of linear system resolutions
-Nb assemblage implicite = number of matrix assemblies for the implicit scheme
-Iterations = average number of iterations of the solver
-Communications = fraction of the time spent
-                 in communications between processors (excluding io files)
-Network latency = time of one mpsum measured by an internal bench over 0.1s
-Network bandwidth = maximum on all processors
-                    of the average bandwidth of send_recv operations
-Waiting time = estimation of the waiting time of the different processors
+Untracked time                           | 5.53e-05        | 0.000473    | 
 
-Max_waiting_time big    => probably due to a bad partitioning
-Communications > 30%    => too many processors or network too slow
 
-Statistiques de post resolution
+Average number of iteration of the linear solver per call:                 33.7           
 
-Temps total                       2.58636
+
+-----------------------------------------------------------------------------------------------------------
+                                                    GPU statistics
+-----------------------------------------------------------------------------------------------------------
+Counter description                      | Time per step   | % loop time | Call(s)/step    | Bandwidth 
+-----------------------------------------------------------------------------------------------------------
+Libraries:                               | 0.197667        | 15.2        | 2               | 
+Kernels:                                 | 1.06778         | 82.2        | 1097            | 
+Copy host to device:                     | 0.000525829     |  0.0        | 42              | 4.1 GB/s
+Copy device to host:                     | 0.0023201       |  0.2        | 44              | 17.0 GB/s
+Alloc/Free on device:                    | 0.000131092     |  0.0        | 11              | 
+GPU: 97% Copy H<->D: 0.22% Alloc/free: 0.01% Comm: 0% CPU & I/O: 2.4%
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                              Post-resolution statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Time of the post-resolution:                                               2.25403        
+
+Total time for the whole computation                                       64.6351        
 
