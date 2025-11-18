@@ -660,7 +660,6 @@ case $arch in
             fi
             # Si n'est pas dans le PATH, on download NVHPC:
             $CUDA_COMPILER --version 1>/dev/null 2>&1 || INSTALL_NVHPC=1
-	    [ -d ../env_src/gpu/install ] && [ ../env_src/gpu/install_nvhpc_sdk_toolkit.sh -nt ../env_src/gpu/install ] && INSTALL_NVHPC=1 # Cas NVHPC mis a jour
             if [ "$INSTALL_NVHPC" = 1 ]
             then
                source ../env_src/gpu/install_nvhpc_sdk_toolkit.sh
