@@ -43,7 +43,7 @@ Option_PolyMAC_family {  }
 Schema_euler_implicite sch
 Read sch
 {
-    tinit 0.3
+    tinit 0
     nb_pas_dt_max 30
     dt_max 1e-2
     tmax 10
@@ -93,8 +93,16 @@ Read pb
         evanescence { homogene { alpha_res 1e-5 } }
         initial_conditions
         {
-            vitesse champ_fonc_reprise binaire Pb_multi_ch_fonc_reprise_PolyMAC_CDO_pb.sauv pb vitesse last_time
-            pression champ_fonc_reprise binaire Pb_multi_ch_fonc_reprise_PolyMAC_CDO_pb.sauv pb pression last_time
+            vitesse Champ_composite 2 /* champ par phase */
+            {
+                Champ_Fonc_xyz dom 2 0 0
+                Champ_Fonc_xyz dom 2 0 0
+            }
+
+            pression Champ_composite 1
+            {
+                Champ_Fonc_xyz dom 1  -100*y*(y<0.5)-(45+10*y)*(y>0.5)
+            }
         }
         sources
         {
@@ -114,7 +122,11 @@ Read pb
     {
         initial_conditions
         {
-            alpha champ_fonc_reprise binaire Pb_multi_ch_fonc_reprise_PolyMAC_CDO_pb.sauv pb alpha last_time
+            alpha Champ_composite 2 /* champ par phase */
+            {
+                Champ_Fonc_xyz dom 1 /* (y<0.5) */ 0.5
+                Champ_Fonc_xyz dom 1 /* (y>0.5) */ 0.5
+            }
         }
         convection { amont }
         boundary_conditions { boundary paroi }
@@ -125,7 +137,11 @@ Read pb
         convection { amont }
         initial_conditions
         {
-            temperature champ_fonc_reprise binaire Pb_multi_ch_fonc_reprise_PolyMAC_CDO_pb.sauv pb temperature last_time
+            temperature Champ_composite 2 /* champ par phase */
+            {
+                Champ_Uniforme 1 0
+                Champ_Uniforme 1 0
+            }
         }
         boundary_conditions { boundary paroi_adiabatique }
     }
@@ -162,6 +178,7 @@ Read pb
             enthalpie_melange elem
         }
     }
+    resume_last_time binaire Pb_multi_reprise_PolyMAC_MPFA_pb.sauv
 }
 Solve pb
 End

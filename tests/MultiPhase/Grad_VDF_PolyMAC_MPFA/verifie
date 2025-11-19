@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Compare VDF and PolyMAC_MPFA simulations
-compare_lata Grad_VDF_PolyMAC_CDO.lml Grad_PolyMAC_MPFA.lml 1>verifie.log 2>&1 || exit -1
+compare_lata Grad_VDF_PolyMAC_MPFA.lml Grad_PolyMAC_MPFA.lml 1>verifie.log 2>&1 || exit -1
 
 numb_diff=`awk '$1=="Number"{print $5}' verifie.log`
 if [[ "$numb_diff" -gt "0" ]]
