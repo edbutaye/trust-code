@@ -58,12 +58,12 @@ void Viscosite_turbulente_WALE::eddy_viscosity(DoubleTab& nu_t) const
       const Domaine_VF& domaine_VF = ref_cast(Domaine_VF, pb_->domaine_dis());
       const Champ_Face_base& vit = ref_cast(Champ_Face_base, pb_->equation(0).inconnue());
 
-      // Nota bene : en PolyMAC_P0, grad_u__ contient (nf.grad)u_i aux faces, puis (d_j u_i) aux elements
+      // Nota bene : en PolyMAC_MPFA, grad_u__ contient (nf.grad)u_i aux faces, puis (d_j u_i) aux elements
       const DoubleTab& grad_u__ = pb_->get_champ("gradient_vitesse").valeurs();
 
       const IntTab& face_voisins = domaine_VF.face_voisins(), &elem_faces = domaine_VF.elem_faces();
       const int nb_elem_tot = domaine_VF.nb_elem_tot(), dim = Objet_U::dimension, N = vit.valeurs().line_size();
-      const bool is_poly = pb_->discretisation().is_polymac_family();
+      const bool is_poly = pb_->discretisation().is_poly_family();
       const int nb_faces_tot = is_poly ? domaine_VF.nb_faces_tot() : 0;
       assert (N == nu_t.dimension(1));
 

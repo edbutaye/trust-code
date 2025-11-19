@@ -23,7 +23,7 @@
 #include <TRUST_Ref.h>
 #include <Parser_U.h>
 
-class Domaine_Cl_PolyMAC;
+class Domaine_Cl_PolyMAC_family;
 class Domaine_VF;
 class Champ_Inc_base;
 class Fluide_base;

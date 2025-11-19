@@ -148,7 +148,7 @@ Entree& Champ_Fonc_reprise::readOn(Entree& s)
   vrai_champ_->fixer_nb_comp(ch_inc.nb_comp());
   //vrai_champ_->fixer_nb_valeurs_nodales(ch_inc.nb_valeurs_nodales());
   vrai_champ_->valeurs() = ch_inc.valeurs();
-  vrai_champ_->set_via_ch_fonc_reprise(); // useful for PolyMAC for the moment !
+  vrai_champ_->set_via_ch_fonc_reprise(); // useful for PolyMAC_CDO for the moment !
   nb_compo_ = ch_inc.nb_comp();
 
   // creation des identifiants pdi (necessaire pour l'initialisation de PDI)

@@ -344,8 +344,8 @@ void Save_Restart::lire_reprise(Entree& is, Motcle& motlu)
       Process::exit();
     }
 
-  // XXX Elie Saikali : for polymac => only .sauv files are possible
-  if (pb_base_->discretisation().is_polymac_p0() && format_rep != "binaire")
+  // XXX Elie Saikali : for PolyMAC_CDO => only .sauv files are possible
+  if (pb_base_->discretisation().is_PolyMAC_MPFA() && format_rep != "binaire")
     {
       Cerr << "Error in Save_Restart::" << __func__ << " !! " << finl;
       Cerr << "Only the binary format is currently supported to resume a simulation with the discretization " << pb_base_->discretisation().que_suis_je() << " ! " << finl;
@@ -546,8 +546,8 @@ void Save_Restart::lire_sauvegarde(Entree& is, Motcle& motlu)
 
 void Save_Restart::lire_sauvegarde_reprise(Entree& is, Motcle& motlu)
 {
-  // XXX Elie Saikali : for PolyMAC_P0 => No xyz for the moment
-  if (pb_base_->discretisation().is_polymac_p0())
+  // XXX Elie Saikali : for PolyMAC_MPFA => No xyz for the moment
+  if (pb_base_->discretisation().is_PolyMAC_MPFA())
     {
       Cerr << "Problem "  << pb_base_->le_nom() << " with the discretization "
            << pb_base_->discretisation().que_suis_je() <<  " => EcritureLectureSpecial = 0 !" << finl;

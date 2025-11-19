@@ -17,7 +17,7 @@
 #define Correction_Antal_VDF_included
 #include <Source_base.h>
 
-/*! @brief classe Correction_Antal_PolyMAC_P0 Correction de repulsion en paroi d'Antal dans un ecoulement multiphase
+/*! @brief classe Correction_Antal_PolyMAC_MPFA Correction de repulsion en paroi d'Antal dans un ecoulement multiphase
  *
  *
  *

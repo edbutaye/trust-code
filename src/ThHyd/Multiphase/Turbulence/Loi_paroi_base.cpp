@@ -60,7 +60,7 @@ void Loi_paroi_base::completer()
 
   valeurs_loi_paroi_["y_plus"] = DoubleTab(nf_tot, 1); // pour l'instant, turbulence dans seulement une phase
   valeurs_loi_paroi_["u_tau"] = DoubleTab(nf_tot, 1);
-  valeurs_loi_paroi_["y"] = DoubleTab(nf_tot, 1); // Attention : pour un meme maillage, depuis PolyMAC_P0_vec le y n'est pas le meme en vdf et en polymac pour le meme maillage a cause de l'histoire de la vitesse non nulle a la face de bord.
+  valeurs_loi_paroi_["y"] = DoubleTab(nf_tot, 1); // Attention : pour un meme maillage, depuis PolyMAC_MPFA_vec le y n'est pas le meme en vdf et en PolyMAC_CDO pour le meme maillage a cause de l'histoire de la vitesse non nulle a la face de bord.
 
   DoubleTab& tab_y_p = valeurs_loi_paroi_["y_plus"];
   for (int i = 0; i < tab_y_p.dimension_tot(0); i++)
@@ -69,12 +69,12 @@ void Loi_paroi_base::completer()
 
   const IntTab& f_e = domaine.face_voisins();
 
-  const bool is_polymacp0 = pb_->discretisation().is_polymac_p0(), is_vdf = pb_->discretisation().is_vdf();
+  const bool is_PolyMAC_CDOp0 = pb_->discretisation().is_PolyMAC_MPFA(), is_vdf = pb_->discretisation().is_vdf();
   DoubleTab& tab_y = valeurs_loi_paroi_["y"];
   for (int f = 0; f < tab_y.dimension_tot(0); f++)
     for (int n = 0; n < tab_y.dimension_tot(1); n++)
       {
-        if ((is_vdf) || (is_polymacp0))
+        if ((is_vdf) || (is_PolyMAC_CDOp0))
           tab_y(f, n) = (Faces_a_calculer_(f, 0)) ? (f_e(f, 0) >= 0 ? domaine.dist_face_elem0(f, f_e(f, 0)) : domaine.dist_face_elem1(f, f_e(f, 1))) : -1;
         else
           Process::exit(que_suis_je() + " : you cannot have a wall law with this discretization yet ! But you are welcome to add it in the code if you so choose");

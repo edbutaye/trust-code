@@ -40,7 +40,7 @@ extern void convert_to(const char *s, double& ob);
 // XD  attr dir chaine(into=["kx","ky","kz","K"]) dir 0 KX, KY or KZ designate directional pressure loss coefficients for respectively X, Y or Z direction. Or in the case where you chose a target flow rate with regul. Use K for isotropic pressure loss coefficient
 // XD  attr coeff floattant coeff 1 Value (float) of friction coefficient (KX, KY, KZ).
 // XD  attr regul bloc_lecture regul 1 option to have adjustable K with flowrate target  NL2 { K0 valeur_initiale_de_k deb debit_cible eps intervalle_variation_mutiplicatif}.
-// XD  attr surface bloc_lecture surface 0 Three syntaxes are possible for the surface definition block: NL2 For VDF and VEF: { X|Y|Z = location subzone_name } NL2 Only for VEF: { Surface surface_name }. NL2 For polymac { Surface surface_name Orientation champ_uniforme }
+// XD  attr surface bloc_lecture surface 0 Three syntaxes are possible for the surface definition block: NL2 For VDF and VEF: { X|Y|Z = location subzone_name } NL2 Only for VEF: { Surface surface_name }. NL2 For PolyMAC_CDO { Surface surface_name Orientation champ_uniforme }
 
 Entree& Perte_Charge_Singuliere::lire_donnees(Entree& is)
 {

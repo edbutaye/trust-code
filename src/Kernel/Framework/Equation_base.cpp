@@ -150,7 +150,7 @@ void Equation_base::completer()
 
           bool raccord_found = false;
 
-          // VDF and PolyMAC_P0P1NC
+          // VDF and PolyMAC_HFV
           if (la_cl.que_suis_je().debute_par("Paroi_Echange_contact") || la_cl.que_suis_je().debute_par("Echange_contact_Rayo"))
             raccord_found = true;
 
@@ -1844,7 +1844,7 @@ void Equation_base::reculer(int i)
 
 // methodes pour l'implicite
 
-/* peut utiliser une memoization (discretisations PolyMAC_P0P1NC)*/
+/* peut utiliser une memoization (discretisations PolyMAC_HFV)*/
 void Equation_base::dimensionner_matrice(Matrice_Morse& matrice)
 {
   if (matrice_init)
@@ -1863,10 +1863,10 @@ void Equation_base::dimensionner_matrice(Matrice_Morse& matrice)
 
   matrice.get_set_coeff() = 0.0;  // just to be sure ...
 
-  if (probleme().discretisation().is_polymac_family() || probleme().discretisation().is_vef())
+  if (probleme().discretisation().is_poly_family() || probleme().discretisation().is_vef())
     {
       // PL: ToDo why sorting leads to issue in VEF ???
-      if (probleme().discretisation().is_polymac_family())
+      if (probleme().discretisation().is_poly_family())
         {
           matrice.sort_stencil();
           matrice_stockee.sorted_ = 1;
@@ -2097,8 +2097,9 @@ void Equation_base::assembler_blocs(matrices_t matrices, DoubleTab& secmem, cons
 
   statistics().end_count(STD_COUNTERS::source_terms);
 
+
   statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
-  if (!(discretisation().is_polymac_family() || probleme().que_suis_je().debute_par("Pb_Multiphase") || que_suis_je().debute_par("Equation_flux")))
+  if (!(discretisation().is_poly_family() || probleme().que_suis_je().debute_par("Pb_Multiphase") || que_suis_je().debute_par("Equation_flux")))
     {
       const std::string& nom_inco = inconnue().le_nom().getString();
       Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : nullptr;
@@ -2113,7 +2114,7 @@ void Equation_base::assembler_blocs_avec_inertie(matrices_t matrices, DoubleTab&
   solv_masse().set_penalisation_flag(0);
   schema_temps().ajouter_blocs(matrices, secmem, *this);
 
-  if (!discretisation().is_polymac_family())
+  if (!discretisation().is_poly_family())
     {
       const std::string& nom_inco = inconnue().le_nom().getString();
       Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : nullptr;

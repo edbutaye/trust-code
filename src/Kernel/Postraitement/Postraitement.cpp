@@ -1554,8 +1554,8 @@ void Postraitement::init()
                 Cerr<<"The postprocessing to the faces is allowed only in the format lata or med"<<finl;
                 exit();
               }
-            // PL: Ajout automatique du postraitement aux faces pour PolyMAC_P0P1NC seul, sinon doit etre specifie par FACES
-            if (Motcle(loc_post) == "FACES" || champ->get_discretisation().is_polymac_family())
+            // PL: Ajout automatique du postraitement aux faces pour PolyMAC_HFV seul, sinon doit etre specifie par FACES
+            if (Motcle(loc_post) == "FACES" || champ->get_discretisation().is_poly_family())
               {
                 OBS_PTR(Domaine_dis_base) ref_domaine_dis = champ->get_ref_domaine_dis_base();
                 if (ref_domaine_dis.non_nul())
@@ -1733,7 +1733,7 @@ void Postraitement::postprocess_field_values()
 
       DoubleTab val_vec;
 
-      const bool isChamp_Face_PolyMAC = (champ_ecriture.que_suis_je().debute_par("Champ_Face_PolyMAC") ||
+      const bool isChamp_Face_PolyMAC_CDO = (champ_ecriture.que_suis_je().debute_par("Champ_Face_PolyMAC") ||
                                          champ_ecriture.que_suis_je().debute_par("Champ_Fonc_Face_PolyMAC"));
 
       /* XXX Elie SAIKALI : champ vect aux faces seulement pour post et si CGNS */
@@ -1741,10 +1741,10 @@ void Postraitement::postprocess_field_values()
                                          (champ_ecriture.que_suis_je() == ("Champ_Face") ||
                                           champ_ecriture.que_suis_je() == ("Champ_Fonc_Face"));
 
-      if (isChamp_Face_VDF_CGNS || isChamp_Face_PolyMAC)
+      if (isChamp_Face_VDF_CGNS || isChamp_Face_PolyMAC_CDO)
         champ_ecriture.valeur_aux_faces_post(val_vec); /* valeur_aux_faces pour Polys */
 
-      const DoubleTab& valeurs_post = (isChamp_Face_VDF_CGNS || isChamp_Face_PolyMAC) ? val_vec : champ_ecriture.valeurs();
+      const DoubleTab& valeurs_post = (isChamp_Face_VDF_CGNS || isChamp_Face_PolyMAC_CDO) ? val_vec : champ_ecriture.valeurs();
 
       //Etape de recuperation des informations specifiques au champ a postraiter
       Entity loc = champ.get_localisation();

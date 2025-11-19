@@ -100,7 +100,7 @@ void verifie(const Nom& type)
       motcle_obsolete[i++] = "seuil_statio_relatif_deconseille";
       motcle_obsolete[i++] = "CoviMAC";
       motcle_obsolete[i++] = "ecrire_fichier_xyz_valeur_bin";
-      motcle_obsolete[i++] = "option_polymac_p0";
+      motcle_obsolete[i++] = "option_PolyMAC_MPFA";
       assert(i==n);
     }
   // GF on ne constuit les noms de la nouvelle syntaxe que si necessaire
@@ -183,9 +183,9 @@ void verifie(const Nom& type)
       nouvelle_syntaxe[i++] = "1.9.2, you should use Write_MED";
       nouvelle_syntaxe[i++] = "1.9.2, you should use Champ_Fonc_MED";
       nouvelle_syntaxe[i++] = "1.9.2, you should use Residuals { relative 1 } instead.";
-      nouvelle_syntaxe[i++] = "1.9.3, you should use PolyMAC_P0 instead.";
+      nouvelle_syntaxe[i++] = "1.9.3, you should use PolyMAC_MPFA instead.";
       nouvelle_syntaxe[i++] = "1.9.4, you should use Ecrire_fichier_xyz_valeur { binary_file dt 1 fields 2 field1 field2 boundaries 1 boundary1 } instead.";
-      nouvelle_syntaxe[i++] = "1.9.6, you should use Option_PolyMAC instead.";
+      nouvelle_syntaxe[i++] = "1.9.6, you should use Option_PolyMAC_family instead.";
       assert(i==n);
       Cerr << "The keyword " << motcle_obsolete[rang] << " is now obsolete," << finl;
       Cerr << "since the version " << nouvelle_syntaxe[rang] << finl << finl;

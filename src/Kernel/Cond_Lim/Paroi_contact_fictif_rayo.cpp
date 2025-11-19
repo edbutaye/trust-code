@@ -70,7 +70,7 @@ void Paroi_contact_fictif_rayo::complement(Nom& ajout)
     }
   else
     {
-      Cerr << que_suis_je() << "coded only in non-radiating in VEF/PolyMAC_P0P1NC" << finl;
+      Cerr << que_suis_je() << "coded only in non-radiating in VEF/PolyMAC_HFV" << finl;
       Process::exit();
     }
 }

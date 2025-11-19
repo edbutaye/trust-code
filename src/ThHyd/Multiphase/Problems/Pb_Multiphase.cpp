@@ -55,7 +55,7 @@ Entree& Pb_Multiphase::readOn(Entree& is)
   if (discretisation().is_vef())
     {
       Cerr << "Error: Problem of type " << que_suis_je() << " is not available for VEF discretization" << finl;
-      Cerr << "It is only available for VDF, PolyMAC_P0P1NC and PolyMAC_P0 discretizations." << finl;
+      Cerr << "It is only available for VDF, PolyMAC_HFV and PolyMAC_MPFA discretizations." << finl;
       Process::exit();
     }
   return Pb_Fluide_base::readOn(is);

@@ -57,15 +57,15 @@ void Paroi_contact_rayo::complement(Nom& ajout)
       Process::exit();
     }
 
-  if (mon_equation->discretisation().is_vdf() || mon_equation->discretisation().is_polymac_family())
+  if (mon_equation->discretisation().is_vdf() || mon_equation->discretisation().is_poly_family())
     {
       if (mon_equation->discretisation().is_vdf())
         {
           if (rayo == 2) ajout = "Echange_contact_Rayo_transp_VDF ";
           if (rayo == 1) ajout = "Paroi_Echange_contact_rayo_semi_transp_VDF ";
         }
-      else ajout = mon_equation->discretisation().is_polymac_p0p1nc() ? "paroi_echange_contact_PolyMAC_P0P1NC " :
-                     mon_equation->discretisation().is_polymac_p0() ? "paroi_echange_contact_PolyMAC_P0 " : "paroi_echange_contact_PolyMAC ";
+      else ajout = mon_equation->discretisation().is_PolyMAC_HFV() ? "paroi_echange_contact_PolyMAC_HFV " :
+                     mon_equation->discretisation().is_PolyMAC_MPFA() ? "paroi_echange_contact_PolyMAC_MPFA " : "paroi_echange_contact_PolyMAC_CDO ";
 
       ajout += nom_autre_pb;
       ajout += " ";

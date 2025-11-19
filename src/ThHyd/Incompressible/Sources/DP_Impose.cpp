@@ -41,7 +41,7 @@
 // XD attr aco chaine(into=["{"]) aco 0 Opening curly bracket.
 // XD attr dp_type type_perte_charge_deriv dp_type 0 mass flow rate (kg/s).
 // XD attr surface chaine(into=["surface"]) surface 0 not_set
-// XD attr bloc_surface bloc_lecture bloc_surface 0 Three syntaxes are possible for the surface definition block: NL2 For VDF and VEF: { X|Y|Z = location subzone_name } NL2 Only for VEF: { Surface surface_name }. NL2 For polymac { Surface surface_name Orientation champ_uniforme }.
+// XD attr bloc_surface bloc_lecture bloc_surface 0 Three syntaxes are possible for the surface definition block: NL2 For VDF and VEF: { X|Y|Z = location subzone_name } NL2 Only for VEF: { Surface surface_name }. NL2 For PolyMAC_CDO { Surface surface_name Orientation champ_uniforme }.
 // XD attr acof chaine(into=["}"]) acof 0 Closing curly bracket.
 Entree& DP_Impose::lire_donnees(Entree& is)
 {

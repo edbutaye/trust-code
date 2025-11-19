@@ -117,8 +117,8 @@ void Piso::iterer_NS(Equation_base& eqn,DoubleTab& current,DoubleTab& pression,
 
   eqnNS.setPressureTimeN(); //sometimes we need a second special treatement like for ALE for example
 
-  if (eqnNS.discretisation().que_suis_je() == "PolyMAC")
-    return iterer_NS_PolyMAC(eqnNS, current, pression, dt, matrice, ok);
+  if (eqnNS.discretisation().que_suis_je() == "PolyMAC_CDO")
+    return iterer_NS_PolyMAC_CDO(eqnNS, current, pression, dt, matrice, ok);
 
   Parametre_implicite& param_eqn = get_and_set_parametre_implicite(eqn);
   SolveurSys& le_solveur_ = param_eqn.solveur();
@@ -156,7 +156,7 @@ void Piso::iterer_NS(Equation_base& eqn,DoubleTab& current,DoubleTab& pression,
   if (eqnNS.has_interface_blocs()) //si l'interface blocs est disponible, on l'utilise
     {
       eqnNS.assembler_blocs_avec_inertie({{ "vitesse", &matrice }}, resu);
-      if (eqnNS.discretisation().is_polymac_family())
+      if (eqnNS.discretisation().is_poly_family())
         matrice.ajouter_multvect(current, resu);  //pour ne pas etre en increment
     }
   else //sinon, on passe par ajouter/contribuer
@@ -239,7 +239,7 @@ void Piso::iterer_NS(Equation_base& eqn,DoubleTab& current,DoubleTab& pression,
 
       //Calcul de Un+1 = U* -delta_t*delta_P
       current -= gradP;
-      eqn.solv_masse().corriger_solution(current, current); //pour PolyMAC_P0 : sert a corriger ve
+      eqn.solv_masse().corriger_solution(current, current); //pour PolyMAC_MPFA : sert a corriger ve
       current.echange_espace_virtuel();
       divergence.calculer(current,secmem);
 
@@ -361,8 +361,8 @@ void Piso::iterer_NS(Equation_base& eqn,DoubleTab& current,DoubleTab& pression,
   Cout <<"PISO : "<<nb_corrections_max_<<" corrections to perform the projection."<< finl;
 }
 
-//version PolyMAC de la fonction ci-dessus
-void Piso::iterer_NS_PolyMAC(Navier_Stokes_std& eqn, DoubleTab& current, DoubleTab& pression, double dt, Matrice_Morse& matrice, int& ok)
+//version PolyMAC_CDO de la fonction ci-dessus
+void Piso::iterer_NS_PolyMAC_CDO(Navier_Stokes_std& eqn, DoubleTab& current, DoubleTab& pression, double dt, Matrice_Morse& matrice, int& ok)
 {
   Parametre_implicite& param_eqn = get_and_set_parametre_implicite(eqn);
   SolveurSys& le_solveur_ = param_eqn.solveur();

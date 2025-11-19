@@ -52,7 +52,7 @@ void Solveur_U_P::iterer_NS(Equation_base& eqn,DoubleTab& current,DoubleTab& pre
       Process::exit();
     }
 
-  const bool is_PolyMAC = eqn.discretisation().is_polymac();
+  const bool is_PolyMAC_CDO = eqn.discretisation().is_PolyMAC_CDO();
   Parametre_implicite& param = get_and_set_parametre_implicite(eqn);
   SolveurSys& le_solveur_ = param.solveur();
 
@@ -61,10 +61,10 @@ void Solveur_U_P::iterer_NS(Equation_base& eqn,DoubleTab& current,DoubleTab& pre
   /* MD_Vector (vitesse, pression) */
   MD_Vector md_UP;
   MD_Vector_composite mds;
-  DoubleTab_parts ppart(pression); //dans PolyMAC, pression contient (p, v) -> on doit ignorer la 2e partie...
+  DoubleTab_parts ppart(pression); //dans PolyMAC_CDO, pression contient (p, v) -> on doit ignorer la 2e partie...
 
   mds.add_part(current.get_md_vector(), current.line_size());
-  if (is_PolyMAC)
+  if (is_PolyMAC_CDO)
     mds.add_part(ppart[0].get_md_vector(), ppart[0].line_size());
   else
     mds.add_part(pression.get_md_vector(), pression.line_size());
@@ -79,7 +79,7 @@ void Solveur_U_P::iterer_NS(Equation_base& eqn,DoubleTab& current,DoubleTab& pre
   DoubleTab_parts Inconnues_parts(Inconnues);
 
   Inconnues_parts[0] = current;
-  Inconnues_parts[1] = is_PolyMAC ? ppart[0] : pression;
+  Inconnues_parts[1] = is_PolyMAC_CDO ? ppart[0] : pression;
 
   Matrice_Bloc Matrice_global(2,2) ; //matrice M.(du, dp) = (Navier-Stokes, divergence)
 
@@ -110,7 +110,7 @@ void Solveur_U_P::iterer_NS(Equation_base& eqn,DoubleTab& current,DoubleTab& pre
       residu_parts[0]*=-1;
     }
 
-  if (is_PolyMAC)
+  if (is_PolyMAC_CDO)
     {
       /* ligne de masse : (div, 0) */
       Operateur_Div& divergence = eqnNS.operateur_divergence();
@@ -132,7 +132,7 @@ void Solveur_U_P::iterer_NS(Equation_base& eqn,DoubleTab& current,DoubleTab& pre
 
       if (!has_P_ref && !Process::me()) mat_diag.coeff(0, 0) = 1; //revient a imposer P(0) = 0
 
-      //en PolyMAC, on doit ajouter des lignes vides a grad et des colonnes vides a div
+      //en PolyMAC_CDO, on doit ajouter des lignes vides a grad et des colonnes vides a div
       int n = matrice.get_tab1().size(), i;
       for (i = mat_grad.get_tab1().size(), mat_grad.get_set_tab1().resize(n); i < n; i++)
         mat_grad.get_set_tab1()(i) = mat_grad.get_tab1()(i - 1);

@@ -44,13 +44,13 @@ void Paroi_contact::complement(Nom& ajout)
       Process::exit();
     }
 
-  if (mon_equation->discretisation().is_vdf() || mon_equation->discretisation().is_polymac_family())
+  if (mon_equation->discretisation().is_vdf() || mon_equation->discretisation().is_poly_family())
     {
       if (mon_equation->discretisation().is_vdf())
         ajout = "paroi_echange_contact_VDF ";
       else
-        ajout = mon_equation->discretisation().is_polymac_p0p1nc() ? "paroi_echange_contact_PolyMAC_P0P1NC " :
-                mon_equation->discretisation().is_polymac_p0() ? "paroi_echange_contact_PolyMAC_P0 " : "paroi_echange_contact_PolyMAC ";
+        ajout = mon_equation->discretisation().is_PolyMAC_HFV() ? "paroi_echange_contact_PolyMAC_HFV " :
+                mon_equation->discretisation().is_PolyMAC_MPFA() ? "paroi_echange_contact_PolyMAC_MPFA " : "paroi_echange_contact_PolyMAC_CDO ";
 
       ajout += nom_autre_pb;
       ajout += " ";

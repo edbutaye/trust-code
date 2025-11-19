@@ -24,7 +24,7 @@ Entree& Temperature_imposee_paroi::readOn(Entree& s)
 {
   if (app_domains.size() == 0) app_domains = { Motcle("Thermique"), Motcle("indetermine") };
   if (supp_discs.size() == 0) supp_discs = { Nom("VEF"), Nom("EF"), Nom("EF_axi"), Nom("VEF_P1_P1"), Nom("VEFPreP1B"),
-                                               Nom("PolyMAC"), Nom("PolyMAC_P0P1NC"), Nom("PolyMAC_P0"),
+                                               Nom("PolyMAC_CDO"), Nom("PolyMAC_HFV"), Nom("PolyMAC_MPFA"),
                                                Nom("DG"),Nom("VDF")
                                              };
 

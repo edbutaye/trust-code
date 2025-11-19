@@ -349,7 +349,7 @@ void operator_vect_vect_generic_kernel(TRUSTVect<_TYPE_,_SIZE_>& resu, const TRU
       if (statistics().get_use_gpu()) end_gpu_timer(__KERNEL_NAME__, is_default_exec_space<ExecSpace>);
     }
 #else
-  // Need to keep C++ optimized (pointer) implementation for PolyMAC in Flica5
+  // Need to keep C++ optimized (pointer) implementation for PolyMAC_CDO in Flica5
   _TYPE_ *resu_base = resu.data();
   const _TYPE_ *x_base = vx.data();
   for (; nblocs_left; nblocs_left--)

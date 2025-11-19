@@ -413,7 +413,7 @@ void SETS::iterer_NS(Equation_base& eqn, DoubleTab& current,
     }
   else
     semi_impl["vitesse"] = eq_qdm.inconnue().passe();
-  eqn.solv_masse().corriger_solution(current, current, 0); //pour PolyMAC_P0 : vf -> ve
+  eqn.solv_masse().corriger_solution(current, current, 0); //pour PolyMAC_MPFA : vf -> ve
 
   //premier passage : dimensionnement de mat_semi_impl et de mdv_semi_impl, remplissage de p_degen_
   if (!mat_semi_impl_.nb_lignes())
@@ -515,8 +515,8 @@ void SETS::iterer_NS(Equation_base& eqn, DoubleTab& current,
           /* expression des autres inconnues (x) en fonction de p : vitesse, puis temperature / pression */
           tabs_t b_p;
           std::vector<std::set<std::pair<std::string, int>>> ordre;
-          if (eq_qdm.domaine_dis().le_nom() == "PolyMAC_P0")
-            ordre.push_back( { { "vitesse", 1 } }); //si PolyMAC_P0: on commence par ve
+          if (eq_qdm.domaine_dis().le_nom() == "PolyMAC_MPFA")
+            ordre.push_back( { { "vitesse", 1 } }); //si PolyMAC_MPFA: on commence par ve
           ordre.push_back( { { "vitesse", 0 } }), ordre.push_back( { }); //puis vf, puis toutes les autres inconnues simultanement
           for (auto &&nom : noms)
             if (nom != "vitesse" && nom != "pression")
@@ -576,7 +576,7 @@ void SETS::iterer_NS(Equation_base& eqn, DoubleTab& current,
           v_incr -= v_inco; //retour en increments
         }
 
-      eqn.solv_masse().corriger_solution(*incr["vitesse"], *incr["vitesse"], 1); //pour PolyMAC_P0 : sert a corriger ve
+      eqn.solv_masse().corriger_solution(*incr["vitesse"], *incr["vitesse"], 1); //pour PolyMAC_MPFA : sert a corriger ve
 
       if (!Process::me())
         tp << it + 1;
@@ -651,7 +651,7 @@ void SETS::iterer_NS(Equation_base& eqn, DoubleTab& current,
       eq_qdm.pression().futur() = eq_qdm.pression().valeurs();
       ConstDoubleTab_parts ppart(inco["pression"]->valeurs());
       //en multiphase, la pression est deja en Pa
-      /* si pression_pa() est plus petit que pression() (ex. : variables auxiliaires PolyMAC_P0P1NC), alors on ne copie que la 1ere partie */
+      /* si pression_pa() est plus petit que pression() (ex. : variables auxiliaires PolyMAC_HFV), alors on ne copie que la 1ere partie */
       eq_qdm.pression_pa().valeurs() = eq_qdm.pression_pa().valeurs().dimension_tot(0) < inco["pression"]->valeurs().dimension_tot(0) ? ppart[0] : inco["pression"]->valeurs(); //en multiphase, la pression est deja en Pa
       first_call_ = 0;
     }

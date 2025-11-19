@@ -169,7 +169,7 @@ typename TRUSTTravPool<_TYPE_>::block_ptr_t TRUSTTravPool<_TYPE_>::ResizeBlock(t
 
   bool first_strategy = true;
   // Second strategy may increase memory with a growing pool if DoubleTrav resized several times
-  // in a loop as in Op_Grad_PolyMAC_P0_Face::ajouter_blocs
+  // in a loop as in Op_Grad_PolyMAC_MPFA_Face::ajouter_blocs
   if (first_strategy)
     {
       // Strategy 1

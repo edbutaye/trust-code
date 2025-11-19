@@ -232,7 +232,7 @@ static int ecriture_special_part2(const Domaine_VF& zvf, Sortie& fich, const Dou
     {
       // Champs p1bulles et autres: appel recursif pour les differents sous-tableaux:
       ConstDoubleTab_parts parts(val);
-      int n = zvf.que_suis_je() == "Domaine_PolyMAC_P0" ? 1 : parts.size();//on saute les variables auxiliaires de Champ_{P0,Face}_PolyMAC_P0
+      int n = zvf.que_suis_je() == "Domaine_PolyMAC_MPFA" ? 1 : parts.size();//on saute les variables auxiliaires de Champ_{P0,Face}_PolyMAC_MPFA
       for (int i = 0; i < n; i++)
         bytes += ecriture_special_part2(zvf, fich, parts[i]);
     }

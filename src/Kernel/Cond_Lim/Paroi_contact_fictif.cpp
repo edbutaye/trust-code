@@ -51,27 +51,27 @@ void Paroi_contact_fictif::complement(Nom& ajout)
       ajout += " temperature ";
       ajout += Nom(conduct_fictif / ep_fictif, "%e");
     }
-  else if (mon_equation->discretisation().is_polymac())
+  else if (mon_equation->discretisation().is_PolyMAC_CDO())
     {
-      ajout = "paroi_echange_contact_PolyMAC ";
+      ajout = "paroi_echange_contact_PolyMAC_CDO ";
       ajout += nom_autre_pb;
       ajout += " ";
       ajout += nom_autre_bord;
       ajout += " temperature ";
       ajout += Nom(conduct_fictif / ep_fictif, "%e");
     }
-  else if (mon_equation->discretisation().is_polymac_p0p1nc())
+  else if (mon_equation->discretisation().is_PolyMAC_HFV())
     {
-      ajout = "paroi_echange_contact_PolyMAC_P0P1NC ";
+      ajout = "paroi_echange_contact_PolyMAC_HFV ";
       ajout += nom_autre_pb;
       ajout += " ";
       ajout += nom_autre_bord;
       ajout += " temperature ";
       ajout += Nom(conduct_fictif / ep_fictif, "%e");
     }
-  else if (mon_equation->discretisation().is_polymac_p0())
+  else if (mon_equation->discretisation().is_PolyMAC_MPFA())
     {
-      ajout = "paroi_echange_contact_PolyMAC_P0 ";
+      ajout = "paroi_echange_contact_PolyMAC_MPFA ";
       ajout += nom_autre_pb;
       ajout += " ";
       ajout += nom_autre_bord;

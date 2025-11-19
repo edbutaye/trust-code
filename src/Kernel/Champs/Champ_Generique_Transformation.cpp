@@ -292,8 +292,8 @@ void Champ_Generique_Transformation::completer(const Postraitement_base& post)
                   MD_Vector md;
                   md = values_source_i.get_md_vector( );
 
-                  //composite case, in particular Champ_{P0,Face}_PolyMAC_P0P1NC...
-                  if (get_source(i).get_discretisation().is_polymac_family() && sub_type( MD_Vector_composite, md.valeur( )))
+                  //composite case, in particular Champ_{P0,Face}_PolyMAC_HFV...
+                  if (get_source(i).get_discretisation().is_poly_family() && sub_type( MD_Vector_composite, md.valeur( )))
                     {
                       const MD_Vector& md0 = ref_cast(MD_Vector_composite, md.valeur()).get_desc_part(0);
                       if (md0 == zvf_source_i.domaine( ).les_elems().get_md_vector( ))
@@ -520,7 +520,7 @@ const Champ_base& Champ_Generique_Transformation::get_champ(OWN_PTR(Champ_base)&
   int nb_som_tot = get_ref_domain().nb_som_tot();
   const Motcle directive = get_directive_pour_discr();
   bool champ_normal_faces = 0;
-  if (get_source(0).get_discretisation().is_vdf() || get_source(0).get_discretisation().is_polymac_family())
+  if (get_source(0).get_discretisation().is_vdf() || get_source(0).get_discretisation().is_poly_family())
     champ_normal_faces = 1;
 
   //Construction du tableau positions qui contient les coordonnees

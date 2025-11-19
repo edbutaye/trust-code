@@ -43,7 +43,7 @@ static int faces_sommets_poly[6][4] =
 };
 
 Implemente_instanciable_32_64(Polyedriser_32_64,"Polyedriser",Interprete_geometrique_base_32_64<_T_>);
-// XD polyedriser interprete polyedriser -1 cast hexahedra into polyhedra so that the indexing of the mesh vertices is compatible with PolyMAC_P0P1NC discretization. Must be used in PolyMAC_P0P1NC discretization if a hexahedral mesh has been produced with TRUST's internal mesh generator.
+// XD polyedriser interprete polyedriser -1 cast hexahedra into polyhedra so that the indexing of the mesh vertices is compatible with PolyMAC_HFV discretization. Must be used in PolyMAC_HFV discretization if a hexahedral mesh has been produced with TRUST's internal mesh generator.
 // XD attr domain_name ref_domaine domain_name 0 Name of domain.
 
 template <typename _SIZE_>

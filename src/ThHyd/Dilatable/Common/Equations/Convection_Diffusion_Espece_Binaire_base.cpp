@@ -114,7 +114,7 @@ void Convection_Diffusion_Espece_Binaire_base::assembler_blocs_avec_inertie(matr
   statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
   Convection_Diffusion_Fluide_Dilatable_Proto::assembler_blocs(*this, matrices, secmem, semi_impl);
   schema_temps().ajouter_blocs(matrices, secmem, *this);
-  if (!discretisation().is_polymac_family())
+  if (!discretisation().is_poly_family())
     {
       const std::string& nom_inco = inconnue().le_nom().getString();
       Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : nullptr;

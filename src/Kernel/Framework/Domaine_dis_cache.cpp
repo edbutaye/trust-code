@@ -67,7 +67,7 @@ Domaine_dis_base& Domaine_dis_cache::build_or_get(const Nom& type, const Domaine
   Nom typ_short(type);
   typ_short.suffix("NO_FACE_");
 
-  // Build a key of the form: "(@x07f8e63)_dom_NO_FACE_Domaine_PolyMAC_P0P1NC"
+  // Build a key of the form: "(@x07f8e63)_dom_NO_FACE_Domaine_PolyMAC_HFV"
   auto make_key = [&](const std::string& t)
   {
     std::ostringstream oss;

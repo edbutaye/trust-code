@@ -44,7 +44,7 @@ Entree& Terme_Source_Decroissance_Radioactive_VEF_Face::readOn(Entree& s)
   const int N = equation().inconnue().valeurs().line_size(), ng = (int)lambda.size();
   if (N != ng)
     {
-      Cerr << "Terme_Source_Decroissance_Radioactive_Elem_PolyMAC : inconsistency between the number of radioactive decay constants ( " << ng
+      Cerr << "Terme_Source_Decroissance_Radioactive_Elem_PolyMAC_CDO : inconsistency between the number of radioactive decay constants ( " << ng
            << " ) and the number of components of the unknown of the equation ( " << N << " )" << finl;
       Process::exit();
     }

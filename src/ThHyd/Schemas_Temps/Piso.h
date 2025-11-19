@@ -93,7 +93,7 @@ protected :
   Entree& lire(const Motcle&, Entree&) override;
 
 private:
-  virtual void iterer_NS_PolyMAC(Navier_Stokes_std& eqn,DoubleTab& current,DoubleTab& pression, double dt, Matrice_Morse& matrice, int& ok);
+  virtual void iterer_NS_PolyMAC_CDO(Navier_Stokes_std& eqn,DoubleTab& current,DoubleTab& pression, double dt, Matrice_Morse& matrice, int& ok);
   // IBM stuff
   void add_penality_term(Navier_Stokes_std& , DoubleTrav& resu , DoubleTrav& gradP);
   void correct_incr_pressure(Navier_Stokes_std& , DoubleTrav& secmem);

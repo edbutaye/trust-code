@@ -26,7 +26,7 @@ using namespace MEDCoupling;
 #endif
 
 Implemente_instanciable(Decouper_multi,"Decouper_multi|Partition_multi",Interprete);
-// XD partition_multi interprete decouper_multi 0 allows to partition multiple domains in contact with each other in parallel: necessary for resolution monolithique in implicit schemes and for all coupled problems using PolyMAC_P0P1NC. By default, this keyword is commented in the reference test cases.
+// XD partition_multi interprete decouper_multi 0 allows to partition multiple domains in contact with each other in parallel: necessary for resolution monolithique in implicit schemes and for all coupled problems using PolyMAC_HFV. By default, this keyword is commented in the reference test cases.
 // XD attr aco chaine(into=["{"]) aco 0 Opening curly bracket.
 // XD attr domaine1 chaine(into=["domaine"]) domaine1 0 not set.
 // XD attr dom ref_domaine dom 0 Name of the first domain to be cut.

@@ -147,7 +147,7 @@ DoubleTab& Champ_base::valeur_aux_centres_de_gravite(const Domaine& dom, DoubleT
       const Domaine_VF& zvf = ref_cast(Domaine_VF,ref_cast(Champ_Inc_base, *this).domaine_dis_base());
       // PL: ToDo Kokkos kernel host garde car bug difficile a trouver (cas decroissance_ktau_jdd1 avec TrioCFD):
       // stencil.append_line() alloue de la memoire via un resize() sur une memoire HOST deja allouee sur le DEVICE !
-      // Probablement, une memoire DEVICE non correctement desallouee dans un mecanisme PolyMAC non utilise en VEF...
+      // Probablement, une memoire DEVICE non correctement desallouee dans un mecanisme PolyMAC_CDO non utilise en VEF...
       if (zvf.xp().isDataOnDevice())
         {
           // Pour eviter un resize par nb_elem_tot par appel a xp()

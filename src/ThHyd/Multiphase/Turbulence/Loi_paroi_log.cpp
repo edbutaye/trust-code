@@ -82,7 +82,7 @@ void Loi_paroi_log::calc_y_plus(const DoubleTab& vit, const DoubleTab& nu_visc)
             for (int d = 0; d < D; d++)
               u_parallel(d) = pvit_elem(e, N * d + n) - u_orth * (-n_f(f, d)) / fs(f); // ! n_f pointe vers la face 1 donc vers l'exterieur de l'element, d'ou le -
           }
-        else // PolyMAC case
+        else // PolyMAC_CDO case
           {
             for (int d = 0; d < D; d++)
               u_orth -= vit(nf_tot + e * D + d, n) * n_f(f, d) / fs(f); // ! n_f pointe vers la face 1 donc vers l'exterieur de l'element, d'ou le -

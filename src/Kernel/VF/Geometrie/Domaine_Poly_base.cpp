@@ -273,7 +273,7 @@ void Domaine_Poly_base::discretiser()
       if (!sub_type(Triangle,elem_geom))
         {
           Cerr << " The type of the element " << elem_geom.que_suis_je() << " is incorrect" << finl;
-          Cerr << " Only the Triangle type is compatible with the PolyMAC_P0 discretisation in dimension 2" << finl;
+          Cerr << " Only the Triangle type is compatible with the PolyMAC_MPFA discretisation in dimension 2" << finl;
           Cerr << " You must triangulate the domain when using the TRUST mesher" ;
           Cerr << " This can be done by adding : Trianguler nom_dom" << finl;
           Process::exit();
@@ -284,7 +284,7 @@ void Domaine_Poly_base::discretiser()
       if (!sub_type(Tetraedre,elem_geom))
         {
           Cerr << " The type of the element " << elem_geom.que_suis_je() << " is incorrect" << finl;
-          Cerr << " Only the Tetrahedral type is compatible with the PolyMAC_P0 discretisation in dimension 3" << finl;
+          Cerr << " Only the Tetrahedral type is compatible with the PolyMAC_MPFA discretisation in dimension 3" << finl;
           Cerr << " You must tetrahedrize the domain when using the TRUST mesher" ;
           Cerr << " This can be done by adding : Tetraedriser nom_dom" << finl;
           Process::exit();
@@ -559,12 +559,12 @@ void Domaine_Poly_base::discretiser_aretes()
         }
     }
 
-  //MD_vector pour Champ_Elem_PolyMAC_P0P1NC (elems + faces)
+  //MD_vector pour Champ_Elem_PolyMAC_HFV (elems + faces)
   MD_Vector_composite mdc_ef;
   mdc_ef.add_part(domaine().md_vector_elements()), mdc_ef.add_part(md_vector_faces());
   mdv_elems_faces.copy(mdc_ef);
 
-  //MD_vector pour Champ_Face_PolyMAC_P0P1NC (faces + aretes)
+  //MD_vector pour Champ_Face_PolyMAC_HFV (faces + aretes)
   MD_Vector_composite mdc_fa;
   mdc_fa.add_part(md_vector_faces()), mdc_fa.add_part(dimension < 3 ? domaine().md_vector_sommets() : md_vector_aretes());
   mdv_faces_aretes.copy(mdc_fa);

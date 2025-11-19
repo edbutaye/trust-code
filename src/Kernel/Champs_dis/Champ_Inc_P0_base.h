@@ -40,7 +40,7 @@ public :
   //types de CL : 0 -> pas de CL
   //              1 -> Echange_externe_impose
   //              2 -> Echange_global_impose
-  //              3 -> Echange_contact_PolyMAC_P0P1NC
+  //              3 -> Echange_contact_PolyMAC_HFV
   //              4 -> Neumann_paroi
   //              5 -> Neumann_val_ext ou Neumann_homogene ou Symetrie
   //              6 -> Dirichlet
