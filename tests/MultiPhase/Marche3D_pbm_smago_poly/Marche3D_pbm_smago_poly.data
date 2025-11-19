@@ -1,5 +1,5 @@
 # PARALLEL OK #
-# Test 3D marche with Polymac_p0 Smagorinsky model and Pb_Multiphase without wall laws. USE CMFD for real turbulent calculation #
+# Test 3D marche with PolyMAC_MPFA Smagorinsky model and Pb_Multiphase without wall laws. USE CMFD for real turbulent calculation #
 
 dimension 3
 
@@ -50,7 +50,7 @@ END PARTITION #
 Scatter DOM.Zones dom
 END SCATTER #
 
-PolyMAC_P0 dis
+PolyMAC_MPFA dis
 
 Schema_euler_implicite sch
 Read sch

@@ -299,7 +299,7 @@ TEST(TRUSTTrav, ConstructorCopyFromTab){
 
 //TEST(TRUSTTrav, UnproperUse){
     // NOT A PROPER USAGE OF TRAV!! Should exit in Debug with strategy 2 - to be activated
-    // once PolyMAC has been cleaned.
+    // once PolyMAC_CDO has been cleaned.
     //IntTrav a;
     //for (int i=0; i < 3000; i++){a.append_array(1);}
 //}

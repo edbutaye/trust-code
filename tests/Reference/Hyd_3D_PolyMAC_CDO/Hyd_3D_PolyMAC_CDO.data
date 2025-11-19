@@ -1,0 +1,116 @@
+# Lecture maillage 3D Hexa+Tetra+Pyramide cree dans Salome avec: #
+# MG-Hybrid + MG-CADSurf + 0 couche de prisme + Cartesian Core #
+# Cela garantit de n'avoir que des faces planes pour les hexas #
+# PARALLEL NOT #
+dimension 3
+Pb_hydraulique pb
+Domaine dom
+# BEGIN MESH #
+Read_MED {
+    domain dom
+    file MG-Hybrid.med
+    convertAllToPoly
+}
+Postraiter_domaine { domaine dom fichier mesh format med }
+# END MESH #
+# BEGIN PARTITION
+Postraiter_domaine
+{
+    fichier mesh.lata
+    format lata
+    domaine dom
+}
+
+Partition dom
+{
+    Partition_tool metis { nb_parts 3 }
+    Larg_joint 2
+    zones_name DOM
+}
+End
+END PARTITION #
+
+# BEGIN SCATTER
+Scatter DOM.Zones dom
+END SCATTER #
+
+Sous_Zone zone_tot
+Associate zone_tot dom
+Lire zone_tot { fonction_sous_zone 1 }
+
+PolyMAC_HFV dis
+
+Schema_euler_implicite sch
+Read sch
+{
+    nb_pas_dt_max 3
+    tinit 0
+    tmax 2.5
+    dt_min 0.001
+    dt_max 0.001
+    dt_impr 0.001
+    facsec 1
+    facsec_max 1
+    solveur implicite { seuil_convergence_solveur 1.e-12 solveur petsc cli { } }
+}
+
+Associate pb dom
+Associate pb sch
+Discretize pb dis
+
+Read pb
+{
+
+    fluide_incompressible {
+        mu Champ_Uniforme 1 3.7e-05
+        rho Champ_Uniforme 1 2
+    }
+
+
+    Navier_Stokes_standard
+    {
+        solveur_pression petsc cholesky { }
+        convection { amont }
+        diffusion {  }
+        initial_conditions {
+            vitesse Champ_Uniforme 3 0. 0. 0.
+        }
+        boundary_conditions {
+            Wall paroi_fixe
+            Outlet frontiere_ouverte_pression_imposee Champ_front_Uniforme 1 0.
+            Inlet frontiere_ouverte_vitesse_imposee Champ_front_Uniforme 3  1. 0. 0.
+        }
+    }
+    # Postraitement sur le domaine de calcul #
+    postraitement
+    {
+        champs dt_post 1e8 {
+            pression elem
+        }
+    }
+    Postraitements
+    {
+        # Postraitement sur le domaine (ici egale au domaine de calcul) #
+        post_dom
+        {
+            format med fichier domaine
+            domaine dom
+            sondes { sonde_domaine vitesse periode 1.00e+07 point 1 0 0 0 }
+            champs dt_post 1e8 {
+                pression elem
+            }
+        }
+        # Postraitement sur une zone (ici egale au domaine de calcul) #
+        post_sous_zone
+        {
+            format med fichier sous_zone
+            sous_zone zone_tot
+            sondes { sonde_sous_zone vitesse periode 1.00e+07 point 1 0 0 0 }
+            champs dt_post 1e8 {
+                pression elem
+            }
+        }
+    }
+}
+Solve pb
+End

@@ -44,8 +44,8 @@ Read sch
     }
 }
 
-PolyMAC_P0  dis
-Option_PolyMAC {  }
+PolyMAC_MPFA  dis
+Option_PolyMAC_family {  }
 
 Associate pb dom
 Associate  pb sch

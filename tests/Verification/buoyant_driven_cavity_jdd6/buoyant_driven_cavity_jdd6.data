@@ -54,7 +54,7 @@ Read sch_ice
     }
 }
 
-PolyMAC_P0 dis
+PolyMAC_MPFA dis
 
 associate pbt dom
 

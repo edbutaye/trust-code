@@ -33,7 +33,7 @@ Scatter DOM.Zones dom
 END SCATTER #
 
 VEFPreP1B dis
-Option_PolyMAC { use_osqp }
+Option_PolyMAC_family { use_osqp }
 
 Schema_euler_implicite sch
 Read sch

@@ -1,0 +1,4 @@
+#!/bin/bash
+# Check that Champ_fonc_reprise gives same result than classic restart: 
+trust reprise_PolyMAC_MPFA.data 1>reprise_PolyMAC_MPFA.out_err 2>&1 || exit -1
+compare_lata_gz Champ_fonc_reprise_PolyMAC_MPFA_bin.lml reprise_PolyMAC_MPFA.lml || exit -1

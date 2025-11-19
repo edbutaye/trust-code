@@ -26,7 +26,7 @@ END SCATTER #
 
 
 
-PolyMAC dis
+PolyMAC_CDO dis
 
 Schema_euler_implicite sch
 Read sch

@@ -41,7 +41,7 @@ END PARTITION #
 Scatter dom.Zones dom
 END SCATTER #
 
-Polymac_P0 dis
+PolyMAC_MPFA dis
 
 option_vdf { all_options }
 

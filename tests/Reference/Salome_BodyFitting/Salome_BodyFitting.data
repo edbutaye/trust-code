@@ -33,7 +33,7 @@ END PARTITION #
 Scatter DOM.Zones dom
 END SCATTER #
 
-polymac dis
+PolyMAC_CDO dis
 
 Schema_euler_implicite sch
 Read sch

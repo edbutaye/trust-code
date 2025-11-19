@@ -55,7 +55,7 @@ Read sch_ice
     }
 }
 
-Polymac_P0 dis
+PolyMAC_MPFA dis
 option_vdf { all_options }
 
 associate pbt dom

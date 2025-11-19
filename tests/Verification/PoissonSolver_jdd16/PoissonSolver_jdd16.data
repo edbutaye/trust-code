@@ -22,7 +22,7 @@ END PARTITION #
 Scatter DOM.Zones dom
 END SCATTER #
 
-PolyMAC_P0 dis
+PolyMAC_MPFA dis
 
 option_DG
 {

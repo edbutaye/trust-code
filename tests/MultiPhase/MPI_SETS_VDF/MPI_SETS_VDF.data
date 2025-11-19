@@ -9,7 +9,7 @@ Scatter DOM.Zones dom
 # END SCATTER #
 
 vdf  dis option_vdf { all_options }
-# PolyMAC_P0  dis option_PolyMAC_P0 { } #
+# PolyMAC_MPFA  dis option_PolyMAC_MPFA { } #
 
 Schema_euler_implicite sch
 Read sch

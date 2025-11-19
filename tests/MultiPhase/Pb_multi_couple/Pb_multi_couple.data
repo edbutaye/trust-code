@@ -99,8 +99,8 @@ Scatter decoup/dom_fluide.Zones dom_fluide
 Scatter decoup/dom_solide.Zones dom_solide
 END SCATTER #
 
-PolyMAC_P0  dis
-Option_PolyMAC {  }
+PolyMAC_MPFA  dis
+Option_PolyMAC_family {  }
 
 Associate pb1 dom_solide
 Associate pb2 dom_fluide

@@ -26,8 +26,8 @@ END PARTITION #
 Scatter DOM.Zones dom
 END SCATTER #
 
-/* PolyMAC_P0P1NC dis */
-polymac  dis
+/* PolyMAC_HFV dis */
+PolyMAC_CDO  dis
 option_vdf { P_imposee_aux_faces oui }
 
 
