@@ -1734,7 +1734,7 @@ void Postraitement::postprocess_field_values()
       DoubleTab val_vec;
 
       const bool isChamp_Face_PolyMAC_CDO = (champ_ecriture.que_suis_je().debute_par("Champ_Face_PolyMAC") ||
-                                         champ_ecriture.que_suis_je().debute_par("Champ_Fonc_Face_PolyMAC"));
+                                             champ_ecriture.que_suis_je().debute_par("Champ_Fonc_Face_PolyMAC"));
 
       /* XXX Elie SAIKALI : champ vect aux faces seulement pour post et si CGNS */
       const bool isChamp_Face_VDF_CGNS = (Motcle(format_) == "CGNS") &&

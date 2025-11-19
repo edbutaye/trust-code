@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -25,6 +25,6 @@ void Travail_pression_PolyMAC_HFV::completer()
 {
   Source_Travail_pression_Elem_base::completer();
   const Op_Conv_EF_Stab_PolyMAC_HFV_Elem *op_conv = sub_type(Op_Conv_EF_Stab_PolyMAC_HFV_Elem, equation().operateur(1).l_op_base()) ?
-                                                       &ref_cast(Op_Conv_EF_Stab_PolyMAC_HFV_Elem, equation().operateur(1).l_op_base()) : nullptr;
+                                                    &ref_cast(Op_Conv_EF_Stab_PolyMAC_HFV_Elem, equation().operateur(1).l_op_base()) : nullptr;
   alp = op_conv ? op_conv->alpha_ : 1; /* meme decentrement que l'operateur de convection si il existe, amont sinon */
 }

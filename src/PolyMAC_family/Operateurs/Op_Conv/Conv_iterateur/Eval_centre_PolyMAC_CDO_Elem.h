@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -548,7 +548,7 @@ inline double Eval_centre_PolyMAC_CDO_Elem::qcentre(const double psc, const int 
 }
 
 inline void Eval_centre_PolyMAC_CDO_Elem::qcentre(const double psc, const int num0, const int num1, const int num0_0, const int num1_1, const int face, const DoubleTab& transporte,
-                                              ArrOfDouble& flux) const
+                                                  ArrOfDouble& flux) const
 {
 
   int k;

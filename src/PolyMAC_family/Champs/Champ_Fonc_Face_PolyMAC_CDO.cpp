@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -125,8 +125,8 @@ void Champ_Fonc_Face_PolyMAC_CDO::interp_valeurs_elem(const DoubleTab& inco, Dou
 }
 
 DoubleTab& Champ_Fonc_Face_PolyMAC_CDO::valeur_aux_elems(const DoubleTab& positions,
-                                                     const IntVect& les_polys,
-                                                     DoubleTab& val) const
+                                                         const IntVect& les_polys,
+                                                         DoubleTab& val) const
 {
   const Champ_base& cha=le_champ();
   const Domaine_PolyMAC_CDO& domaine_VF = ref_cast(Domaine_PolyMAC_CDO, domaine_vf());

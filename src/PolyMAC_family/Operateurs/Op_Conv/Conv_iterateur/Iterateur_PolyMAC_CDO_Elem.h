@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -105,7 +105,7 @@ const Milieu_base& Iterateur_PolyMAC_CDO_Elem<_TYPE_>::milieu() const
 
 template <class _TYPE_>
 DoubleTab& Iterateur_PolyMAC_CDO_Elem<_TYPE_>::ajouter(const DoubleTab& donne,
-                                                   DoubleTab& resu) const
+                                                       DoubleTab& resu) const
 {
   ((_TYPE_&) flux_evaluateur).mettre_a_jour();
   assert(donne.nb_dim() < 3);
@@ -139,7 +139,7 @@ DoubleTab& Iterateur_PolyMAC_CDO_Elem<_TYPE_>::ajouter(const DoubleTab& donne,
   return resu;
 }
 template <class _TYPE_>  DoubleTab& Iterateur_PolyMAC_CDO_Elem<_TYPE_>::ajouter_bords(const DoubleTab& donnee,
-                                                                                  DoubleTab& resu) const
+                                                                                      DoubleTab& resu) const
 {
   int elem1, elem2;
   int ndeb, nfin;
@@ -650,7 +650,7 @@ template <class _TYPE_>  void Iterateur_PolyMAC_CDO_Elem<_TYPE_>::calculer_flux_
 }
 
 template <class _TYPE_>  DoubleTab& Iterateur_PolyMAC_CDO_Elem<_TYPE_>::ajouter_bords(const DoubleTab& donnee,
-                                                                                  DoubleTab& resu,int ncomp) const
+                                                                                      DoubleTab& resu,int ncomp) const
 {
   int elem1, elem2;
   int ndeb, nfin;
@@ -935,7 +935,7 @@ template <class _TYPE_>  DoubleTab& Iterateur_PolyMAC_CDO_Elem<_TYPE_>::ajouter_
 }
 
 template <class _TYPE_>  DoubleTab& Iterateur_PolyMAC_CDO_Elem<_TYPE_>::ajouter_interne(const DoubleTab& donnee,
-                                                                                    DoubleTab& resu) const
+                                                                                        DoubleTab& resu) const
 {
   const Domaine_PolyMAC_CDO& domaine_PolyMAC_CDO = le_domaine.valeur();
   double flux;
@@ -951,7 +951,7 @@ template <class _TYPE_>  DoubleTab& Iterateur_PolyMAC_CDO_Elem<_TYPE_>::ajouter_
   return resu;
 }
 template <class _TYPE_>  DoubleTab& Iterateur_PolyMAC_CDO_Elem<_TYPE_>::ajouter_interne(const DoubleTab& donnee,
-                                                                                    DoubleTab& resu,int ncomp) const
+                                                                                        DoubleTab& resu,int ncomp) const
 {
   const Domaine_PolyMAC_CDO& domaine_PolyMAC_CDO = le_domaine.valeur();
   DoubleVect flux(ncomp);

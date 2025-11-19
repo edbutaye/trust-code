@@ -48,7 +48,7 @@ Sortie& PolyMAC_HFV_discretisation::printOn(Sortie& s) const { return s; }
  *
  */
 void PolyMAC_HFV_discretisation::discretiser_champ(const Motcle& directive, const Domaine_dis_base& z, Nature_du_champ nature, const Noms& noms, const Noms& unites, int nb_comp, int nb_pas_dt,
-                                                      double temps, OWN_PTR(Champ_Inc_base) &champ, const Nom& sous_type) const
+                                                   double temps, OWN_PTR(Champ_Inc_base) &champ, const Nom& sous_type) const
 {
   const Domaine_PolyMAC_HFV& domaine_PolyMAC_HFV = ref_cast(Domaine_PolyMAC_HFV, z);
 
@@ -64,7 +64,7 @@ void PolyMAC_HFV_discretisation::discretiser_champ(const Motcle& directive, cons
   // Le type de champ de vitesse depend du type d'element :
   int zp1 = false, default_nb_comp = 0, rang = motcles.search(directive);
   Nom type_elem = Nom("Champ_Elem_") + que_suis_je(), type_som = "Champ_Som_PolyMAC_HFV", type_champ_scal = zp1 ? type_som : type_elem, type_champ_vitesse =
-                                                                                                                 zp1 ? "Champ_Arete_PolyMAC_HFV" : Nom("Champ_Face_") + que_suis_je(), type;
+                                                                                                              zp1 ? "Champ_Arete_PolyMAC_HFV" : Nom("Champ_Face_") + que_suis_je(), type;
   switch(rang)
     {
     case 0:
@@ -136,7 +136,7 @@ void PolyMAC_HFV_discretisation::discretiser_champ(const Motcle& directive, cons
  *
  */
 void PolyMAC_HFV_discretisation::discretiser_champ_fonc_don(const Motcle& directive, const Domaine_dis_base& z, Nature_du_champ nature, const Noms& noms, const Noms& unites, int nb_comp,
-                                                               double temps, Objet_U& champ) const
+                                                            double temps, Objet_U& champ) const
 {
   // Deux pointeurs pour acceder facilement au champ_don ou au champ_fonc, suivant le type de l'objet champ.
   OWN_PTR(Champ_Fonc_base) *champ_fonc = dynamic_cast<OWN_PTR(Champ_Fonc_base)*>(&champ);
@@ -157,7 +157,7 @@ void PolyMAC_HFV_discretisation::discretiser_champ_fonc_don(const Motcle& direct
   // Le type de champ de vitesse depend du type d'element :
   int zp1 = false, default_nb_comp = 0, rang = motcles.search(directive);
   Nom type_elem("Champ_Fonc_Elem_PolyMAC_CDO"), type_som("Champ_Fonc_Som_PolyMAC_CDO"), type_scal = zp1 ? type_som : type_elem, type_champ_vitesse(
-                                                                                              zp1 ? "Champ_Fonc_Arete_PolyMAC_HFV" : "Champ_Fonc_Face_PolyMAC_CDO"), type;
+                                                                                                      zp1 ? "Champ_Fonc_Arete_PolyMAC_HFV" : "Champ_Fonc_Face_PolyMAC_CDO"), type;
   switch(rang)
     {
     case 0:

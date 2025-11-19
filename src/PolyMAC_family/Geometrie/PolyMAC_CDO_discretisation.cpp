@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -48,7 +48,7 @@ Sortie& PolyMAC_CDO_discretisation::printOn(Sortie& s) const { return s; }
  *
  */
 void PolyMAC_CDO_discretisation::discretiser_champ(const Motcle& directive, const Domaine_dis_base& z, Nature_du_champ nature, const Noms& noms, const Noms& unites, int nb_comp, int nb_pas_dt,
-                                               double temps, OWN_PTR(Champ_Inc_base)& champ, const Nom& sous_type) const
+                                                   double temps, OWN_PTR(Champ_Inc_base)& champ, const Nom& sous_type) const
 {
   const Domaine_PolyMAC_CDO& domaine_PolyMAC_CDO = ref_cast(Domaine_PolyMAC_CDO, z);
 
@@ -129,7 +129,7 @@ void PolyMAC_CDO_discretisation::discretiser_champ(const Motcle& directive, cons
  *
  */
 void PolyMAC_CDO_discretisation::discretiser_champ(const Motcle& directive, const Domaine_dis_base& z, Nature_du_champ nature, const Noms& noms, const Noms& unites, int nb_comp, double temps,
-                                               OWN_PTR(Champ_Fonc_base)& champ) const
+                                                   OWN_PTR(Champ_Fonc_base)& champ) const
 {
   discretiser_champ_fonc_don(directive, z, nature, noms, unites, nb_comp, temps, champ);
 }
@@ -140,7 +140,7 @@ void PolyMAC_CDO_discretisation::discretiser_champ(const Motcle& directive, cons
  *
  */
 void PolyMAC_CDO_discretisation::discretiser_champ(const Motcle& directive, const Domaine_dis_base& z, Nature_du_champ nature, const Noms& noms, const Noms& unites, int nb_comp, double temps,
-                                               OWN_PTR(Champ_Don_base)& champ) const
+                                                   OWN_PTR(Champ_Don_base)& champ) const
 {
   discretiser_champ_fonc_don(directive, z, nature, noms, unites, nb_comp, temps, champ);
 }
@@ -153,7 +153,7 @@ void PolyMAC_CDO_discretisation::discretiser_champ(const Motcle& directive, cons
  *
  */
 void PolyMAC_CDO_discretisation::discretiser_champ_fonc_don(const Motcle& directive, const Domaine_dis_base& z, Nature_du_champ nature, const Noms& noms, const Noms& unites, int nb_comp, double temps,
-                                                        Objet_U& champ) const
+                                                            Objet_U& champ) const
 {
   // Deux pointeurs pour acceder facilement au champ_don ou au champ_fonc, suivant le type de l'objet champ.
   OWN_PTR(Champ_Fonc_base)  * champ_fonc = dynamic_cast<OWN_PTR(Champ_Fonc_base)*>(&champ);

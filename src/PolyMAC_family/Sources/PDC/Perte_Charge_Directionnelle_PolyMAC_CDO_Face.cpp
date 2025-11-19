@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -43,7 +43,7 @@ void Perte_Charge_Directionnelle_PolyMAC_CDO_Face::set_param(Param& param)
 }
 
 void Perte_Charge_Directionnelle_PolyMAC_CDO_Face::coeffs_perte_charge(const DoubleVect& u, const DoubleVect& pos, double t, double norme_u, double dh, double nu, double reynolds, double& coeff_ortho,
-                                                                   double& coeff_long, double& u_l, DoubleVect& v_valeur) const
+                                                                       double& coeff_long, double& u_l, DoubleVect& v_valeur) const
 {
   // Calcul de lambda
   lambda.setVar(0, reynolds);

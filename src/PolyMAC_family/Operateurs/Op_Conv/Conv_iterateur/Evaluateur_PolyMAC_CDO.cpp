@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -32,7 +32,7 @@ Evaluateur_PolyMAC_CDO::Evaluateur_PolyMAC_CDO(const Evaluateur_PolyMAC_CDO& eva
 }
 
 void Evaluateur_PolyMAC_CDO::associer_domaines(const Domaine_PolyMAC_CDO& domaine_vdf,
-                                           const Domaine_Cl_PolyMAC_family& domaine_cl_vdf)
+                                               const Domaine_Cl_PolyMAC_family& domaine_cl_vdf)
 {
   le_domaine = domaine_vdf;
   la_zcl = domaine_cl_vdf;
