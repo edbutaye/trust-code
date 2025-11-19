@@ -26,7 +26,7 @@ Scatter DOM.Zones dom
 END SCATTER #
 
 $dis dis
-Option_PolyMAC { use_osqp }
+Option_PolyMAC_family { use_osqp }
 
 Option_DG 
 {

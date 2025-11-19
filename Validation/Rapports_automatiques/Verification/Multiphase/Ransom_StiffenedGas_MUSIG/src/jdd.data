@@ -39,7 +39,7 @@ END SCATTER #
 
 
 $dis dis
-Option_PolyMAC {  }
+Option_PolyMAC_family {  }
 
 
 Schema_euler_implicite sch

@@ -33,7 +33,7 @@ def build_mesh(alpha_d, folder, med_name):
     mccm.setCoords(arrx, arry)
     # passage en maillage non structure
     mesh_e = mccm.buildUnstructured()
-    # conversion des elements en polyhedres pour PolyMAC
+    # conversion des elements en polyhedres pour PolyMAC_CDO
     mesh_e.convertAllToPoly()
     # transformation des coordonnees des noeuds
     coo = mesh_e.getCoords()

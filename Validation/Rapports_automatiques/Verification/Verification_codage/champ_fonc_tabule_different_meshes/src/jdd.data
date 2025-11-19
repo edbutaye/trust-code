@@ -86,7 +86,7 @@ Lire down { fonction_sous_zone y[1 }
     }
 }
 
-PolyMAC_P0P1NC dis
+PolyMAC_HFV dis
 
 associate pbt1 dom1
 associate pbt2 dom2

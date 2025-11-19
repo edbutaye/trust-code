@@ -1,4 +1,4 @@
 #!/bin/bash
-export project_directory=$TRUST_ROOT/Validation/Rapports_automatiques/Verification/PolyMAC
+export project_directory=$TRUST_ROOT/Validation/Rapports_automatiques/Verification/PolyMAC_CDO
 source "$project_directory/share/maquette_decapoly/env_maquette.sh"
 python prepare_meshes.py cas
