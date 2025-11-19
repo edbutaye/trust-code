@@ -28,7 +28,7 @@
 #include <Operateur.h>
 #include <Motcle.h>
 
-Implemente_instanciable(PolyMAC_HFV_discretisation, "PolyMAC_HFV", PolyMAC_CDO_discretisation);
+Implemente_instanciable(PolyMAC_HFV_discretisation, "PolyMAC_HFV|PolyMAC_P0P1NC", PolyMAC_CDO_discretisation);
 // XD PolyMAC_HFV discretisation_base PolyMAC_HFV -1 PolyMAC_HFV discretization (previously PolyMAC_CDO discretization compatible with pb_multi).
 
 Entree& PolyMAC_HFV_discretisation::readOn(Entree& s) { return s; }

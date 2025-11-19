@@ -27,7 +27,7 @@
 #include <Domaine_Cl_PolyMAC_family.h>
 #include <grad_U_Champ_Face_PolyMAC_CDO.h>
 
-Implemente_instanciable(PolyMAC_CDO_discretisation, "PolyMAC_CDO", Discret_Thyd);
+Implemente_instanciable(PolyMAC_CDO_discretisation, "PolyMAC_CDO|PolyMAC", Discret_Thyd);
 // XD PolyMAC_CDO discretisation_base PolyMAC_CDO -1 PolyMAC_CDO discretization (PolyMAC_CDO discretization that is not compatible with pb_multi).
 
 

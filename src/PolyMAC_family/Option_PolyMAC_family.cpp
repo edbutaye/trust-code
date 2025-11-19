@@ -17,7 +17,7 @@
 #include <Motcle.h>
 #include <Param.h>
 
-Implemente_instanciable(Option_PolyMAC_family,"Option_PolyMAC_family",Interprete);
+Implemente_instanciable(Option_PolyMAC_family,"Option_PolyMAC_family|Option_PolyMAC",Interprete);
 
 // XD Option_PolyMAC_family interprete Option_PolyMAC_family 1 Class of PolyMAC_CDO options.
 

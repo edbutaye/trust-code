@@ -31,7 +31,7 @@
 #include <Symetrie.h>
 #include <Debog.h>
 
-Implemente_instanciable(Domaine_Cl_PolyMAC_family, "Domaine_Cl_PolyMAC_family", Domaine_Cl_dis_base);
+Implemente_instanciable(Domaine_Cl_PolyMAC_family, "Domaine_Cl_PolyMAC_family|Domaine_Cl_PolyMAC", Domaine_Cl_dis_base);
 
 Sortie& Domaine_Cl_PolyMAC_family::printOn(Sortie& os) const { return os; }
 
