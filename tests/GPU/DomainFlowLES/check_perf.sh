@@ -97,7 +97,7 @@ else
    [ "$TRUST_USE_ROCM" = 1 ] && GPU_ARCH=_$ROCM_ARCH
    # Run:
    run $HOST$GPU_ARCH $np
-   if [ $HOST = topaze ] || [ $HOST = adastra ] || [ $HOST = jean-zay ] # Test strong scalability on multi-node GPU
+   if [ $HOST = topaze ] || [ $HOST = adastra ] || [ $HOST = jean-zay ] || [ $HOST = lumi ] # Test strong scalability on multi-node GPU
    then
       [ "`grep -i 'nb_parts 8' $jdd.data`" != "" ] && run $HOST$GPU_ARCH 8
    fi
