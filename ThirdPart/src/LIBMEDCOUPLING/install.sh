@@ -21,6 +21,7 @@ install_dir_root=$TRUST_MEDCOUPLING_ROOT
 org=`pwd`
 
 with_python=ON    # API Python
+swig -version 1>/dev/null 2>&1 || with_python=OFF
 
 ###################################################
 # Build, install and test a variant of MEDCoupling. 
