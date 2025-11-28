@@ -52,6 +52,7 @@ if [ ! -f $KOKKOS_ROOT_DIR/lib64/libkokkos.a ]; then
            #sed -i '/Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(/,/Kokkos::memory_fence();/d' $src_dir/core/src/Serial/Kokkos_Serial.hpp || exit -1 # Disable fence for serial without thread
         fi
         CMAKE_OPT="$CMAKE_OPT -DCMAKE_CXX_FLAGS=-fPIC"
+        CMAKE_OPT="$CMAKE_OPT -DCMAKE_CXX_STANDARD=17"
 	# TRUST don't support yet new MDSPAN view (introduced in from 4.7):
         [ "$Kokkos_ENABLE_IMPL_MDSPAN" != "" ] && CMAKE_OPT="$CMAKE_OPT -DKokkos_ENABLE_IMPL_MDSPAN=$Kokkos_ENABLE_IMPL_MDSPAN"
         # ARCH:
@@ -88,7 +89,6 @@ if [ ! -f $KOKKOS_ROOT_DIR/lib64/libkokkos.a ]; then
         then
            CMAKE_OPT="$CMAKE_OPT -DKokkos_ENABLE_HIP=ON"
            #CMAKE_OPT="$CMAKE_OPT -DKokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS=ON" # faster but slow build (nb: no gain on kernels.sh with gfx1100)
-           CMAKE_OPT="$CMAKE_OPT -DCMAKE_CXX_STANDARD=17"
            if [ "$ROCM_ARCH" = gfx1030 ]
            then
               CMAKE_OPT="$CMAKE_OPT -DKokkos_ARCH_AMD_GFX1030=ON"
