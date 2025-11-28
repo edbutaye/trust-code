@@ -26,7 +26,16 @@
 #include <TRUSTTrav.h>
 #include <TRUSTTab_parts.h>
 #include <Device.h>
+
+#ifndef TRUST_GTEST
+#define TRUST_GTEST 
+#endif
+
 #include <DeviceMemory.h>
+
+#ifdef __NVCOMPILER
+#pragma diag_suppress 177
+#endif
 
 #ifdef TRUST_USE_GPU 
 
@@ -451,5 +460,423 @@ TEST(DeviceTest, DoubleTravCopyConstructor)
   EXPECT_EQ(b3.get_mem_storage(), STORAGE::TEMP_STORAGE);
   EXPECT_EQ(b3.get_data_location(), DataLocation::Device);
 }
+
+
+
+TEST(DeviceTest, copyToDevice2)
+{
+
+  int n0=2, n1=3, n2=4;
+  TRUSTTab<int> tab(n0,n1,n2);
+
+  for (int i=0; i<n0; i++){
+    for (int j=0; j<n1; j++){
+      for (int k=0; k<n2; k++){
+          tab(i,j,k) = i+j-k;
+      }
+    }
+  }
+
+  //This does a map to device
+  auto view_rw = tab.view_rw<3, Kokkos::DefaultExecutionSpace>();
+  
+  // Parallel reduce to check if all values match i + j + k
+  auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {n0, n1, n2});
+
+  bool all_correct = true;
+  Kokkos::parallel_reduce("CheckValues", policy,
+                          KOKKOS_LAMBDA(int i, int j, int k, bool& result) {
+                    
+                            if (view_rw(i, j, k) != i + j - k) {result = false;printf("Mismatch at i=%d, j=%d, k=%d: view_rw(i,j,k)=%d, expected=%d\n", 
+           i, j, k, view_rw(i, j, k), i + j - k);}},
+          Kokkos::LAnd<bool>(all_correct));
+
+  EXPECT_TRUE(all_correct);
+}
+
+TEST(DeviceTest, copyFromDevice2)
+{
+
+  int n0=10, n1=11, n2=12;
+  TRUSTTab<int> tab(n0,n1,n2);
+
+  //This does a map to device
+  auto view_rw = tab.view_rw<3, Kokkos::DefaultExecutionSpace>();
+
+  // Parallel reduce to check if all values match i + j + k
+  auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {n0, n1, n2});
+
+  Kokkos::parallel_for("SetValues", policy,
+                      KOKKOS_LAMBDA(int i, int j, int k) 
+                      {
+                        view_rw(i, j, k) = i + j - k;
+                      });
+
+  //copyFromDevice(tab);
+
+  for (int i=0; i<n0; i++){
+    for (int j=0; j<n1; j++){
+      for (int k=0; k<n2; k++){
+          EXPECT_EQ(i+j-k, tab(i,j,k));
+      }
+    }
+  }
+}
+
+TEST(DeviceTest, resizeGPUArrayUP){
+
+  int N=10;
+  TRUSTArray<int> a(N);
+
+  for (int i=0; i<N; i++){a[i]=i;}
+  auto view_rw = a.view_rw();
+
+  a.resize(2*N);
+
+  for (int i=0; i<N; i++){EXPECT_EQ(i, a[i]);}
+
+  auto policy = Kokkos::RangePolicy(0, N);
+
+  bool all_correct = true;
+  Kokkos::parallel_reduce("CheckValues", policy,
+                          KOKKOS_LAMBDA(int i, bool& result) {
+                            if (view_rw(i) != i) {result = false;printf("Mismatch at i=%d, view_rw(i)=%d\n", i, view_rw(i));}},
+          Kokkos::LAnd<bool>(all_correct));
+  EXPECT_TRUE(all_correct);
+}
+
+TEST(DeviceTest, resizeGPUArrayDOWN){
+
+  int N=10;
+  TRUSTArray<double> a(N);
+  for (int i=0; i<N; i++){a[i]=i;}
+  auto view_rw = a.view_rw();
+
+  a.resize(N/2);
+  for (int i=0; i<N/2; i++){EXPECT_EQ(i, a[i]);}
+
+  auto policy = Kokkos::RangePolicy(0, N/2);
+
+  bool all_correct = true;
+  Kokkos::parallel_reduce("CheckValues", policy,
+                          KOKKOS_LAMBDA(int i, bool& result) {
+                            if (view_rw(i) != i) {result = false;printf("Mismatch at i=%d, view_rw(i)=%d\n", i, view_rw(i));}},
+          Kokkos::LAnd<bool>(all_correct));
+  EXPECT_TRUE(all_correct);
+}
+
+
+TEST(DeviceTest, resizeGPUTabUP){
+
+  TRUSTTab<int> tab(2, 3);
+
+  tab(0,0)=0;
+  tab(0,1)=1;
+  tab(0,2)=2;
+  tab(1,0)=3;
+  tab(1,1)=4;
+  tab(1,2)=5;
+
+  auto view = tab.view_rw();
+
+  bool all_correct = true;
+  Kokkos::parallel_reduce("CheckValues", 6,
+                          KOKKOS_LAMBDA(int i, bool& result) {
+                            int k=(int)(i>=3);
+                            int l=i%3;
+                            if (view(k,l) != i) {result = false;
+                             printf("Mismatch, i=%d, view(%d,%d)=%d\n", i, k,l, view(k,l));}},
+          Kokkos::LAnd<bool>(all_correct));
+  EXPECT_TRUE(all_correct);
+  
+  tab.resize(4,6);
+
+  auto view2 = tab.view_rw();
+
+  for (int i=0; i<6; i++){
+      EXPECT_EQ(tab(0,i),i);
+  }
+  
+  all_correct = true;
+  Kokkos::parallel_reduce("CheckValues", 6,
+                          KOKKOS_LAMBDA(int i, bool& result) {
+                            if (view2(0,i) != i) {
+                              result = false;
+                              printf("Mismatch at i=%d, view2(0,i)=%d\n", i, view2(0,i));
+                              }},
+          Kokkos::LAnd<bool>(all_correct));
+  EXPECT_TRUE(all_correct);
+  }
+
+TEST(DeviceTest, resizeGPUTabDOWN){
+
+  TRUSTTab<int> tab(4, 6);
+
+  tab(0,0)=0;
+  tab(0,1)=1;
+  tab(0,2)=2;
+  tab(0,3)=3;
+  tab(0,4)=4;
+  tab(0,5)=5;
+
+  auto view = tab.view_rw();
+  tab.resize(2,3);
+  auto view2 = tab.view_rw();
+
+  EXPECT_EQ(tab(0,0), 0);
+  EXPECT_EQ(tab(0,1), 1);
+  EXPECT_EQ(tab(0,2), 2);
+  EXPECT_EQ(tab(1,0), 3);
+  EXPECT_EQ(tab(1,1), 4);
+  EXPECT_EQ(tab(1,2), 5);
+
+  bool all_correct = true;
+  Kokkos::parallel_reduce("CheckValues", 6,
+                          KOKKOS_LAMBDA(int i, bool& result) {
+                            int k=(int)(i>=3);
+                            int l=i%3;
+                            if (view2(k,l) != i) {result = false;
+                             printf("Mismatch, i=%d, view(%d,%d)=%d\n", i, k,l, view2(k,l));}},
+          Kokkos::LAnd<bool>(all_correct));
+  EXPECT_TRUE(all_correct);
+}
+
+
+TEST(DeviceTest, inject_array_GPU){
+
+  TRUSTTab<int> tab(3, 3);
+
+  tab(0,0)=0;
+  tab(0,1)=1;
+  tab(0,2)=2;
+  tab(1,0)=3;
+  tab(1,1)=4;
+  tab(1,2)=5;
+  tab(2,0)=6;
+  tab(2,1)=7;
+  tab(2,2)=8;
+
+
+  TRUSTArray<int> injection(3);
+  injection(0)=-4;
+  injection(1)=-5;
+  injection(2)=-6;
+  
+  auto view0=tab.view_rw();
+  auto view1=injection.view_ro();
+
+  tab.inject_array(injection, 3, 4, 0);
+
+  EXPECT_EQ(tab(0,0),0);
+  EXPECT_EQ(tab(0,1),1);
+  EXPECT_EQ(tab(0,2),2);
+  EXPECT_EQ(tab(1,0),3);
+  EXPECT_EQ(tab(1,1),-4);
+  EXPECT_EQ(tab(1,2),-5);
+  EXPECT_EQ(tab(2,0),-6);
+  EXPECT_EQ(tab(2,1),7);
+  EXPECT_EQ(tab(2,2),8);
+}
+
+TEST(DeviceTest, append_line_GPU_dim1){
+
+  TRUSTTab<int> tab(5, 1);
+
+  tab(0,0)=0;
+  tab(1,0)=1;
+  tab(2,0)=2;
+  tab(3,0)=3;
+  tab(4,0)=4;
+
+  auto view0=tab.view_rw();
+
+  tab.append_line(5);
+
+  EXPECT_EQ(tab(0,0), 0);
+  EXPECT_EQ(tab(1,0), 1);
+  EXPECT_EQ(tab(2,0), 2);
+  EXPECT_EQ(tab(3,0), 3);
+  EXPECT_EQ(tab(4,0), 4);
+  EXPECT_EQ(tab(5,0), 5);
+
+  auto view1=tab.view_rw();
+
+  bool all_correct = true;
+  Kokkos::parallel_reduce("CheckValues", 5,
+                          KOKKOS_LAMBDA(int i, bool& result) {
+                            if (view1(i,0) != i) {result = false;}},
+          Kokkos::LAnd<bool>(all_correct));
+  EXPECT_TRUE(all_correct);
+
+}
+
+TEST(DeviceTest, append_line_GPU_dim2){
+
+  TRUSTTab<int> tab(5, 2);
+
+  tab(0,0)=0;
+  tab(1,0)=1;
+  tab(2,0)=2;
+  tab(3,0)=3;
+  tab(4,0)=4;
+
+  tab(0,1)=0;
+  tab(1,1)=1;
+  tab(2,1)=2;
+  tab(3,1)=3;
+  tab(4,1)=4;
+
+  auto view0=tab.view_rw();
+
+  tab.append_line(5, 5);
+
+  EXPECT_EQ(tab(0,0), 0);
+  EXPECT_EQ(tab(1,0), 1);
+  EXPECT_EQ(tab(2,0), 2);
+  EXPECT_EQ(tab(3,0), 3);
+  EXPECT_EQ(tab(4,0), 4);
+  EXPECT_EQ(tab(5,0), 5);
+
+  EXPECT_EQ(tab(0,1), 0);
+  EXPECT_EQ(tab(1,1), 1);
+  EXPECT_EQ(tab(2,1), 2);
+  EXPECT_EQ(tab(3,1), 3);
+  EXPECT_EQ(tab(4,1), 4);
+  EXPECT_EQ(tab(5,1), 5);
+
+  auto view1=tab.view_rw();
+
+  bool all_correct = true;
+  Kokkos::parallel_reduce("CheckValues", 5,
+                          KOKKOS_LAMBDA(int i, bool& result) {
+                            if (view1(i,0) != i) {result = false;}},
+          Kokkos::LAnd<bool>(all_correct));
+  EXPECT_TRUE(all_correct);
+
+  all_correct = true;
+  Kokkos::parallel_reduce("CheckValues", 5,
+                          KOKKOS_LAMBDA(int i, bool& result) {
+                            if (view1(i,1) != i) {result = false;}},
+          Kokkos::LAnd<bool>(all_correct));
+  EXPECT_TRUE(all_correct);
+
+}
+
+TEST(DeviceTest, append_line_GPU_dim3) {
+  TRUSTTab<int> tab(5, 3);
+
+  // Initialize first 5 rows
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 3; j++) {
+      tab(i, j) = i;
+    }
+  }
+
+  auto view0 = tab.view_rw();
+
+  // Append a new row with all elements set to 5
+  tab.append_line(5, 5, 5);
+
+  // Check all values directly
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 3; j++) {
+      EXPECT_EQ(tab(i, j), i);
+    }
+  }
+  
+  // Check appended row
+  EXPECT_EQ(tab(5, 0), 5);
+  EXPECT_EQ(tab(5, 1), 5);
+  EXPECT_EQ(tab(5, 2), 5);
+
+  auto view1 = tab.view_rw();
+
+  // Verify with parallel_reduce for each column
+  for (int col = 0; col < 3; col++) {
+    bool all_correct = true;
+    Kokkos::parallel_reduce("CheckValues", 5,
+                            KOKKOS_LAMBDA(int i, bool& result) {
+                              if (view1(i, col) != i) {result = false;}
+                            },
+                            Kokkos::LAnd<bool>(all_correct));
+    EXPECT_TRUE(all_correct);
+  }
+}
+
+TEST(DeviceTest, append_line_GPU_dim4) {
+  TRUSTTab<int> tab(5, 4);
+
+  // Initialize first 5 rows
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 4; j++) {
+      tab(i, j) = i;
+    }
+  }
+
+  auto view0 = tab.view_rw();
+
+  // Append a new row with all elements set to 5
+  tab.append_line(5, 5, 5, 5);
+
+  // Check all values directly
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 4; j++) {
+      EXPECT_EQ(tab(i, j), i);
+    }
+  }
+  
+  // Check appended row
+  EXPECT_EQ(tab(5, 0), 5);
+  EXPECT_EQ(tab(5, 1), 5);
+  EXPECT_EQ(tab(5, 2), 5);
+  EXPECT_EQ(tab(5, 3), 5);
+
+  auto view1 = tab.view_rw();
+
+  // Verify with parallel_reduce for each column
+  for (int col = 0; col < 4; col++) {
+    bool all_correct = true;
+    Kokkos::parallel_reduce("CheckValues", 5,
+                            KOKKOS_LAMBDA(int i, bool& result) {
+                              if (view1(i, col) != i) {result = false;}
+                            },
+                            Kokkos::LAnd<bool>(all_correct));
+    EXPECT_TRUE(all_correct);
+  }
+}
+
+TEST(DeviceTest, copy_ctor_tab_GPU) {
+  TRUSTTab<int> tab(5, 4);
+
+  // Initialize first 5 rows
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 4; j++) {
+      tab(i, j) = i;
+    }
+  }
+
+  auto view0 = tab.view_rw();
+
+  TRUSTTab<int> tab2(tab);
+
+  auto view2 = tab2.view_rw();
+
+  // Verify with parallel_reduce for each column
+  for (int col = 0; col < 4; col++) {
+    bool all_correct = true;
+    Kokkos::parallel_reduce("CheckValues", 5,
+                            KOKKOS_LAMBDA(int i, bool& result) {
+                              if (view2(i, col) != i) {result = false;}
+                            },
+                            Kokkos::LAnd<bool>(all_correct));
+    EXPECT_TRUE(all_correct);
+  }
+}
+
+
+#ifdef __NVCOMPILER
+#pragma diag_default 177
+#endif
+
 
 #endif //TRUST_USE_GPU
