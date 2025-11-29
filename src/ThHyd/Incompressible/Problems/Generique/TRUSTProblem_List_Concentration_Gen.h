@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -26,9 +26,15 @@ protected:
 
   int duplique() const override
   {
+#ifdef TRUST_USE_GPU
+    // PL: I am stupid, can't fix C++20 build...
+    Process::exit("Not supported yet on GPU.");
+    return -1;
+#else
     TRUSTProblem_List_Concentration_Gen *xxx = new TRUSTProblem_List_Concentration_Gen(*this);
     if (!xxx) Process::exit("Not enough memory !!!");
     return xxx->numero();
+#endif
   }
 
   Entree& readOn(Entree& is) override { return _DERIVED_TYPE_::readOn(is); }
