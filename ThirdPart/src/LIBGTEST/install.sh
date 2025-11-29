@@ -38,6 +38,7 @@ then
 else
    OPTIONS="-DCMAKE_C_COMPILER=$TRUST_cc_BASE -DCMAKE_CXX_COMPILER=$TRUST_CC_BASE"
 fi
+OPTIONS=$OPTIONS" -DCMAKE_CXX_STANDARD=${TRUST_STDCPP#c++}"
 
 # Run CMake to configure the project
 cmake "$src_dir" $OPTIONS -DCMAKE_INSTALL_PREFIX="$install_dir" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_LIBDIR=lib || exit 1

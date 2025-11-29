@@ -122,12 +122,19 @@ int Entree::get(char* ob, std::streamsize bufsize)
     }
   else
     {
-      // L'appel suivant permet a l'operateur>> de limiter le nombre
-      // de caracteres lus. On lira au maximum bufsize-1 caracteres.
-      istream_->width(bufsize);
-      (*istream_) >> ob;
+      // Solution C++20 : utiliser std::string puis copier
+      std::string temp;
+      (*istream_) >> temp;
       if (!error_handle(istream_->fail()))
-        ob[0] = 0;
+        {
+          ob[0] = 0;
+        }
+      else
+        {
+          std::streamsize len = std::min(static_cast<std::streamsize>(temp.size()), bufsize - 1);
+          std::memcpy(ob, temp.c_str(), len);
+          ob[len] = '\0';
+        }
     }
   if (ob[bufsize-1] == 0)
     {

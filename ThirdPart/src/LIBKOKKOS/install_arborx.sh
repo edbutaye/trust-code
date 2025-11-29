@@ -1,7 +1,6 @@
 #!/bin/bash
 [ "$TRUST_USE_CUDA" != 1 ] && exit 0
 archive=$TRUST_ROOT/externalpackages/kokkos/arborx-2.0.1.tar.gz # C++ 20 
-archive=$TRUST_ROOT/externalpackages/kokkos/arborx-1.7.tar.gz # C++ 17
 
 build_dir=$TRUST_ROOT/build/arborx
 KOKKOS_ROOT_DIR=$TRUST_ROOT/lib/src/LIBKOKKOS
@@ -18,7 +17,7 @@ then
       src_dir=$build_dir/`ls $build_dir | grep -i arborx`
 
       BUILD_TYPES="Release `[ "$build_debug" = "1" ] && echo Debug`"
-      BUILD_TYPES="Release"
+      BUILD_TYPES="Release Debug"
       for CMAKE_BUILD_TYPE in $BUILD_TYPES
       do
         rm -rf BUILD;mkdir -p BUILD;cd BUILD

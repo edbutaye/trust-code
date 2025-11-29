@@ -100,6 +100,7 @@ configure_compilateur_ccache()
          then
             [ "$TRUST_STDCPP" = c++14 ] && echo "Error! No C++14 compiler found. For a GNU compiler, you would need a version>=5.3.0" && exit -1
             [ "$TRUST_STDCPP" = c++17 ] && echo "Error! No C++17 compiler found. For a GNU compiler, you would need a version>=8.2.0 or configure for a C++14 compiler with: ./configure -std=c++14 which needs version>=5.3.0" && exit -1
+            [ "$TRUST_STDCPP" = c++20 ] && echo "Error! No C++20 compiler found. For a GNU compiler, you would need a version>=10.4.0 or configure for a C++14 compiler with: ./configure -std=c++14 which needs version>=5.3.0" && exit -1
             echo "Error! -std=$TRUST_STDCPP is not supported." && exit -1
          fi
       elif [ "${chemin%nvc++}" != "$chemin" ]
@@ -286,10 +287,14 @@ xxx()
 	      if [ "$TRUST_STDCPP" = c++14 ]
 	      then
 	         echo $ECHO_OPTS "#include <memory>\n#include <iostream>\nauto func(int i) { return [i=std::move(i)](int b){return b+i;}; }\nint main() { int num = func(3)(5);std::cerr<<num<<std::endl;return 0; }" > main.cpp
-	      # Ajout du test du support de C++17
+	      # Test support de C++17
 	      elif [ "$TRUST_STDCPP" = c++17 ]
 	      then
 	         echo $ECHO_OPTS "#include <iostream>\n#include <tuple>\nstd::tuple<int, std::string> vals() {return {1,\"one\"};}\nint main() { auto [a, b] = vals(); std::cout << a << b << std::endl; return 0; }" > main.cpp
+	      # Test support de C++20
+	      elif [ "$TRUST_STDCPP" = c++20 ]
+	      then
+	         echo $ECHO_OPTS "#include <concepts>\ntemplate <typename T> concept Number = std::integral<T> || std::floating_point<T>;\nint main() {}" > main.cpp
 	      else
 	         echo "Option -std=$TRUST_STDCPP not supported." && exit -1
 	      fi
@@ -1071,6 +1076,10 @@ then
    then
       echo "Error! No C++17 compiler found. For a GNU compiler, you would need a version>=8.2.0"
       echo "       or configure for a C++14 compiler with: ./configure -std=c++14 (For GNU compilers, version>=5.3.0 needed)"
+   elif [ "$TRUST_STDCPP" = c++20 ]
+   then
+      echo "Error! No C++20 compiler found. For a GNU compiler, you would need a version>=10.4.0"
+      echo "       or configure for a C++14 compiler with: ./configure -std=c++14 (For GNU compilers, version>=5.3.0 needed)"
    else
       echo "Error! -std=$TRUST_STDCPP is not supported."
    fi
@@ -1094,7 +1103,7 @@ if [ "$compiler_found" = 0 ] ; then
   exit -1
 fi
 TRUST_VERSION_GNU=`print_GNU_VERSION`
-m="# C++ standard to use to build TRUST (c++17 by default)";e="TRUST_STDCPP=$TRUST_STDCPP && export TRUST_STDCPP";ecrit $m"|"$e"|"$env;eval $e
+m="# C++ standard to use to build TRUST";e="TRUST_STDCPP=$TRUST_STDCPP && export TRUST_STDCPP";ecrit $m"|"$e"|"$env;eval $e
 ######################################################
 # Compilateur alternatif pour extp (librairies, tools)
 ######################################################
@@ -1889,7 +1898,7 @@ case $TRUST_ARCH_CC in
   linux_g++*|cygw*g++*|linux_nvcc_wrapper) TRUST_SUPPORTED=1
 	[ "$TRUST_STDCPP" = c++14 ] && TRUST_SUPPORTED=`echo $TRUST_VERSION_GNU | awk -F. '{ver=$1*100+$2*10+$3;if (ver>=530 && ver<=1511) print "(Supportee)";else print "(Not yet supported or not supported anymore)"}'`
 	[ "$TRUST_STDCPP" = c++17 ] && TRUST_SUPPORTED=`echo $TRUST_VERSION_GNU | awk -F. '{ver=$1*100+$2*10+$3;if (ver>=820 && ver<=1521) print "(Supportee)";else print "(Not yet supported or not supported anymore)"}'`
-	m="# GNU compiler version";e="TRUST_VERSION_GNU=$TRUST_VERSION_GNU && export TRUST_VERSION_GNU";ecrit $m"|"$e"|"$env
+	[ "$TRUST_STDCPP" = c++20 ] && TRUST_SUPPORTED=`echo $TRUST_VERSION_GNU | awk -F. '{ver=$1*100+$2*10+$3;if (ver>=1040 && ver<=1521) print "(Supportee)";else print "(Not yet supported or not supported anymore)"}'`
 	[ "`echo $TRUST_SUPPORTED | grep -i Not`" != "" ] && TRUST_SUPPORTED=0
 	# Passage en -O2 car plantages suspects en -O3 avec egcs sur linux
 	# Options TRES severes a ajouter peut etre un jour : -W -Weffc++ -Wfloat-equal
@@ -1950,7 +1959,7 @@ case $TRUST_ARCH_CC in
    	Defines="-D_COMPILE_AVEC_CLANG"
         if [ "$TRUST_USE_KOKKOS" = 1 ] && [ "$TRUST_USE_ROCM" = 1 ]
         then
-           TRUST_STDCPP="c++17"   # For Kokkos 4.x
+           TRUST_STDCPP="c++20"   # For Kokkos 5.x
            CppFlags=$CppFlags" --offload-arch=$ROCM_ARCH"
         fi   
         CppFlags=$CppFlags" -O3 -fPIC -std=$TRUST_STDCPP -fno-common -Wno-long-long -Wall -Wno-inconsistent-missing-override -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -Wsynth -Wshadow -Wextra -Qunused-arguments -Wno-unsequenced -Wno-unused-parameter -Wno-tautological-compare -Wno-undefined-var-template -Wno-gpu-maybe-wrong-side -Werror"
@@ -1991,10 +2000,8 @@ case $TRUST_ARCH_CC in
            # Si CUDA_VERSION est specifie explicitement dans le HOST sinon on prend le SDK:
            [ "$CUDA_VERSION" = "" ] && CUDA_VERSION=`ls $CUDA_ROOT | grep "[0-9]\.[0-9]" | tail -1`
            gpu=" -gpu=nordc,cc$TRUST_CUDA_CC,cuda$CUDA_VERSION"
-           #TRUST_USE_UVM=1 # Provisoire
-           [ "$TRUST_USE_UVM" = 1 ] && gpu=$gpu",managed" && Defines=$Defines" -DTRUST_USE_UVM"
            CppFlags=$CppFlags$gpu
-           TRUST_STDCPP="c++17"   # For Kokkos 4.x (attention C++17: NVHPC 23.5 OK, NVHPC 23.9 KO sur template !)
+           TRUST_STDCPP="c++20"   # For Kokkos 5.x
         fi
 	[ $HOST = jean-zay ] && [ "$TRUST_CUDA_CC" = 80 ] && CppFlags=$CppFlags" -tp=zen3" # Build sur AMD sinon illegal instruction
         if [ "${HOST#orcus}" != $HOST ] || [ $HOST = jean-zay ]
@@ -2004,7 +2011,7 @@ case $TRUST_ARCH_CC in
         else
            CppFlags=$CppFlags" -O3 -fPIC -Ktrap=fp -Kieee -noswitcherror" # -Ktrap=fp evitent des soucis Arithmetic Exceptions...
         fi
-        CppFlags=$CppFlags" -std=$TRUST_STDCPP -Wno-long-long -Wall -Wshadow -Wextra -Wno-unused-parameter -Werror --display_error_number --diag_suppress1 --diag_suppress185" #--diag_suppress111 si on veut supprimer le warning "statement is unreachable"
+        CppFlags=$CppFlags" -std=$TRUST_STDCPP -Wno-long-long -Wall -Wshadow -Wextra -Wno-unused-parameter -Werror --display_error_number --diag_suppress1 --diag_suppress185 --diag_suppress3007" #--diag_suppress111 si on veut supprimer le warning "statement is unreachable"
 	# Suppress warning for recent nvc++ version (>=24.11?):
 	touch dumb.cpp && nvc++ --diag_suppress3560 -c dumb.cpp 1>/dev/null 2>&1 && CppFlags=$CppFlags" --diag_suppress3560"
 	rm -f dumb.cpp

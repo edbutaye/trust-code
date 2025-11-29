@@ -269,6 +269,7 @@ d43a8fbe83767978098ba7f8ee25d3d1  ccache/ccache-3.1.4.tar.gz
 27c5022f697e2522c0dbab439b9573b9  gnuplot/gnuplot-5.2.7.tar.gz
 ea0931758fc180e3b1950931b9869921  gnuplot/gnuplot-6.0.2.tar.gz
 4fa24da17c99b122a56cb8808b6eb78b  hwloc-2.7.1.tar.gz
+a51b0a245c34151f42a4c6120d2aceec  kokkos/arborx-2.0.1.tar.gz
 36abe803480d07db87f9ba03cd5a842c  kokkos/kokkos-3.7.02.tgz
 24cd603e2a047fc8d67d814f33769f54  kokkos/kokkos-4.7.00.tar.gz
 853a0c5c0747c5943e7ef4bbb793162d  lapack/OpenBLAS-0.3.29.tar.gz

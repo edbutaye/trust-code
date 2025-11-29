@@ -392,6 +392,8 @@ include_directories(SYSTEM
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/geometry
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/kokkos_ext
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/details
+    ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/spatial
+    ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/distributed
     ${TRUST_ROOT}/include/EOS 
     ${TRUST_ROOT}/include/CoolProp
     ${TRUST_ROOT}/lib/src/LIBPDI/include 
