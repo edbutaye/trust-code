@@ -586,7 +586,7 @@ DoubleTab& Op_Conv_VEF_Face::ajouter(const DoubleTab& transporte,
   const Domaine_Cl_VEF& domaine_Cl_VEF = la_zcl_vef.valeur();
   const Domaine_VEF& domaine_VEF = ref_cast(Domaine_VEF, le_dom_vef.valeur());
   const Champ_Inc_base& la_vitesse=vitesse();
-  const DoubleTab& vitesse_face_absolue=la_vitesse.valeurs();
+  const DoubleTab& velocity_tab=la_vitesse.valeurs();
   const DoubleVect& porosite_face = equation().milieu().porosite_face();
 
   int marq=phi_u_transportant(equation());
@@ -976,9 +976,9 @@ DoubleTab& Op_Conv_VEF_Face::ajouter(const DoubleTab& transporte,
                   int calcul_flux_en_un_point = (ordre_ != 3) && (ordre_==1 || traitement_pres_bord_(poly));
                   for (int j=0; j<dimension; j++)
                     {
-                      vs(j) = vitesse_face_absolue(face(0),j)*porosite_face(face(0));
+                      vs(j) = velocity_tab(face(0),j)*porosite_face(face(0));
                       for (int i=1; i<nfac; i++)
-                        vs(j)+= vitesse_face_absolue(face(i),j)*porosite_face(face(i));
+                        vs(j)+= velocity_tab(face(i),j)*porosite_face(face(i));
                     }
                   // calcul de la vitesse aux sommets des polyedres
                   // On va utliser les fonctions de forme implementees dans la classe Champs_P1_impl ou Champs_Q1_impl
@@ -986,7 +986,7 @@ DoubleTab& Op_Conv_VEF_Face::ajouter(const DoubleTab& transporte,
                     {
                       for (int i=0; i<nsom; i++)
                         for (int j=0; j<dimension; j++)
-                          vsom(i,j) = (vs(j) - dimension*vitesse_face_absolue(face(i),j)*porosite_face(face(i)));
+                          vsom(i,j) = (vs(j) - dimension*velocity_tab(face(i),j)*porosite_face(face(i)));
                     }
                   else
                     {
@@ -1310,9 +1310,9 @@ void Op_Conv_VEF_Face::ajouter_contribution(const DoubleTab& tab_transporte, Mat
   // soit on a transporte=phi*transporte_ et vitesse_face=vitesse_
   // soit transporte=transporte_ et vitesse_face=phi*vitesse_
   // cela depend si on transporte avec phi u ou avec u.
-  const DoubleTab& tab_vitesse_face_absolue = la_vitesse.valeurs();
+  const DoubleTab& tab_velocity_tab = la_vitesse.valeurs();
   const DoubleVect& tab_porosite_face = equation().milieu().porosite_face();
-  const DoubleTab& tab_vitesse_face=modif_par_porosite_si_flag(tab_vitesse_face_absolue,vitesse_face_,marq,tab_porosite_face);
+  const DoubleTab& tab_vitesse_face=modif_par_porosite_si_flag(tab_velocity_tab,vitesse_face_,marq,tab_porosite_face);
   const Elem_VEF_base& type_elemvef = domaine_VEF.type_elem();
   int istetra=0;
   Nom nom_elem=type_elemvef.que_suis_je();
@@ -1337,7 +1337,7 @@ void Op_Conv_VEF_Face::ajouter_contribution(const DoubleTab& tab_transporte, Mat
   CDoubleArrView porosite_face = tab_porosite_face.view_ro();
   CDoubleArrView porosite_elem = equation().milieu().porosite_elem().view_ro();
   CDoubleTabView vitesse = la_vitesse.valeurs().view_ro();
-  CDoubleTabView vitesse_face_absolue = tab_vitesse_face_absolue.view_ro();
+  CDoubleTabView velocity_tab = tab_velocity_tab.view_ro();
   CDoubleTabView transporte = tab_transporte.view_ro();
   Matrice_Morse_View matrice;
   matrice.set(matrice_morse);
@@ -1354,9 +1354,9 @@ void Op_Conv_VEF_Face::ajouter_contribution(const DoubleTab& tab_transporte, Mat
     double vs[3];
     for (int j=0; j<dim; j++)
       {
-        vs[j] = vitesse_face_absolue(face[0],j)*porosite_face[face[0]];
+        vs[j] = velocity_tab(face[0],j)*porosite_face[face[0]];
         for (int i=1; i<nfac; i++)
-          vs[j] += vitesse_face_absolue(face[i],j)*porosite_face[face[i]];
+          vs[j] += velocity_tab(face[i],j)*porosite_face[face[i]];
       }
     // calcul de la vitesse aux sommets des polyedres
     // On va utliser les fonctions de forme implementees dans la classe Champs_P1_impl ou Champs_Q1_impl
@@ -1365,7 +1365,7 @@ void Op_Conv_VEF_Face::ajouter_contribution(const DoubleTab& tab_transporte, Mat
       {
         for (int i=0; i<nsom; i++)
           for (int j=0; j<dim; j++)
-            vsom[i * dim + j] = (vs[j] - dim*vitesse_face_absolue(face[i],j)*porosite_face[face[i]]);
+            vsom[i * dim + j] = (vs[j] - dim*velocity_tab(face[i],j)*porosite_face[face[i]]);
       }
     else
       {

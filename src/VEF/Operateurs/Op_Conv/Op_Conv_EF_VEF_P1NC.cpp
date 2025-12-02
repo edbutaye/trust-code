@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2025, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -98,7 +98,7 @@ DoubleTab& Op_Conv_EF_VEF_P1NC::ajouter(const DoubleTab& transporte_2,
   const Domaine_VEF& domaine_VEF = le_dom_vef.valeur();
   const Domaine_Cl_VEF& domaine_Cl_VEF = la_zcl_vef.valeur();
   const Champ_P1NC& la_vitesse=ref_cast( Champ_P1NC, vitesse_.valeur());
-  const DoubleTab& vitesse_face_absolue=la_vitesse.valeurs();
+  const DoubleTab& velocity_tab=la_vitesse.valeurs();
   const Champ_P1NC& ch=ref_cast(Champ_P1NC,mon_equation->inconnue());
 
   const IntTab& elem_faces = domaine_VEF.elem_faces();
@@ -121,7 +121,7 @@ DoubleTab& Op_Conv_EF_VEF_P1NC::ajouter(const DoubleTab& transporte_2,
       {
         psc=0.;
         for (int i=0; i<dimension; i++)
-          psc+=vitesse_face_absolue(num_face,i)*face_normales(num_face,i);
+          psc+=velocity_tab(num_face,i)*face_normales(num_face,i);
         fluent_(num_face)=std::fabs(psc);
       }
   }
@@ -133,7 +133,7 @@ DoubleTab& Op_Conv_EF_VEF_P1NC::ajouter(const DoubleTab& transporte_2,
   // soit transporte=transporte_ et vitesse_face=phi*vitesse_
   // cela d~pend si on transporte avec phi u ou avec u.
   const DoubleTab& transporte=modif_par_porosite_si_flag(transporte_2,transporte_,!marq,porosite_face);
-  const DoubleTab& tab_vitesse=modif_par_porosite_si_flag(vitesse_face_absolue,vitesse_face_,marq,porosite_face);
+  const DoubleTab& tab_vitesse=modif_par_porosite_si_flag(velocity_tab,vitesse_face_,marq,porosite_face);
   //  DoubleTab ubar(transporte);
   //  la_vitesse.filtrer_L2(ubar);
   //  DoubleTab uprime(transporte);
