@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -19,6 +19,7 @@
 #include <Champ_Uniforme.h>
 #include <Domaine_VF.h>
 #include <Parser_U.h>
+#include <ParserView.h>
 #include <Motcle.h>
 #include <Param.h>
 
@@ -113,7 +114,7 @@ Champ_Fonc_base& Modele_turbulence_scal_Prandtl::calculer_diffusivite_turbulente
   DoubleTab& tab_alpha_t = diffusivite_turbulente_->valeurs();
   const DoubleTab& tab_nu_t = la_viscosite_turbulente_->valeurs();
   double temps = la_viscosite_turbulente_->temps();
-  const DoubleTab& xp = ref_cast(Domaine_VF,mon_equation_->domaine_dis()).xp();
+
 
   int n = tab_alpha_t.size();
   if (tab_nu_t.size() != n)
@@ -139,42 +140,51 @@ Champ_Fonc_base& Modele_turbulence_scal_Prandtl::calculer_diffusivite_turbulente
           exit();
         }
       double d_alpha = 0.;
-      int is_alpha_unif = sub_type(Champ_Uniforme, alpha);
+      const bool is_alpha_unif = sub_type(Champ_Uniforme, alpha);
       if (is_alpha_unif)
-        {
-          d_alpha = alpha.valeurs()(0, 0);
-          fonction_.setVar("alpha", d_alpha);
-        }
-      ToDo_Kokkos("Critical");
-      for (int i = 0; i < n; i++)
-        {
-          if (!is_alpha_unif)
-            fonction_.setVar("alpha", alpha.valeurs()(i));
-          fonction_.setVar("nu_t", tab_nu_t[i]);
+        d_alpha = alpha.valeurs()(0, 0);
 
-          tab_alpha_t[i] = fonction_.eval();
-        }
+      ParserView parser(fonction_);
+      parser.parseString();
+      CDoubleArrView alpha_vals;
+      if (!is_alpha_unif) alpha_vals = static_cast<const ArrOfDouble&>(alpha.valeurs()).view_ro();
+      CDoubleArrView nu_t = static_cast<const DoubleVect&>(tab_nu_t).view_ro();
+      DoubleArrView alpha_t = static_cast<DoubleVect&>(tab_alpha_t).view_rw();
+      Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__), Kokkos::RangePolicy<>(0, n), KOKKOS_LAMBDA(const int i)
+      {
+        int threadId = parser.acquire();
+        double alpha_val = is_alpha_unif ? d_alpha : alpha_vals(i);
+        parser.setVar(0, alpha_val, threadId);
+        parser.setVar(1, nu_t[i], threadId);
+        alpha_t[i] = parser.eval(threadId);
+        parser.release(threadId);
+      });
+      end_gpu_timer(__KERNEL_NAME__);
     }
   else
     {
       if (LePrdt_fct_ != Nom())
         {
-          ToDo_Kokkos("Critical");
-          for (int i = 0; i < n; i++)
-            {
-              double x = xp(i, 0);
-              double y = xp(i, 1);
-              double z = 0;
-              if (xp.nb_dim() == 3)
-                {
-                  z = xp(i, 2);
-                }
-              fonction1_.setVar("x", x);
-              fonction1_.setVar("y", y);
-              fonction1_.setVar("z", z);
-              double NbPrandtlCell = fonction1_.eval();
-              tab_alpha_t[i] = tab_nu_t[i] / NbPrandtlCell;
-            }
+          const int nb_dim = dimension;
+          ParserView parser(fonction1_);
+          parser.parseString();
+          CDoubleTabView xp = ref_cast(Domaine_VF,mon_equation_->domaine_dis()).xp().view_ro();
+          CDoubleArrView nu_t = static_cast<const DoubleVect&>(tab_nu_t).view_ro();
+          DoubleArrView alpha_t = static_cast<DoubleVect&>(tab_alpha_t).view_rw();
+          Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__), Kokkos::RangePolicy<>(0, n), KOKKOS_LAMBDA(const int i)
+          {
+            int threadId = parser.acquire();
+            double x = xp(i, 0);
+            double y = xp(i, 1);
+            double z = nb_dim == 3 ? xp(i, 2) : 0.;
+            parser.setVar(0, x, threadId);
+            parser.setVar(1, y, threadId);
+            parser.setVar(2, z, threadId);
+            double NbPrandtlCell = parser.eval(threadId);
+            alpha_t[i] = nu_t[i] / NbPrandtlCell;
+            parser.release(threadId);
+          });
+          end_gpu_timer(__KERNEL_NAME__);
         }
       else
         {
