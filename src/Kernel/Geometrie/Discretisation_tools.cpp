@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -261,18 +261,23 @@ void Discretisation_tools::cells_to_faces(const Domaine_VF& domaine_vf, const Do
 
 void Discretisation_tools::faces_to_cells(const Domaine_VF& domaine_vf, const DoubleTab& tab_face, DoubleTab& tab_elem)
 {
-  ToDo_Kokkos("critical but seems not used by TRUST");
-  const IntTab& elem_faces = domaine_vf.elem_faces();
-  const int nb_face_elem = elem_faces.dimension(1), nb_elem = domaine_vf.nb_elem(), nb_comp = tab_face.line_size();;
+  const int nb_face_elem = domaine_vf.elem_faces().dimension(1), nb_elem = domaine_vf.nb_elem(), nb_comp = tab_face.line_size();
   assert(tab_elem.dimension_tot(0) == domaine_vf.nb_elem_tot() && tab_face.dimension_tot(0) == domaine_vf.nb_faces_tot());
   assert(tab_elem.line_size() == nb_comp);
 
   tab_elem = 0;
 
-  for (int ele = 0; ele < nb_elem; ele++)
-    for (int comp = 0; comp < nb_comp; comp++)
-      for (int s = 0; s < nb_face_elem; s++)
-        tab_elem(ele, comp) += tab_face(elem_faces(ele, s), comp);
+  CIntTabView elem_faces = domaine_vf.elem_faces().view_ro();
+  CDoubleTabView face = tab_face.view_ro();
+  DoubleTabView elem = tab_elem.view_rw();
+  Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__), range_2D({0, 0}, {nb_elem, nb_comp}), KOKKOS_LAMBDA(const int ele, const int comp)
+  {
+    double sum = 0.;
+    for (int s = 0; s < nb_face_elem; s++)
+      sum += face(elem_faces(ele, s), comp);
+    elem(ele, comp) = sum;
+  });
+  end_gpu_timer(__KERNEL_NAME__);
 
   double inv_nb_face_elem = 1. / nb_face_elem;
   tab_elem *= inv_nb_face_elem;
