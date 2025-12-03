@@ -38,6 +38,12 @@
 
 #include <kokkos++.h>
 
+namespace
+{
+static bool TRUST_KOKKOS_INITIALIZED = false;
+static bool TRUST_PETSC_INITIALIZED = false;
+}
+
 mon_main::mon_main(int verbose_level, bool journal_master, Nom log_directory, bool apply_verification, bool disable_stop)
 {
   verbose_level_ = verbose_level;
@@ -59,6 +65,9 @@ bool error_handlers = false;
 #endif
 static int init_petsc(True_int argc, char **argv, bool with_mpi,bool& trio_began_mpi_)
 {
+  if (TRUST_PETSC_INITIALIZED)
+    return 1;
+
 #ifdef PETSCKSP_H
   static char help[] = "TRUST may solve linear systems with Petsc library.\n\n" ;
   Nom pwd(::pwd());
@@ -122,6 +131,8 @@ static int init_petsc(True_int argc, char **argv, bool with_mpi,bool& trio_began
     }
 #endif
 #endif
+
+  TRUST_PETSC_INITIALIZED = true;
   return 1;
 }
 
@@ -179,11 +190,12 @@ void mon_main::init_parallel(const int argc, char **argv, bool with_mpi, bool ch
 {
   bool init_kokkos_before_mpi = (getenv("KOKKOS_AFTER_MPI") == nullptr);
   // https://kokkos.org/kokkos-core-wiki/ProgrammingGuide/Initialization.html say after !
-  if (init_kokkos_before_mpi)
+  if (init_kokkos_before_mpi && !TRUST_KOKKOS_INITIALIZED)
     {
       // Kokkos initialization
       True_int argc2 = argc;
       Kokkos::initialize(argc2, argv);
+      TRUST_KOKKOS_INITIALIZED = true;
     }
   Nom arguments_info = "";
   arguments_info += "Kokkos initialized!\n";
@@ -243,11 +255,12 @@ void mon_main::init_parallel(const int argc, char **argv, bool with_mpi, bool ch
   // however, it is initialized later, as it involves communication operations, which require statistics to be initialized first...
   instantiate_node_mpi(node_group_, node_master_, with_mpi);
 
-  if (!init_kokkos_before_mpi)
+  if (!init_kokkos_before_mpi && !TRUST_KOKKOS_INITIALIZED)
     {
       // Kokkos initialization
       True_int argc2 = argc;
       Kokkos::initialize(argc2, argv);
+      TRUST_KOKKOS_INITIALIZED = true;
       if (Process::je_suis_maitre())
         Cerr << "Kokkos initialized after MPI !" << finl;
     }
