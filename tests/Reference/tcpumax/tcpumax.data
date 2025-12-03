@@ -1,0 +1,108 @@
+# Test for keyword tcpumax: checks that the calculation stops quickly after reaching tcpumax of 3600 ms (1e-3 hours) #
+# test may stop at different timesteps depending on run condition, hence the following tags for lance_test: #
+# PARALLEL OK 8 #
+# lance_test 1000 ecarts #
+
+dimension 2
+
+# for testing keyword tcpumax #
+System "date +%s%3N > start_time"
+
+
+Pb_hydraulique pb
+Domaine dom
+# BEGIN MESH #
+Read_file tcpumax.geo ;
+
+# END MESH #
+# BEGIN PARTITION
+Postraiter_domaine
+{
+    fichier mesh.lata
+    format lata
+    domaine dom
+}
+
+Partition dom
+{
+    Partition_tool tranche { tranches 2 1 }
+    Larg_joint 1
+    zones_name DOM
+}
+End
+END PARTITION #
+
+# BEGIN SCATTER
+Scatter DOM.Zones dom
+END SCATTER #
+
+VDF dis
+
+Scheme_euler_explicit sch
+Read sch
+{
+    tcpumax 1.e-3 # DO NOT CHANGE THIS WITHOUT LOOKING AT verifie #
+    tinit 0
+    tmax 1000000000
+    nb_pas_dt_max 400000
+    /* dt_min identique au dt_max alors dt=dt_min=dt_max */
+    dt_min 5.e-3
+    dt_max 5.e-3
+    dt_impr 1000000000
+    seuil_statio 1.e-32 # DO NOT CHANGE THIS #
+}
+
+Associate pb dom
+Associate pb sch
+Discretize pb dis
+
+Read pb
+{
+
+    fluide_incompressible {
+        mu Champ_Uniforme 1 3.7e-05
+        rho Champ_Uniforme 1 2
+    }
+
+
+    Navier_Stokes_standard
+    {
+        solveur_pression GCP {
+            precond ssor { omega 1.5 }
+            seuil 1.e-8 impr
+        }
+        convection { amont }
+        diffusion {  }
+        # Conditions initiales sur la vitesse #
+        initial_conditions {
+            vitesse Champ_Uniforme 2 0. 0.
+        }
+        boundary_conditions {
+            Obstacle paroi_fixe
+            Symetrie symetrie
+            Sortie frontiere_ouverte_pression_imposee
+            Champ_front_Uniforme 1 0.
+            Entree frontiere_ouverte_vitesse_imposee
+            Champ_front_Uniforme 2  1. 0.
+        }
+    }
+
+    Post_processing
+    {
+        Format LATA
+        fields dt_post 10000000
+        {
+            pression elem
+            vitesse elem
+        }
+    }
+
+}
+EcritureLectureSpecial 1
+Solve pb
+
+# for testing keyword tcpumax #
+System "date +%s%3N > end_time"
+
+End
+
