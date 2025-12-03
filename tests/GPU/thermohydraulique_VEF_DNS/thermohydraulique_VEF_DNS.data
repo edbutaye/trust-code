@@ -185,10 +185,10 @@ Lire pb
             format lata
             Champs binaire dt_post 1e+6
             {
-                vitesse elem
+#                vitesse elem
                 temperature elem
                 y_plus elem
-                vorticite elem
+                vorticite elem #
                 gradient_vitesse elem
                 Gradient_temperature elem
                 maxGradU elem
@@ -248,9 +248,9 @@ Lire pb
                 EC_vitesse elem
                 MOY_temperature elem
                 EC_temperature elem
-                vitesse elem
+#                vitesse elem
                 pression elem
-                volume_maille
+                volume_maille #
             }
 
         } # fin ptraitement STATS #
@@ -438,7 +438,7 @@ Lire pb
                                                         KolmogorovScale elem
                                                         IntegralScale elem
                                                         BatchelorScale elem
-                                                        volume_maille
+                                                      #  volume_maille #
                                                         }
 
         } # fin ptraitement STATS #
