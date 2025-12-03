@@ -95,7 +95,7 @@ public:
   int traiter_champs();
   virtual int lire_champs_a_postraiter(Entree& is, bool expect_acco);                //Lance eventuellement la creation de champs generiques par macro
   //et construit la liste noms_champs_a_post_ des champs post-traites
-  int lire_champs_stat_a_postraiter(Entree&);        //idem pour statistiques
+  int lire_champs_stat_a_postraiter(Entree&, bool expect_acco);        //idem pour statistiques
   int lire_champs_operateurs(Entree& is);                //Lecture d un champ generique, nomme et complete
   void complete_champ(Champ_Generique_base& champ,const Motcle& motlu);
   int postraiter_tableaux();

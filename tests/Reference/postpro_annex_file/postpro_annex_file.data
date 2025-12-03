@@ -86,12 +86,25 @@ Lire pb
 
     Postraitement
     {
+        dt_post   1.e-4
         Definition_champs_fichier                      { fichier annex/definition_champs }
-        champs_fichier                 dt_post   1.e-4 { fichier annex/fields }
+        champs_fichier                                 { fichier annex/fields }
         sondes_fichier                                 { fichier annex/probes }
         sondes_mobiles_fichier                         { fichier annex/mobile_probes }
-        statistiques_fichier           dt_post   1.e-4 { fichier annex/stats }
+        statistiques_fichier                           { fichier annex/stats }
         statistiques_en_serie_fichier  dt_integr 1.    { fichier annex/serial_stats }
+
+        # The following part is just for Non-regression #
+        fields
+        {
+            pression_pa som
+        }
+        Statistics
+        {
+            t_deb 1. t_fin 5.
+            moyenne pression_pa
+            ecart_type pression_pa
+        }
     }
 }
 Solve pb

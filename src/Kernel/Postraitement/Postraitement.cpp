@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -516,8 +516,8 @@ void Postraitement::set_param(Param& param)
 // XD   attr champs|fields list_stat_post champs 0 Post-processed fields.
 
 // XD stats_posts_fichier objet_lecture nul 0 Statistics read from file.. \input{{statistiques}}
-// XD   attr mot chaine(into=["dt_post","nb_pas_dt_post"]) mot 0 Keyword to set the kind of the field\'s write frequency. Either a time period or a time step period.
-// XD   attr period chaine period 0 Value of the period which can be like (2.*t).
+// XD   attr mot chaine(into=["dt_post","nb_pas_dt_post"]) mot 1 Keyword to set the kind of the field\'s write frequency. Either a time period or a time step period.
+// XD   attr period chaine period 1 Value of the period which can be like (2.*t).
 // XD   attr fichier bloc_fichier file 0 name of file
 
 // XD stats_serie_posts objet_lecture nul 0 This keyword is used to set the statistics. Average on dt_integr time interval is post-processed every dt_integr seconds. \input{{statistiquesseries}}
@@ -687,7 +687,8 @@ int Postraitement::lire_motcle_non_standard(const Motcle& mot, Entree& s)
           dt_post_ = tmp_dt;
           expect_acco = true;
         }
-
+      if (!expect_acco && motlu != "{")
+        Process::exit("We expected { to start the reading of the fields to postprocess!");
       //La methode lire_champs_stat_a_postraiter() va generer auatomatiquement un Champ_Generique_base
       //en fonction des indications du jeu de donnees (ancienne formulation)
 
@@ -695,10 +696,10 @@ int Postraitement::lire_motcle_non_standard(const Motcle& mot, Entree& s)
         {
           Nom associated_word("Statistics");
           EChaineJDD file_content = get_file_content_for_bloc(associated_word, s, expect_acco);
-          lire_champs_stat_a_postraiter(file_content);
+          lire_champs_stat_a_postraiter(file_content,true);
         }
       else
-        lire_champs_stat_a_postraiter(s);
+        lire_champs_stat_a_postraiter(s,expect_acco);
 
       //Activer pour lancer la sauvegarde et la reprise des statistiques
       stat_demande_ = 1;
@@ -818,10 +819,10 @@ int Postraitement::lire_motcle_non_standard(const Motcle& mot, Entree& s)
       if (keyword=="Serial_statistics_file")
         {
           EChaineJDD file_content = get_file_content_for_bloc(Nom("Serial_statistics"), s, true);
-          lire_champs_stat_a_postraiter(file_content);
+          lire_champs_stat_a_postraiter(file_content, true);
         }
       else
-        lire_champs_stat_a_postraiter(s);
+        lire_champs_stat_a_postraiter(s, true);
       stat_demande_ = 1;
       lserie_=1;
       return 1;
@@ -1244,7 +1245,7 @@ int Postraitement::lire_champs_a_postraiter(Entree& s, bool expect_acco)
   return 1;
 }
 
-int Postraitement::lire_champs_stat_a_postraiter(Entree& s)
+int Postraitement::lire_champs_stat_a_postraiter(Entree& s, bool expect_acco)
 {
   Motcle accolade_ouverte("{");
   Motcle accolade_fermee("}");
@@ -1252,12 +1253,14 @@ int Postraitement::lire_champs_stat_a_postraiter(Entree& s)
   //Motcle elem("elem");
   //Motcle som("som");
   indic_corr="non_correlation";
-
-  s >> motlu;
-  if (motlu != accolade_ouverte)
+  if (expect_acco)
     {
-      Cerr << "We expected { to start to read the data to create the statistical fields" << finl;
-      exit();
+      s >> motlu;
+      if (motlu != accolade_ouverte)
+        {
+          Cerr << "We expected { to start to read the data to create the statistical fields" << finl;
+          exit();
+        }
     }
 
   Noms liste_noms;

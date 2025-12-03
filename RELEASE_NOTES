@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------------------------
 Release notes version 1.9.8_beta : Enhancements, modifications and corrected bugs since version 1.9.7 :
 --------------------------------------------------------------------------------------------------
+08/01/26 (TRUST) Bug fix      : Fix for the case where dt_post is specified once in the header of post-processing block and where a mix of post-processings from files and old fashion is requested
 08/01/26 (TRUST) Bug fix      : Possible memory increase when writing some files (typically opened/closed at each write)
 --------------------------------------------------------------------------------------------------
 Release notes version 1.9.7 : Enhancements, modifications and corrected bugs since version 1.9.6 :
