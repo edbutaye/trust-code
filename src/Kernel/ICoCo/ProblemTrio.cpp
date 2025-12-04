@@ -46,12 +46,16 @@ using ICoCo::TrioField;
 using std::string;
 using std::vector;
 
+extern void TRUST_global_finalize();
 
 ProblemTrio::~ProblemTrio()
 {
   if(p) delete p;
   p=0;
   delete (my_params);
+
+
+  TRUST_global_finalize();
 }
 
 ////////////////////////////
@@ -79,6 +83,8 @@ extern "C" Problem* getProblem()
  * @throws WrongContext
  */
 
+extern void TRUST_set_library_mode(bool);
+
 ProblemTrio::ProblemTrio() :
   pb(nullptr), p(nullptr)
 {
@@ -87,6 +93,7 @@ ProblemTrio::ProblemTrio() :
   (*my_params).problem_name="pb";
   //my_params.comm=MPI_COMM_WORLD;
   (*my_params).is_mpi=0;
+  TRUST_set_library_mode(true);
 }
 
 

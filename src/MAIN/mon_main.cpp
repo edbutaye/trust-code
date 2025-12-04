@@ -42,6 +42,26 @@ namespace
 {
 static bool TRUST_KOKKOS_INITIALIZED = false;
 static bool TRUST_PETSC_INITIALIZED = false;
+static bool TRUST_LIBRARY_MODE = false;
+}
+
+void TRUST_set_library_mode(bool b)
+{
+  TRUST_LIBRARY_MODE = b;
+}
+
+void TRUST_global_finalize()
+{
+  if (TRUST_PETSC_INITIALIZED)
+    {
+      PetscBool isInitialized;
+      PetscInitialized(&isInitialized);
+      if (isInitialized==PETSC_TRUE) PetscFinalize();
+    }
+  if (TRUST_KOKKOS_INITIALIZED)
+    {
+      Kokkos::finalize();
+    }
 }
 
 mon_main::mon_main(int verbose_level, bool journal_master, Nom log_directory, bool apply_verification, bool disable_stop)
@@ -299,22 +319,27 @@ void mon_main::finalize()
     }
 
 #endif
+
 #ifdef PETSCKSP_H
-  // On PetscFinalize que si c'est necessaire
-  PetscBool isInitialized;
-  PetscInitialized(&isInitialized);
-  if (isInitialized==PETSC_TRUE)
+  if (!TRUST_LIBRARY_MODE)
     {
-      PetscPopErrorHandler(); // Removes the latest error handler that was pushed with PetscPushErrorHandler in init_petsc
+      // On PetscFinalize que si c'est necessaire
+      PetscBool isInitialized;
+      PetscInitialized(&isInitialized);
+      if (isInitialized==PETSC_TRUE)
+        {
+          PetscPopErrorHandler(); // Removes the latest error handler that was pushed with PetscPushErrorHandler in init_petsc
 #ifdef MPI_
-      if (sub_type(Comm_Group_MPI,PE_Groups::current_group()))
-        PETSC_COMM_WORLD = ref_cast(Comm_Group_MPI,PE_Groups::current_group()).get_mpi_comm();
+          if (sub_type(Comm_Group_MPI,PE_Groups::current_group()))
+            PETSC_COMM_WORLD = ref_cast(Comm_Group_MPI,PE_Groups::current_group()).get_mpi_comm();
 #endif
-      PetscFinalize();
+          PetscFinalize();
+        }
     }
 #endif
+
 #ifdef MPI_
-  if (trio_began_mpi_)
+  if (!TRUST_LIBRARY_MODE && trio_began_mpi_)
     {
       // On MPI_Finalize si MPI_Initialized and not MPI_Finalized
       True_int flag;
@@ -327,7 +352,8 @@ void mon_main::finalize()
         }
     }
 #endif
-  Kokkos::finalize();
+  if (!TRUST_LIBRARY_MODE && TRUST_KOKKOS_INITIALIZED)
+    Kokkos::finalize();
 }
 
 void mon_main::dowork(const Nom& nom_du_cas)
