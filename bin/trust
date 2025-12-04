@@ -1399,7 +1399,10 @@ then
    echo "A non flat Consumed graph indicates a memory increase !"
    echo "======================================================="
    #heaptrack --analyze `find . -newer $NOM.log -name heaptrack.'*'.*st*`
-   heaptrack_gui `find . -newer $NOM.log -name heaptrack.'*'.*st*`
+   for zst in `find . -newer $NOM.stop -name heaptrack.'*'.*st*`
+   do
+      heaptrack_gui $zst &
+   done   
 elif [ "$VTUNE" = 1 ]
 then
    vtune-gui $vtune_result*/*.vtune
