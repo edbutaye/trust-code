@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -957,11 +957,7 @@ void Domaine_VF::build_mc_Cmesh_correspondence(bool withFace)
   renumb->alloc(n_nod);
   std::copy(mc_Cmesh_nodesCorrespondence_.data(),mc_Cmesh_nodesCorrespondence_.data()+n_nod, renumb->rwBegin());
 
-#ifdef TRUST_USE_GPU
-  Process::exit("Domaine_VF::build_mc_Cmesh_correspondence can't be used with this C++ build.");
-#else
   mc_unstr->renumberNodesInConn(renumb->begin()); // only in connectivity
-#endif
 
   // Identify elements
   DataArrayIdType * mP;

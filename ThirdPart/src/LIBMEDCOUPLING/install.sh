@@ -81,6 +81,8 @@ build_and_test_mc()
     (cd $src_dir; patch -p1 -f < $TRUST_ROOT/ThirdPart/src/LIBMEDCOUPLING/apple.patch ) || exit -1
     echo "Applying patch for OverlapDEC accessors in Python ..."
     (cd $src_dir; patch -p1 < $TRUST_ROOT/ThirdPart/src/LIBMEDCOUPLING/py_odec_accessors.patch )
+    echo "Applying patch for C++20 ..."
+    (cd $src_dir; patch -p1 < $TRUST_ROOT/ThirdPart/src/LIBMEDCOUPLING/mc_cpp20.patch ) || exit -1
     # Hack to build with nvcc:
     sed -i "1,$ s?const med_int?const INT?g" `find $src_dir -name MEDFileBasis.hxx` || exit -1
 
@@ -92,8 +94,7 @@ build_and_test_mc()
     OPTIONS="$OPTIONS -DMEDCOUPLING_PARTITIONER_SCOTCH=OFF -DMEDCOUPLING_ENABLE_RENUMBER=OFF -DMEDCOUPLING_ENABLE_PARTITIONER=OFF -DMEDCOUPLING_BUILD_TESTS=OFF "
     OPTIONS="$OPTIONS -DMEDCOUPLING_WITH_FILE_EXAMPLES=OFF -DCONFIGURATION_ROOT_DIR=../../configuration-$mc_version -DSWIG_EXECUTABLE=$SWIG_EXECUTABLE"
     OPTIONS="$OPTIONS -DMEDCOUPLING_MEDLOADER_USE_XDR=OFF -DMEDCOUPLING_BUILD_STATIC=ON -DMEDCOUPLING_ENABLE_PYTHON=$use_python -DPYTHON_ROOT_DIR=${TRUST_ROOT}/exec/python"
-    # To change C++ standard: warning, MC seems have issue with C++20 :-(
-    # -DSALOME_CXX_STANDARD=${TRUST_STDCPP#c++}
+    OPTIONS="$OPTIONS -DSALOME_CXX_STANDARD=${TRUST_STDCPP#c++}"
     #INT64 management:
     if [ "$TRUST_INT64" = "1" ]
     then
