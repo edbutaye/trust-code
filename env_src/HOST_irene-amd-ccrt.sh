@@ -30,6 +30,7 @@ define_modules_config()
       module="gnu/8.3.0 nvhpc/23.7 mpi/openmpi/4.1.4" # Passage a Cuda 11.8 et NVHPC 23.7 OK
       # Contact support pour regler des crashes MPI sur 80 GPUs:
       module="gnu/8.3.0 nvhpc/23.7 mpi/openmpi/4.1.4 flavor/hcoll/cuda-12.2" && sw="hcoll/4.8.3221"
+      module="gnu/8.3.0 nvhpc/25.7 mpi/openmpi/4.1.4" # Passage a Cuda 12.9 et NVHPC 25.7
       [ "$TRUST_CUDA_CC" = "" ] && TRUST_CUDA_CC=70 # V100
    else
       module="gnu/11 mpi/openmpi/4.0.5 mkl/20.0.0"
