@@ -16,28 +16,26 @@ class trusticoco_test(unittest.TestCase):
     def test_repeated_run_parallel(self):
         """ Same as test_repeated_run() (in  test_trusticoco.py) but in //
         """
-        #
-        # TODO ABN - being fixed - not functional yet ...
-        #
-        return
-
         import trusticoco as ti
         import medcoupling as mc
 
+        # ProblemTrio should be instanciated only once ! 
+        # But after that, initialize() and terminate() may be called several times
+        pbT = ti.ProblemTrio()
+        pbT.name = "TRUST"
+        com2 = MPI.Comm(MPI.COMM_WORLD)
+        pbT.setMPIComm(com2)
+
         def run():
-            pbT = ti.ProblemTrio()
-            pbT.name = "TRUST"
-            com2 = MPI.Comm(MPI.COMM_WORLD)
-            pbT.setMPIComm(com2)
             pbT.setDataFile("PAR_test_conduc_para.data")
-            pb = pbT
-            pb.initialize()
-            dt, stop = pb.computeTimeStep()
-            pb.initTimeStep(dt)
-            ok = pb.solveTimeStep()
-            pb.validateTimeStep()
+            pbT.initialize()
+            dt, stop = pbT.computeTimeStep()
+            pbT.initTimeStep(dt)
+            ok = pbT.solveTimeStep()
+            pbT.validateTimeStep()
             pbT.terminate()
 
+        run()
         run()
         run()
 
