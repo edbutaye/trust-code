@@ -40,7 +40,6 @@
 
 namespace
 {
-static bool TRUST_KOKKOS_INITIALIZED = false;
 static bool TRUST_LIBRARY_MODE = false;
 }
 
@@ -53,11 +52,11 @@ void TRUST_global_finalize()
 {
   PetscBool isInitialized;
   PetscInitialized(&isInitialized);
-  if (isInitialized==PETSC_TRUE) PetscFinalize();
-  if (TRUST_KOKKOS_INITIALIZED)
-    {
-      Kokkos::finalize();
-    }
+  if (isInitialized==PETSC_TRUE)
+    PetscFinalize();
+
+  if (Kokkos::is_initialized())
+    Kokkos::finalize();
 }
 
 mon_main::mon_main(int verbose_level, bool journal_master, Nom log_directory, bool apply_verification, bool disable_stop)
@@ -207,12 +206,11 @@ void mon_main::init_parallel(const int argc, char **argv, bool with_mpi, bool ch
 {
   bool init_kokkos_before_mpi = (getenv("KOKKOS_AFTER_MPI") == nullptr);
   // https://kokkos.org/kokkos-core-wiki/ProgrammingGuide/Initialization.html say after !
-  if (init_kokkos_before_mpi && !TRUST_KOKKOS_INITIALIZED)
+  if (init_kokkos_before_mpi && !Kokkos::is_initialized())
     {
       // Kokkos initialization
       True_int argc2 = argc;
       Kokkos::initialize(argc2, argv);
-      TRUST_KOKKOS_INITIALIZED = true;
     }
   Nom arguments_info = "";
   arguments_info += "Kokkos initialized!\n";
@@ -272,12 +270,11 @@ void mon_main::init_parallel(const int argc, char **argv, bool with_mpi, bool ch
   // however, it is initialized later, as it involves communication operations, which require statistics to be initialized first...
   instantiate_node_mpi(node_group_, node_master_, with_mpi);
 
-  if (!init_kokkos_before_mpi && !TRUST_KOKKOS_INITIALIZED)
+  if (!init_kokkos_before_mpi && !Kokkos::is_initialized())
     {
       // Kokkos initialization
       True_int argc2 = argc;
       Kokkos::initialize(argc2, argv);
-      TRUST_KOKKOS_INITIALIZED = true;
       if (Process::je_suis_maitre())
         Cerr << "Kokkos initialized after MPI !" << finl;
     }
@@ -349,7 +346,7 @@ void mon_main::finalize()
         }
     }
 #endif
-  if (!TRUST_LIBRARY_MODE && TRUST_KOKKOS_INITIALIZED)
+  if (!TRUST_LIBRARY_MODE && Kokkos::is_initialized())
     Kokkos::finalize();
 }
 

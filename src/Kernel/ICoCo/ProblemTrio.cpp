@@ -59,7 +59,6 @@ ProblemTrio::~ProblemTrio()
   p=0;
   delete (my_params);
 
-
   TRUST_global_finalize();
 }
 
