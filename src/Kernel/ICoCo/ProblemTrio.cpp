@@ -50,7 +50,7 @@ extern void TRUST_global_finalize();
 
 namespace
 {
-bool TRUST_MPI_INITIALIZED = false;
+bool TRUST_MPI_COMM_SET = false;
 }
 
 ProblemTrio::~ProblemTrio()
@@ -131,7 +131,7 @@ bool ProblemTrio::initialize()
 #ifdef MPI_
   // exception if I don't belong to comm !
   True_int rank_in_comm=0;
-  if ((*my_params).is_mpi!=0 && !TRUST_MPI_INITIALIZED)
+  if ((*my_params).is_mpi!=0 && !TRUST_MPI_COMM_SET)
     {
       if (MPI_Comm_rank((*my_params).comm,&rank_in_comm)!=MPI_SUCCESS)
         throw WrongArgument((*my_params).problem_name,"initialize","comm","This process should belong to comm");
@@ -140,7 +140,7 @@ bool ProblemTrio::initialize()
 
       Comm_Group_MPI::set_trio_u_world((*my_params).comm);
       Comm_Group_MPI::set_must_mpi_initialize(false); // ???
-      TRUST_MPI_INITIALIZED = true;
+      TRUST_MPI_COMM_SET = true;
     }
 
 #endif

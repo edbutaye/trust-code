@@ -41,7 +41,6 @@
 namespace
 {
 static bool TRUST_KOKKOS_INITIALIZED = false;
-static bool TRUST_PETSC_INITIALIZED = false;
 static bool TRUST_LIBRARY_MODE = false;
 }
 
@@ -52,12 +51,9 @@ void TRUST_set_library_mode(bool b)
 
 void TRUST_global_finalize()
 {
-  if (TRUST_PETSC_INITIALIZED)
-    {
-      PetscBool isInitialized;
-      PetscInitialized(&isInitialized);
-      if (isInitialized==PETSC_TRUE) PetscFinalize();
-    }
+  PetscBool isInitialized;
+  PetscInitialized(&isInitialized);
+  if (isInitialized==PETSC_TRUE) PetscFinalize();
   if (TRUST_KOKKOS_INITIALIZED)
     {
       Kokkos::finalize();
@@ -85,7 +81,9 @@ bool error_handlers = false;
 #endif
 static int init_petsc(True_int argc, char **argv, bool with_mpi,bool& trio_began_mpi_)
 {
-  if (TRUST_PETSC_INITIALIZED)
+  PetscBool isInitialized;
+  PetscInitialized(&isInitialized);
+  if (isInitialized)
     return 1;
 
 #ifdef PETSCKSP_H
@@ -152,7 +150,6 @@ static int init_petsc(True_int argc, char **argv, bool with_mpi,bool& trio_began
 #endif
 #endif
 
-  TRUST_PETSC_INITIALIZED = true;
   return 1;
 }
 
