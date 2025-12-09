@@ -1266,7 +1266,6 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
               for (const auto & pair : custom_counter_map_str_to_counter_)
                 {
                   Counter& c_to_print = *pair.second;
-                  other -= c_to_print.avg_time_per_step_;
                   write_globalTU_line_custom_counters(c_to_print, perfs_TU);
                 }
             }
@@ -1735,24 +1734,23 @@ int Perf_counters::Impl::get_last_opened_counter_level_impl() const
 
 void Perf_counters::Impl::print_TU_files_impl(const std::string& message)
 {
-  if(!Objet_U::disable_TU)
-    {
-      //Process::barrier();
-      stop_counters_impl();  // will stop everything except highest level counter
+	if(Objet_U::disable_TU)
+		return;
+	//Process::barrier();
+	stop_counters_impl();  // will stop everything except highest level counter
 
-      // Also stop and update highest level counter
-      Counter& c_time = get_counter(STD_COUNTERS::total_execution_time);
-      auto time_elapsed_before_stop= now() - c_time.last_open_time_;
-      c_time.total_time_ += time_elapsed_before_stop;
+	// Also stop and update highest level counter
+	Counter& c_time = get_counter(STD_COUNTERS::total_execution_time);
+	auto time_elapsed_before_stop= now() - c_time.last_open_time_;
+	c_time.total_time_ += time_elapsed_before_stop;
 
-      computation_time_ += c_time.total_time_;
-      print_global_TU(message);
-      print_performance_to_csv(message);
-      reset_counters_impl();
-      // Also reset highest level counter:
-      c_time.reset();
-      counters_stop_=false;
-    }
+	computation_time_ += c_time.total_time_;
+	print_global_TU(message);
+	print_performance_to_csv(message);
+	reset_counters_impl();
+	// Also reset highest level counter:
+	c_time.reset();
+	counters_stop_=false;
 }
 
 void Perf_counters::Impl::start_gpu_timer_impl()
