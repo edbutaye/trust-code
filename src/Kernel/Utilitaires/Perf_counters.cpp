@@ -36,13 +36,50 @@
 #include <memory>
 #include <iomanip>
 #include <TRUST_Version.h>
-#ifdef TRUST_USE_CUDA
+#include <thread>
+
+#if defined(__CUDACC__) || defined(__CUDA__)
 // See https://nvidia.github.io/NVTX/
 // See https://stackoverflow.com/questions/23230003/something-between-func-and-pretty-function/29856690#29856690
 #include <nvtx3/nvToolsExt.h>
+#include <cuda_runtime.h>
+#define gpuDeviceProp_t cudaDeviceProp
+#define gpuGetDevice cudaGetDevice
+#define gpuGetDeviceProperties cudaGetDeviceProperties
+#define gpuDriverGetVersion cudaDriverGetVersion
+#define gpuRuntimeGetVersion cudaRuntimeGetVersion
+#define VERSION_DIVISOR 1000
+#define VERSION_MOD 100
+#define GPU_SUCCESS cudaSuccess
 #endif
-
+#if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__) || defined(__HIP__)
+#include <hip/hip_runtime.h>
+#define gpuDeviceProp_t hipDeviceProp_t
+#define gpuGetDevice hipGetDevice
+#define gpuGetDeviceProperties hipGetDeviceProperties
+#define gpuDriverGetVersion hipDriverGetVersion
+#define gpuRuntimeGetVersion hipRuntimeGetVersion
+#define VERSION_DIVISOR 10000000
+#define VERSION_MOD 100000
+#define GPU_SUCCESS hipSuccess
+#endif
 #define MINFLOAT 1.e-34  // smth small!
+
+
+// Structs used for storing CPU and GPU info
+struct CPUInfo
+{
+  std::string model;
+  long int num_threads;
+};
+
+struct GPUInfo
+{
+  std::string name="None";
+  std::string runtime_version="-10000";
+  std::string driver_version="-10000";
+};
+
 
 /**************************************************************************************************************************
  *
@@ -134,7 +171,7 @@ void Counter::begin_count_(int counter_level, time_point t)
       parent_->time_alone_ +=duration (t - last_open_time_alone_);
       parent_->last_open_time_alone_ =  time_point();
     }
-#ifdef TRUST_USE_CUDA
+#if defined(__CUDACC__) || defined(__CUDA__)
   if (!is_comm_)
     nvtxRangePush(description_.c_str());
 #endif
@@ -160,7 +197,7 @@ void Counter::end_count_(int count_increment, long int quantity_increment, time_
   last_open_time_ = time_point();
   last_open_time_alone_ = time_point();
   open_time_ts_ = time_point();
-#ifdef TRUST_USE_CUDA
+#if defined(__CUDACC__) || defined(__CUDA__)
   if (!is_comm_) nvtxRangePop();
 #endif
 }
@@ -208,8 +245,6 @@ void Counter::reset()
   time_alone_=duration::zero() ;;   // time when the counter is open minus the time where an counter of lower lvl was open
   time_ts_=duration::zero() ;;  // total time tracked during the current time_steps
 }
-
-
 
 /**************************************************************************************************************************
  *
@@ -273,8 +308,8 @@ private:
   void check_end(Counter& c, time_point t);
   double compute_allreduce_peak();
   std::string get_os() const;
-  std::string get_cpu() const;
-  std::string get_gpu() const;
+  CPUInfo get_cpu() const;
+  GPUInfo get_gpu() const;
   std::string get_date() const;
   void print_performance_to_csv(const std::string& message);
   void print_global_TU(const std::string& message);
@@ -500,69 +535,81 @@ std::string Perf_counters::Impl::get_os() const
  * @return string that contains cpu model and number of proc
  */
 
-std::string Perf_counters::Impl::get_cpu() const
+
+
+CPUInfo Perf_counters::Impl::get_cpu() const
 {
+  CPUInfo info;
+  info.num_threads = std::thread::hardware_concurrency();
 #if defined(__APPLE__)
-  return std::string("Apple");
-#else
-  int result;
-  result = std::system("lscpu 2>/dev/null | grep 'Model name' > cpu_detail.txt");
-  if (result !=0)
-    Cerr << "Bash command in Perf_counters::get_cpu failed" << finl;
-  result = std::system("lscpu 2>/dev/null | grep 'Thread(s) per core' >> cpu_detail.txt");
-  if (result !=0)
-    Cerr << "Bash command in Perf_counters::get_cpu failed" << finl;
-  std::ifstream file("cpu_detail.txt");
-  if (!file.is_open())
+  info.model = "Apple";
+
+#elif defined(__CYGWIN__)
+  info.model = "Cygwin";
+
+#elif defined(__linux__)
+  std::ifstream cpuinfo("/proc/cpuinfo");
+  std::string line;
+  while (std::getline(cpuinfo, line))
     {
-      Cerr << "Failed to open file in get_cpu: " << finl;
-      return "";
+      if (line.find("model name") != std::string::npos)
+        {
+          size_t pos = line.find(':');
+          if (pos != std::string::npos)
+            {
+              info.model = line.substr(pos + 2); // +2 pour sauter ": "
+              break;
+            }
+        }
     }
-  std::string line1, line2;
-  std::getline(file, line1); // Read the first line
-  std::getline(file, line2); // Read the second line
-  file.close();
-  // Concatenate the two lines with a space in between
-  std::string str = line1 + " ; " + line2;
-  result = std::system("rm cpu_detail.txt");
-  if (result !=0)
-    Cerr << "Bash command in Perf_counters::get_cpu failed" << finl;
-  str= delete_blank_spaces(str);
-  return (str.substr(0,max_str_length_));
+  if (info.model.empty())
+    {
+      info.model = "Unknown Linux CPU";
+    }
+#else
+  info.model = "Unknown CPU";
 #endif
+  return info;
 }
 
 /*!
  *
  * @return string with gpu model name
  */
-std::string Perf_counters::Impl::get_gpu() const
+GPUInfo Perf_counters::Impl::get_gpu() const
 {
-  std::string gpu_description = "No GPU was used for the computation";
-#ifdef TRUST_USE_CUDA
-  int result = std::system("nvidia-smi 2>/dev/null | grep NVIDIA > gpu_detail.txt");
-  if (result !=0)
-    Cerr << "Bash command in Perf_counters::get_gpu failed" << finl;
-  std::ostringstream gpu_desc;
-  gpu_desc << std::ifstream("gpu_detail.txt").rdbuf();
-  result = std::system("rm gpu_detail.txt");
-  if (result !=0)
-    Cerr << "Bash command in Perf_counters::get_gpu failed" << finl;
-  gpu_description = gpu_desc.str();
+  GPUInfo info;
+#ifdef TRUST_USE_GPU
+  gpuDeviceProp_t prop;
+  int device;
+  int driverVersion, runtimeVersion;
+
+  auto err1=gpuGetDevice(&device);
+  if(err1!=GPU_SUCCESS)
+    Cerr<<"Failed to get GPU device model"<<std::endl;
+  auto err2=gpuGetDeviceProperties(&prop, device);
+  if(err2!=GPU_SUCCESS)
+    Cerr<<"Failed to get GPU device properties"<<std::endl;
+  auto err3=gpuDriverGetVersion(&driverVersion);
+  if(err3!=GPU_SUCCESS)
+    Cerr<<"Failed to get GPU driver version"<<std::endl;
+  auto err4=gpuRuntimeGetVersion(&runtimeVersion);
+  if(err4==GPU_SUCCESS)
+    Cerr<<"Failed to get GPU runtime version"<<std::endl;
+
+  info.name = std::string(prop.name);
+
+  std::ostringstream runtime_stream;
+  runtime_stream << (runtimeVersion / VERSION_DIVISOR) << "."
+                 << ((runtimeVersion % VERSION_MOD) / (VERSION_MOD / 100));
+  info.runtime_version = runtime_stream.str();
+
+  std::ostringstream driver_stream;
+  driver_stream << (driverVersion / VERSION_DIVISOR) << "."
+                << ((driverVersion % VERSION_MOD) / (VERSION_MOD / 100));
+  info.driver_version = driver_stream.str();
 #endif
-#ifdef TRUST_USE_HIP
-  int result_ = std::system("rocminfo 2>/dev/null | grep Marketing > gpu_detail.txt");
-  if (result_ !=0)
-    Cerr << "Bash command in Perf_counters::get_gpu failed" << finl;
-  std::ostringstream gpu_desc;
-  gpu_desc << std::ifstream("gpu_detail.txt").rdbuf();
-  result_ = std::system("rm gpu_detail.txt");
-  if (result_ !=0)
-    Cerr << "Bash command in Perf_counters::get_gpu failed" << finl;
-  gpu_description = gpu_desc.str();
-#endif
-  gpu_description=delete_blank_spaces(gpu_description);
-  return gpu_description.substr(0,max_str_length_);
+  return info;
 }
 
 /*!
@@ -626,11 +673,27 @@ void Perf_counters::Impl::print_performance_to_csv(const std::string& message)
 
   if ( (Process::je_suis_maitre()) && (message == "Computation start-up statistics") )
     {
+      CPUInfo cpu = get_cpu();
       file_header << "# Detailed performance log file for case: " << Objet_U::nom_du_cas()<<". See the associated validation form for an example of data analysis"<< std::endl;
       file_header << "# Date of the computation:     " << get_date() << std::endl;
       file_header << "# OS used:     " << get_os() << std::endl;
-      file_header << "# CPU info:     " << get_cpu() << std::endl;
-      file_header << "# GPU info:     " << get_gpu() << std::endl;
+      file_header << "# CPU model: " << cpu.model << std::endl;
+      file_header << "# Total number of threads:" << cpu.num_threads << std::endl;
+      if (use_gpu_)
+        {
+          GPUInfo gpu = get_gpu();
+          file_header << "# GPU model: " << gpu.name << std::endl;
+#if defined(__CUDACC__) || defined(__CUDA__)
+          file_header << "# CUDA runtime version: " << gpu.runtime_version <<  std::endl;
+          file_header << "# CUDA drivers version: " << gpu.driver_version << std::endl;
+#endif
+#if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__) || defined(__HIP__)
+          file_header << "# HIP runtime version: " << gpu.runtime_version <<  std::endl;
+          file_header << "# HIP drivers version: " << gpu.driver_version << std::endl;
+#endif
+        }
+      else
+        file_header << "# GPU model: "<< "No GPU used for the computation" << std::endl;
       file_header << "# Number of processor used = " << nb_procs << std::endl;
       file_header << "# The time was measured by the following method using std::chrono::high_resolution_clock::now() and is printed in seconds" << std::endl ;
       file_header << "# By default, only averaged statistics on all processor are printed. For accessing the detail per processor, add 'stat_per_proc_perf_log 1' in the data file"<< std::endl;
@@ -1170,6 +1233,7 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
       std::string spaces;
       if (message == "Computation start-up statistics")
         {
+          CPUInfo cpu = get_cpu();
           spaces.assign((max_str_length_-27)/2,' ');
           file_header <<  spaces <<"# Global performance file #"<< std::endl;
           file_header <<  std::endl;
@@ -1184,9 +1248,24 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
           file_header << line_sep_cpu << std::endl;
           file_header << std::left << std::setw(header_txt_width)<< "Date:" << get_date() << std::endl;
           file_header << std::left << std::setw(header_txt_width)<< "OS:" << get_os() << std::endl;
-          file_header << std::left << std::setw(header_txt_width) << "CPU:" << get_cpu() << std::endl;
-          file_header << std::left << std::setw(header_txt_width) << "GPU:" << get_gpu() << std::endl;
-          file_header << std::left << std::setw(header_txt_width) << "Nb procs: " << nb_procs << std::endl;
+          file_header << std::left << std::setw(header_txt_width) << "CPU model : " << cpu.model << std::endl;
+          file_header << std::left << std::setw(header_txt_width) << "Total number of threads:" << cpu.num_threads << std::endl;
+          if (use_gpu_)
+            {
+              GPUInfo gpu = get_gpu();
+              file_header << "GPU model: " << gpu.name << std::endl;
+#if defined(__CUDACC__) || defined(__CUDA__)
+              file_header << "CUDA runtime version: " << gpu.runtime_version <<  std::endl;
+              file_header << "CUDA drivers version: " << gpu.driver_version << std::endl;
+#endif
+#if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__) || defined(__HIP__)
+              file_header << "HIP runtime version: " << gpu.runtime_version <<  std::endl;
+              file_header << "HIP drivers version: " << gpu.driver_version << std::endl;
+#endif
+            }
+          else
+            file_header << "GPU model: "<< "No GPU used for the computation" << std::endl;
+          file_header << std::left << std::setw(header_txt_width) << "Nb procs used for the computation: " << nb_procs << std::endl;
           file_header << std::left << std::setw(header_txt_width) << "TRUST version: " << TRUST_VERSION << std::endl << std::endl;
           file_header << line_sep_cpu << std::endl;
           spaces.assign((max_str_length_-message_width)/2,' ');
@@ -1731,23 +1810,23 @@ int Perf_counters::Impl::get_last_opened_counter_level_impl() const
 
 void Perf_counters::Impl::print_TU_files_impl(const std::string& message)
 {
-	if(Objet_U::disable_TU)
-		return;
-	//Process::barrier();
-	stop_counters_impl();  // will stop everything except highest level counter
+  if(Objet_U::disable_TU)
+    return;
+  //Process::barrier();
+  stop_counters_impl();  // will stop everything except highest level counter
 
-	// Also stop and update highest level counter
-	Counter& c_time = get_counter(STD_COUNTERS::total_execution_time);
-	auto time_elapsed_before_stop= now() - c_time.last_open_time_;
-	c_time.total_time_ += time_elapsed_before_stop;
+  // Also stop and update highest level counter
+  Counter& c_time = get_counter(STD_COUNTERS::total_execution_time);
+  auto time_elapsed_before_stop= now() - c_time.last_open_time_;
+  c_time.total_time_ += time_elapsed_before_stop;
 
-	computation_time_ += c_time.total_time_;
-	print_global_TU(message);
-	print_performance_to_csv(message);
-	reset_counters_impl();
-	// Also reset highest level counter:
-	c_time.reset();
-	counters_stop_=false;
+  computation_time_ += c_time.total_time_;
+  print_global_TU(message);
+  print_performance_to_csv(message);
+  reset_counters_impl();
+  // Also reset highest level counter:
+  c_time.reset();
+  counters_stop_=false;
 }
 
 void Perf_counters::Impl::start_gpu_timer_impl()
