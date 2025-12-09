@@ -50,6 +50,8 @@ void TRUST_set_library_mode(bool b)
 
 void TRUST_global_finalize()
 {
+  if (!TRUST_LIBRARY_MODE) return;
+
   PetscBool isInitialized;
   PetscInitialized(&isInitialized);
   if (isInitialized==PETSC_TRUE)

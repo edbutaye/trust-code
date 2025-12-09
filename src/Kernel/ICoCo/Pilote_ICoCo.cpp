@@ -29,6 +29,8 @@ using std::vector;
 using ICoCo::ProblemTrio;
 using ICoCo::TrioField;
 
+extern void TRUST_set_library_mode(bool);
+
 Implemente_instanciable(Pilote_ICoCo,"Pilote_ICoCo",Interprete);
 // XD pilote_icoco interprete pilote_icoco 1 not_set
 // XD  attr pb_name chaine pb_name 0 not_set
@@ -73,8 +75,8 @@ Entree& Pilote_ICoCo::readOn(Entree& is)
 //     Utilise dans le cas test U_in_var_impl_ICoCo
 void main_pilote_icoco_1(Probleme_U& pb_to_solve)
 {
-
   ProblemTrio pb;
+  TRUST_set_library_mode(false);
 
   Nom pb_name=pb_to_solve.le_nom();
   pb.initialize_pb(pb_to_solve);
@@ -187,8 +189,8 @@ void main_pilote_icoco_1(Probleme_U& pb_to_solve)
 //     Utilise dans le cas test ChDonXYZ_ICoCo
 void main_pilote_icoco_2(Probleme_U& pb_to_solve)
 {
-
   ProblemTrio pb;
+  TRUST_set_library_mode(false);
 
   Nom pb_name=pb_to_solve.le_nom();
   pb.initialize_pb(pb_to_solve);
@@ -290,6 +292,7 @@ void main_pilote_icoco_2(Probleme_U& pb_to_solve)
 void main_pilote_icoco_3(Probleme_U& pb_to_solve, int nb_pas_dt_reset)
 {
   ProblemTrio pb;
+  TRUST_set_library_mode(false);
 
   pb.initialize_pb(pb_to_solve);
 
@@ -370,6 +373,7 @@ void main_abort( Probleme_U& pb_to_solve)
 {
   //  char* pb_name=nom1.getChar();
   ProblemTrio pb;
+  TRUST_set_library_mode(false);
   //  pb.setDataFile(pb_name);
 
   pb.initialize_pb(pb_to_solve);
