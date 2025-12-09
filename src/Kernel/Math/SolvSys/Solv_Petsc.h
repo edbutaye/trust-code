@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -262,14 +262,14 @@ inline void Solv_Petsc::reset()
   initialize();
 #endif
 }
-
 #ifdef PETSCKSP_H
+#define _RTOL_MIN_ 1.e-24 // Would like to set to 1.e-14 but ALE test cases in TrioCFD needs rtol very low...
 inline void Solv_Petsc::initialize()
 {
   matrice_symetrique_=-1;
   preconditionnement_non_symetrique_=0;
   seuil_ = 0;
-  seuil_relatif_ = 0;
+  seuil_relatif_ = _RTOL_MIN_;
   divtol_ = 0;
   nouveau_stencil_ = true;
   petsc_cpus_selection_ = 0;	     // By default, 0 (no selection). 1 means: first petsc_nb_cpus_ CPUs is used, 2 means: every petsc_nb_cpus_ CPUs is used

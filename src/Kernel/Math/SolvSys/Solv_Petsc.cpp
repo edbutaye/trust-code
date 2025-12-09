@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -1565,11 +1565,12 @@ void Solv_Petsc::create_solver(Entree& entree)
           nb_it_max_ = NB_IT_MAX_DEFINED;
         }
       // Convergence si residu(it) < MAX (seuil_relatif_ * residu(0), seuil_);
-      if (seuil_==0 && seuil_relatif_==0)
+      if (seuil_==0 && seuil_relatif_==_RTOL_MIN_)
         {
           seuil_=1.e-12; // Si aucun seuil defini, on prend un seuil absolu de 1.e-12 (comme avant)
-          seuil_relatif_=1.e-14; // To avoid over convergence, typically with: petsc cli { } where no tolerance are given
         }
+      if (seuil_relatif_<_RTOL_MIN_)
+        Process::exit("Fix rtol cause it is too low !");
       KSPSetTolerances(SolveurPetsc_, seuil_relatif_, seuil_, (divtol_==0 ? PETSC_DEFAULT : divtol_), nb_it_max_);
     }
   // Change le calcul du test de convergence relative (||Ax-b||/||Ax(0)-b|| au lieu de ||Ax-b||/||b||)
