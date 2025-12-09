@@ -16,7 +16,7 @@
 #include <Parametre_diffusion_implicite.h>
 #include <Solveur_Implicite_base.h>
 #include <Schema_Euler_explicite.h>
-#include <Schema_Implicite_base.h>
+#include <Schema_Euler_Implicite.h>
 #include <Source_dep_inco_base.h>
 #include <Operateur_Conv_base.h>
 #include <Op_Conv_negligeable.h>
@@ -1199,10 +1199,12 @@ double Equation_base::calculer_pas_de_temps() const
 {
   double dt = 0;
   int nb_op = nombre_d_operateurs();
+  const Schema_Temps_base& sch = le_schema_en_temps.valeur();
+  bool cfl_based = sub_type(Schema_Euler_Implicite, sch) && ref_cast(Schema_Euler_Implicite, sch).facsec_cfl();
   for(int i=0; i<nb_op; i++)
     {
       const Operateur_base& op=operateur(i).l_op_base();
-      bool diff_impl = sub_type(Operateur_Diff_base,op) && le_schema_en_temps->diffusion_implicite();
+      bool diff_impl = sub_type(Operateur_Diff_base,op) && (sch.diffusion_implicite() || cfl_based);
       double dt_op = op.get_decal_temps()==1 ? DMAXFLOAT : operateur(i).calculer_pas_de_temps();
       Debog::verifier("Equation_base::calculer_pas_de_temps dt ",dt);
       if (dt_op>0 && !diff_impl)
@@ -1212,7 +1214,7 @@ double Equation_base::calculer_pas_de_temps() const
           // donc dt < dx/(U+alpha/dx) = 1/(1/(dx/U)+1/(dx^2/alpha)) : c'est bien une demie moyenne harmonique...
           dt = dt + 1./dt_op;
         }
-      if (le_schema_en_temps->limpr())
+      if (sch.limpr())
         {
           if (i == 0) Cout << " " << finl << "Printing of the next provisional time steps for the equation: " << que_suis_je() << finl;
           if (sub_type(Operateur_Conv_base,op))
@@ -1230,7 +1232,13 @@ double Equation_base::calculer_pas_de_temps() const
   else
     dt = 1./dt;
 
-  const Schema_Temps_base& sch = le_schema_en_temps.valeur();
+  // Cas implicite
+  if (sub_type(Schema_Euler_Implicite,sch) && nb_op>1)
+    {
+      if (cfl_based)
+        // Cas vitesse initiale nulle par exemple (dt=DMAFLOAT), on utilise le pas de temps de diffusion pour demarrer le calcul:
+        if (dt>1e10) dt = dt_op_bak[0];
+    }
   // Cas diffusion implicite et plusieurs operateurs:
   if (sub_type(Schema_Euler_explicite,sch) && nb_op>1)
     {

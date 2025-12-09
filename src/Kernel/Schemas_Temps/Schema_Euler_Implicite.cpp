@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -61,31 +61,22 @@ void Schema_Euler_Implicite::calcul_fac_sec(double& residu,double& residu_old,do
       residu_old=residu;
       nb_ite_sans_accel_=0;
     }
-  else if(facsec_func_)
+  else if (facsec_func_)
     {
+      // facsec=f(t)
       facsec_fn_.setVar(0, temps_courant());
       facsec = facsec_fn_.eval();
-      facsec=std::min(facsec,facsec_max_);
+      facsec = std::min(facsec,facsec_max_);
     }
   else if ((residu_old>rapport_residus_*residu)||(nb_ite_sans_accel_>nb_ite_sans_accel_max_))
     {
+      // Dynamic facsec=f(residual)
       facsec*=sqrt(rapport_residus_);
       residu_old=residu;
-      facsec=std::min(facsec,facsec_max_);
+      facsec = std::min(facsec,facsec_max_);
       nb_ite_sans_accel_=0;
     }
   nb_ite_sans_accel_++;
-  /*
-    else if (residu_>residu_old*rap)
-    {
-    facsec_/=sqrt(rap);
-    residu_old=residu_;
-    facsec_=std::min(facsec_,facsec_max_);
-    }
-  */
-  // Process::Journal()<<" residu" <<residu_<<" "<<residu_old<<" "<<facsec_<<finl;
-  // if (residu_old!=0) facsec_=facsec_*residu_old/eps;
-  //
 }
 
 
@@ -161,6 +152,7 @@ void Schema_Euler_Implicite::set_param(Param& param)
 {
   // XD schema_euler_implicite schema_implicite_base schema_euler_implicite -1 This is the Euler implicit scheme.
   param.ajouter("max_iter_implicite",&nb_ite_max);
+  param.ajouter_flag("facsec_cfl",&facsec_cfl_);    // XD_ADD_P rien Flag to compute time step based on CFL: dt=min(facsec,facsec_max)*dt(convection)X/
   param.ajouter_non_std("facsec_max", (this)); // XD_ADD_P floattant For old syntax, see the complete parameters of facsec for details
   param.ajouter_non_std("facsec_expert", (this)); // XD_ADD_P facsec_expert Advanced facsec specification
   param.ajouter_non_std("facsec_func", (this)); // XD_ADD_P chaine Advanced facsec specification as a function

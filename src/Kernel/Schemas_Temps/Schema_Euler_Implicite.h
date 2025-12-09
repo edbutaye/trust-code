@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -72,12 +72,14 @@ public :
   Entree& lire_facsec_expert(Entree&);
   void lire_facsec_func(Entree&);
   void calcul_fac_sec(double& residu_,double& residu_old,double& facsec_);
+  double facsec_cfl() const { return facsec_cfl_; }
 
 protected:
   Parser_U facsec_fn_;           // parser to set facsec as a function of time
   bool facsec_func_ = false;                      // is the facsec a function of time (true) or a constant (false)
   int nb_ite_max = 200;
   double residu_old_ = 0, facsec_max_ = DMAXFLOAT;
+  bool facsec_cfl_ = false; // New keyword to manage time step based on CFL: dt=min(facsec,facsec_max)*dt(convection)
   int nb_ite_sans_accel_ = -1;
   int nb_ite_sans_accel_max_ =  20000;
   double rapport_residus_ = 1.2;
