@@ -639,6 +639,7 @@ void Perf_counters::Impl::print_performance_to_csv(const std::string& message)
       file_header << "# Count means the number of time the counter is called during the overall calculation step." << std::endl;
       file_header << "# Min, max and SD accounts respectively for the minimum, maximum and Standard Deviation of the quantity of the previous row." << std::endl;
       file_header << "# Quantity is a custom variable that depends on the counter. It is used to compute bandwidth for communication counters for example. See the table at the end of the introduction on statistics in TRUST form for more details." << std::endl;
+      file_header << "# To retrieve the time not tracked by any counter of level 1 or higher, sum the time alone of counters of level -1 and 0." << std::endl;
       file_header << "#" << std::endl << "#" << std::endl;
       /// Then we create a vector line_items that contains each item we want to print
       line_items[0] = "Overall_simulation_step";
@@ -994,7 +995,6 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
   int nb_ts = c_timeloop.count_;
   nb_ts = std::max(nb_ts,1);
   double time_tl=c_timeloop.total_time_.count();
-  double total_untracked_time_ts=c_timeloop.time_alone_.count();
   Counter& c_total_time = get_counter(STD_COUNTERS::total_execution_time);
   Counter& c_mpi_sendrecv = get_counter(STD_COUNTERS::mpi_sendrecv);
   Counter& c_virtual_swap = get_counter(STD_COUNTERS::virtual_swap);
@@ -1013,7 +1013,6 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
   int max_virtual_swap_c = Process::mp_max(c_virtual_swap.count_);
   double avg_solv_time = Process::mp_max(c_system_solver.total_time_.count());
   double total_time = c_total_time.total_time_.count();
-  double total_untracked_time=c_total_time.time_alone_.count();
   double total_quantity = Process::mp_sum(static_cast<double>(c_backup.quantity_));
   int max_nb_backup = Process::mp_max(c_backup.count_);
   double total_comm_time=0.;
@@ -1194,7 +1193,6 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
           file_header  << spaces<<message << std::endl;
           file_header << line_sep_cpu << std::endl;
           file_header << std::left << std::setw(text_width)<<"Total time of the start-up: " <<  std::left <<std::setw(number_width) << c_total_time.total_time_.count() << std::endl;
-          file_header << std::left << std::setw(text_width)<< "Percent of untracked time during computation start-up: "<<  std::left <<std::setw(number_width) << total_untracked_time/total_time << std::endl;
         }
       else if (message == "Time loop statistics")
         {
@@ -1270,7 +1268,6 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
                 }
             }
           perfs_TU << std::left <<std::setw(counter_description_width) << "Other operations" << separator << std::setw(time_per_step_width) << other << separator << std::setprecision(3) <<  std::setw(percent_loop_time_width) << fmt("%4.1f", other/(total_time/nb_ts)*100) << separator <<std::endl;
-          perfs_TU << std::endl << std::left <<std::setw(counter_description_width) << "Untracked time" << separator << std::setw(time_per_step_width) << total_untracked_time_ts + total_untracked_time << separator << std::setprecision(3) <<  std::setw(percent_loop_time_width) << 100* (total_untracked_time_ts/time_tl + total_untracked_time/total_time) << separator <<std::endl <<std::endl;
         }
       if (max_virtual_swap_c>0)
         {
