@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -2081,15 +2081,15 @@ void Equation_base::assembler_blocs(matrices_t matrices, DoubleTab& secmem, cons
   for (int i = 0; i < nombre_d_operateurs(); i++)
     operateur(i).l_op_base().ajouter_blocs(matrices, secmem, semi_impl);
 
-  statistics().end_count(STD_COUNTERS::matrix_assembly,0,0);
+  statistics().end_count(STD_COUNTERS::ajouter_blocs,0,0);
 
-  statistics().begin_count(STD_COUNTERS::rhs,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::source_terms,statistics().get_last_opened_counter_level()+1);
   for (int i = 0; i < les_sources.size(); i++)
     les_sources(i)->ajouter_blocs(matrices, secmem, semi_impl);
 
-  statistics().end_count(STD_COUNTERS::rhs);
+  statistics().end_count(STD_COUNTERS::source_terms);
 
-  statistics().begin_count(STD_COUNTERS::matrix_assembly,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
   if (!(discretisation().is_polymac_family() || probleme().que_suis_je().debute_par("Pb_Multiphase") || que_suis_je().debute_par("Equation_flux")))
     {
       const std::string& nom_inco = inconnue().le_nom().getString();
@@ -2100,7 +2100,7 @@ void Equation_base::assembler_blocs(matrices_t matrices, DoubleTab& secmem, cons
 
 void Equation_base::assembler_blocs_avec_inertie(matrices_t matrices, DoubleTab& secmem, const tabs_t& semi_impl)
 {
-  statistics().begin_count(STD_COUNTERS::matrix_assembly,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
   assembler_blocs(matrices, secmem, semi_impl);
   solv_masse().set_penalisation_flag(0);
   schema_temps().ajouter_blocs(matrices, secmem, *this);
@@ -2111,7 +2111,7 @@ void Equation_base::assembler_blocs_avec_inertie(matrices_t matrices, DoubleTab&
       Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : nullptr;
       modifier_pour_Cl(*mat,secmem);
     }
-  statistics().end_count(STD_COUNTERS::matrix_assembly);
+  statistics().end_count(STD_COUNTERS::ajouter_blocs);
 }
 
 /* creation de champ_conserve_, cl_champ_conserve_ */

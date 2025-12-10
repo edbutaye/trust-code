@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -72,7 +72,7 @@ void Convection_Diffusion_Espece_Multi_WC::assembler( Matrice_Morse& matrice, co
 
 void Convection_Diffusion_Espece_Multi_WC::assembler_blocs_avec_inertie(matrices_t matrices, DoubleTab& secmem, const tabs_t& semi_impl)
 {
-  statistics().begin_count(STD_COUNTERS::matrix_assembly,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
   Convection_Diffusion_Fluide_Dilatable_Proto::assembler_blocs(*this,matrices, secmem, semi_impl);
   schema_temps().ajouter_blocs(matrices, secmem, *this);
 
@@ -82,6 +82,6 @@ void Convection_Diffusion_Espece_Multi_WC::assembler_blocs_avec_inertie(matrices
       Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : nullptr;
       modifier_pour_Cl(*mat,secmem);
     }
-  statistics().end_count(STD_COUNTERS::matrix_assembly);
+  statistics().end_count(STD_COUNTERS::ajouter_blocs);
 
 }

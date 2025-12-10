@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -220,7 +220,7 @@ void Convection_Diffusion_Espece_Multi_QC::assembler(Matrice_Morse& matrice, con
 
 void Convection_Diffusion_Espece_Multi_QC::assembler_blocs_avec_inertie(matrices_t matrices, DoubleTab& secmem, const tabs_t& semi_impl)
 {
-  statistics().begin_count(STD_COUNTERS::matrix_assembly,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
   const std::string& nom_inco = inconnue().le_nom().getString();
   const DoubleTab& inco = inconnue().valeurs();
   Matrice_Morse *mat = matrices.count(nom_inco) ? matrices.at(nom_inco) : nullptr;
@@ -256,14 +256,14 @@ void Convection_Diffusion_Espece_Multi_QC::assembler_blocs_avec_inertie(matrices
       if (mat)
         (*mat)(i, i) += divu1(i);
     }
-  statistics().end_count(STD_COUNTERS::matrix_assembly);
+  statistics().end_count(STD_COUNTERS::ajouter_blocs);
 
-  statistics().begin_count(STD_COUNTERS::rhs,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::source_terms,statistics().get_last_opened_counter_level()+1);
   for (int i = 0; i < sources().size(); i++)
     sources()(i)->ajouter_blocs(matrices, secmem, semi_impl);
-  statistics().end_count(STD_COUNTERS::rhs);
+  statistics().end_count(STD_COUNTERS::source_terms);
 
-  statistics().begin_count(STD_COUNTERS::matrix_assembly,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
   if (mat)
     mat->ajouter_multvect(inco, secmem);
 
@@ -272,5 +272,5 @@ void Convection_Diffusion_Espece_Multi_QC::assembler_blocs_avec_inertie(matrices
   if (!discretisation().is_polymac_family())
     modifier_pour_Cl(*mat, secmem);
 
-  statistics().end_count(STD_COUNTERS::matrix_assembly);
+  statistics().end_count(STD_COUNTERS::ajouter_blocs);
 }

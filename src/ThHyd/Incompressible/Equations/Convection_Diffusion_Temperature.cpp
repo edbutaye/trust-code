@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -477,14 +477,14 @@ void Convection_Diffusion_Temperature::assembler_blocs(matrices_t matrices, Doub
       secmem += secmem_tmp;
 
     }
-  statistics().end_count(STD_COUNTERS::matrix_assembly,0,0);
+  statistics().end_count(STD_COUNTERS::ajouter_blocs,0,0);
 
-  statistics().begin_count(STD_COUNTERS::rhs,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::source_terms,statistics().get_last_opened_counter_level()+1);
   for (int i = 0; i < les_sources.size(); i++)
     les_sources(i)->ajouter_blocs(matrices, secmem, semi_impl);
-  statistics().end_count(STD_COUNTERS::rhs);
+  statistics().end_count(STD_COUNTERS::source_terms);
 
-  statistics().begin_count(STD_COUNTERS::matrix_assembly,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
 
   const std::string& nom_inco = inconnue().le_nom().getString();
   Matrice_Morse *mat = matrices.count(nom_inco)?matrices.at(nom_inco):nullptr;

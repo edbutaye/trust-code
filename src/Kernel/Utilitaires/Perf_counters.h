@@ -31,11 +31,12 @@ enum class STD_COUNTERS : int
   backup_file ,
   system_solver, ///< Track time elapsed in SolveurSys::resoudre_systeme
   matrix_assembly ,
+  ajouter_blocs,
   convection ,
   diffusion ,
   gradient ,
   divergence ,
-  rhs ,
+  source_terms ,
   update_variables  ,
   implicit_diffusion,  ///< Track time elapsed in Equation_base::conjugue_diff_impl
   compute_dt , ///< Track time used to compute the time step dt

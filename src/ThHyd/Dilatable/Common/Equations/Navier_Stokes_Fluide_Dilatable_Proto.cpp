@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -246,7 +246,7 @@ void Navier_Stokes_Fluide_Dilatable_Proto::assembler_avec_inertie_impl(const Nav
 
 void Navier_Stokes_Fluide_Dilatable_Proto::assembler_blocs_avec_inertie(const Navier_Stokes_std& eqn, matrices_t matrices, DoubleTab& tab_secmem, const tabs_t& semi_impl)
 {
-  statistics().begin_count(STD_COUNTERS::matrix_assembly,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
   const std::string& nom_inco = eqn.inconnue().le_nom().getString();
   Matrice_Morse *mat = matrices.count(nom_inco)?matrices.at(nom_inco):nullptr;
   const DoubleTab& present = eqn.inconnue().valeurs();
@@ -282,15 +282,15 @@ void Navier_Stokes_Fluide_Dilatable_Proto::assembler_blocs_avec_inertie(const Na
 
   // Op conv
   eqn.operateur(1).l_op_base().ajouter_blocs(matrices, tab_secmem, {{nom_inco,rhovitesse}});
-  statistics().end_count(STD_COUNTERS::matrix_assembly);
+  statistics().end_count(STD_COUNTERS::ajouter_blocs);
 
   // sources
-  statistics().begin_count(STD_COUNTERS::rhs,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::source_terms,statistics().get_last_opened_counter_level()+1);
   for (int i = 0; i < eqn.sources().size(); i++)
     eqn.sources()(i)->ajouter_blocs(matrices, tab_secmem, semi_impl);
-  statistics().end_count(STD_COUNTERS::rhs);
+  statistics().end_count(STD_COUNTERS::source_terms);
 
-  statistics().begin_count(STD_COUNTERS::matrix_assembly,statistics().get_last_opened_counter_level()+1);
+  statistics().begin_count(STD_COUNTERS::ajouter_blocs,statistics().get_last_opened_counter_level()+1);
   // on resout en rho u on stocke donc rho u dans present
   rho_vitesse_impl(tab_rho_face_np1,present,ref_cast_non_const(DoubleTab,present));
   mat->ajouter_multvect(present,tab_secmem);
@@ -338,7 +338,7 @@ void Navier_Stokes_Fluide_Dilatable_Proto::assembler_blocs_avec_inertie(const Na
         }
     }
   tab_secmem.echange_espace_virtuel();
-  statistics().end_count(STD_COUNTERS::matrix_assembly);
+  statistics().end_count(STD_COUNTERS::ajouter_blocs);
 
 }
 
