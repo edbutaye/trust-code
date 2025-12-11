@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -114,7 +114,6 @@ void Sortie_Fichier_base::setf(IOS_FORMAT code)
 }
 
 std::string Sortie_Fichier_base::root = "";
-static std::map<std::string, int> counters;
 int Sortie_Fichier_base::ouvrir(const char* name,IOS_OPEN_MODE mode)
 {
   struct stat sb;
@@ -134,9 +133,9 @@ int Sortie_Fichier_base::ouvrir(const char* name,IOS_OPEN_MODE mode)
   if (!pathname.empty()) pathname+="/";
   pathname += name;
   Nom p(pathname);
-  if (++counters[pathname]%100==0 && !p.finit_par(".lata") && !p.finit_par(".lml") && !p.finit_par(".lata_single") && !p.finit_par(".med.index"))
+  if (++counter_%100==0 && !p.finit_par(".lata") && !p.finit_par(".lml") && !p.finit_par(".lata_single") && !p.finit_par(".med.index"))
     {
-      Cerr << "Warning, file " << pathname << " has been opened/closed " << counters[pathname] << " times..." << finl;
+      Cerr << "Warning, file " << pathname << " has been opened/closed " << counter_ << " times..." << finl;
     }
   IOS_OPEN_MODE ios_mod=mode;
   int new_bin=0;
@@ -155,7 +154,7 @@ int Sortie_Fichier_base::ouvrir(const char* name,IOS_OPEN_MODE mode)
   set_buffer();
   if (!ofstream_->good())
     {
-      Cerr << "Error when opening the file " << pathname << ". File was opened " << counters[pathname] << " time(s) ..." << finl;
+      Cerr << "Error when opening the file " << pathname << ". File was opened " << counter_ << " time(s) ..." << finl;
       Cerr << "Either:\n you don't have write rights,\n or your filesystem is very slow and multiple file open/close." << finl;
       Cerr << "Contact TRUST support team." << finl;
       Process::exception_sur_exit=2;
