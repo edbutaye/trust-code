@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -285,6 +285,7 @@ protected :
   double cumul_slope_ = 1e-20;
   int gnuplot_header_ = 0;
 
+  bool adapt_dt_tmax_ = false;
   bool ind_tps_final_atteint = false;
   bool ind_nb_pas_dt_max_atteint = false;
   bool ind_temps_cpu_max_atteint = false;

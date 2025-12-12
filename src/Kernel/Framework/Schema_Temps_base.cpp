@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -286,6 +286,7 @@ void Schema_Temps_base::set_param(Param& param)
   param.ajouter_non_std( "no_check_disk_space",(this)); // XD_ADD_P flag To disable the check of the available amount of disk space during the calculation.
   param.ajouter_flag( "disable_progress",&disable_progress_); // XD_ADD_P flag To disable the writing of the .progress file.
   param.ajouter_flag( "disable_dt_ev",&disable_dt_ev_); // XD_ADD_P flag To disable the writing of the .dt_ev file.
+  param.ajouter_flag("adapt_dt_tmax", &adapt_dt_tmax_); // XD_ADD_P flag Use to adapt final dt when approaching tmax.
   param.ajouter( "gnuplot_header",&gnuplot_header_); // XD_ADD_P entier Optional keyword to modify the header of the .out files. Allows to use the column title instead of columns number.
 
   // XD  residuals interprete nul 1 To specify how the residuals will be computed.
@@ -330,6 +331,7 @@ Sortie& Schema_Temps_base::printOn(Sortie& os) const
   os << "no_file_allocation " << file_allocation_ << finl ;
   os << "disable_progress " << int(disable_progress_) << finl ; // TODO allow outputs of bool in Sortie
   os << "disable_dt_ev " << int(disable_dt_ev_) << finl ;
+  os << "adapt_dt_tmax " << int(adapt_dt_tmax_) << finl ;
   os << "fin " << finl;
   return os ;
 }
@@ -767,11 +769,22 @@ bool Schema_Temps_base::corriger_dt_calcule(double& dt_calc) const
       Cout << finl;
       imprimer_ram_totale();
     }
+
+  bool adapt_dt_max = false;
+  if (adapt_dt_tmax_)
+    {
+      if (temps_courant_ + (dt_stab_ * facsec_) > tmax_)
+        {
+          dt_max_ = tmax_ - temps_courant_;
+          adapt_dt_max = true;
+        }
+    }
+
   // Compute the time step dt as the minimal value between dt_max_ and stability time step (dt_stab) * security factor (facsec)
   double dt = std::min (dt_max_, dt_stab_ * facsec_);
   if (limpr() || (nb_pas_dt_ == 0))
     Cout<<"Time step finally used to solve the next time step (taking into account facsec) : " << dt << " s." << finl;
-  if ((dt - dt_min_)/(dt+DMINFLOAT) < -1.e-6)
+  if ((dt - dt_min_)/(dt+DMINFLOAT) < -1.e-6 && !adapt_dt_max)
     {
       // Calculation stops if time step dt is less than dt_min
       Cerr << "---------------------------------------------------------" << finl;
