@@ -258,6 +258,8 @@ public:
 
   int get_last_opened_counter_level() const ;
 
+  void get_nb_elem(long nb_elem);
+
   /////// GPU features for a cleaner Device class
 
   void start_gpu_timer();

@@ -14,7 +14,6 @@
  *****************************************************************************/
 
 #include <Perf_counters.h>
-
 #include <stdio.h>
 #include <algorithm>
 #include <string.h>
@@ -300,6 +299,7 @@ public:
   bool get_gpu_fence_impl() const {return gpu_fence_;}
   void set_gpu_fence_impl(bool fence) {gpu_fence_=fence;}
   bool running_impl(const STD_COUNTERS name) { return get_counter(name).running_(); }
+  void get_nb_elem_impl(long nb_elem) {nb_elem_tot_+=nb_elem;}
 
 private:
   Counter& get_counter(const STD_COUNTERS name) ;
@@ -337,6 +337,7 @@ private:
   time_point gpu_timer_start_;
   int gpu_timer_count_=0;
   int max_str_length_=118;
+  long nb_elem_tot_=0;
 };
 Perf_counters::Impl::~Impl()=default;
 
@@ -655,7 +656,7 @@ void Perf_counters::Impl::print_performance_to_csv(const std::string& message)
   std::ostringstream perfs;   ///< Stringstream that contains stats for each processor
   std::ostringstream perfs_globales;   ///< Stringstream that contains stats average on the processors : processor number = -1
   std::ostringstream file_header;      ///< Stringstream that contains the lines at the start of the file
-
+  long nb_elem_tot = Process::mp_sum(nb_elem_tot_);
   const int length_line = 24; ///< number of item of a line of the _csv.Tu file
   std::array<int,length_line> item_size; ///< Contains the the width of the printed string, 20 for numbers by default
   for (int& j:item_size)
@@ -695,6 +696,7 @@ void Perf_counters::Impl::print_performance_to_csv(const std::string& message)
       else
         file_header << "# GPU model: "<< "No GPU used for the computation" << std::endl;
       file_header << "# Number of processor used = " << nb_procs << std::endl;
+      file_header << "# Total number of elements used for the calculation: " << nb_elem_tot << std::endl;
       file_header << "# The time was measured by the following method using std::chrono::high_resolution_clock::now() and is printed in seconds" << std::endl ;
       file_header << "# By default, only averaged statistics on all processor are printed. For accessing the detail per processor, add 'stat_per_proc_perf_log 1' in the data file"<< std::endl;
       file_header << "# Processor number equal to -1 corresponds to the performance of the calculation averaged on the processors during the simulation step" << std::endl;
@@ -1077,6 +1079,7 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
   double avg_solv_time = Process::mp_max(c_system_solver.total_time_.count());
   double total_time = c_total_time.total_time_.count();
   double total_quantity = Process::mp_sum(static_cast<double>(c_backup.quantity_));
+  long nb_elem_tot = Process::mp_sum(nb_elem_tot_);
   int max_nb_backup = Process::mp_max(c_backup.count_);
   double total_comm_time=0.;
   int solver_calls=  Process::mp_max(c_system_solver.count_);
@@ -1266,7 +1269,8 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
           else
             file_header << "GPU model: "<< "No GPU used for the computation" << std::endl;
           file_header << std::left << std::setw(header_txt_width) << "Nb procs used for the computation: " << nb_procs << std::endl;
-          file_header << std::left << std::setw(header_txt_width) << "TRUST version: " << TRUST_VERSION << std::endl << std::endl;
+          file_header << std::left << std::setw(header_txt_width) << "TRUST version: " << TRUST_VERSION << std::endl ;
+          file_header << std::left << std::setw(header_txt_width) << "Total number of elements used for the calculation: " << nb_elem_tot << std::endl << std::endl;
           file_header << line_sep_cpu << std::endl;
           spaces.assign((max_str_length_-message_width)/2,' ');
           file_header  << spaces<<message << std::endl;
@@ -2000,6 +2004,11 @@ void Perf_counters::set_nb_time_steps_elapsed(int n)
 int Perf_counters::get_last_opened_counter_level() const
 {
   return pimpl_->get_last_opened_counter_level_impl();
+}
+
+void Perf_counters::get_nb_elem(long nb_elem)
+{
+  pimpl_->get_nb_elem_impl(nb_elem);
 }
 
 void Perf_counters::start_gpu_timer()
