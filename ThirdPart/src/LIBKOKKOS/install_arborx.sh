@@ -1,5 +1,5 @@
 #!/bin/bash
-[ "$TRUST_USE_CUDA" != 1 ] && exit 0
+[ "$TRUST_USE_GPU" != 1 ] && exit 0
 archive=$TRUST_ROOT/externalpackages/kokkos/arborx-2.0.1.tar.gz # C++ 20 
 
 build_dir=$TRUST_ROOT/build/arborx
@@ -34,6 +34,7 @@ then
         CMAKE_OPT=$CMAKE_OPT" -DCMAKE_CXX_FLAGS=-fPIC"
         CMAKE_OPT=$CMAKE_OPT" -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$KOKKOS_INSTALL_DIR -DCMAKE_INSTALL_LIBDIR=lib64"
         CMAKE_OPT=$CMAKE_OPT" -DKokkos_ROOT=$KOKKOS_INSTALL_DIR"
+        CMAKE_OPT=$CMAKE_OPT" -DKokkos_DIR=$KOKKOS_INSTALL_DIR/lib64/cmake/Kokkos" # Needed on salacia
         CMAKE_OPT=$CMAKE_OPT" -DARBORX_ENABLE_MPI=ON" # -DARBORX_ENABLE_GPU_AWARE_MPI=ON
         #CMAKE_OPT=$CMAKE_OPT" -DARBORX_ENABLE_EXAMPLES=ON" # Need Boost ?
         echo CMAKE_OPT=$CMAKE_OPT | tee $log_file

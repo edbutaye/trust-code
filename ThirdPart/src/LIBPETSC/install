@@ -476,6 +476,7 @@ then
       meld src/ksp/pc/impls/amgx/amgx.cxx $DIR/amgx_int32.cxx $DIR/amgx_int64.cxx   
    fi
    cp $DIR/amgx_int64.cxx src/ksp/pc/impls/amgx/amgx.cxx || exit -1
+   TRUST_STDCPP=c++17
 fi
 
 #############
@@ -529,7 +530,8 @@ fi
 # Add other package if MPI is used:
 if [ "$TRUST_DISABLE_MPI" = 0 ]
 then
-   [ "$PETSC_HAVE_CUDA" = 1 ] && [ "$TRUST_DISABLE_SUPERLU_DIST" != 1 ] && add_package superlu_dist
+   # SuperLU_dist on GPU suppressed:
+   #[ "$PETSC_HAVE_CUDA" = 1 ] && [ "$TRUST_DISABLE_SUPERLU_DIST" != 1 ] && add_package superlu_dist
 
    # New (SuiteSparse/Cholmod/UmfPack):
    if [ "$TRUST_USE_CUDA" = 1 ] && [ "$TRUST_USE_CHOLMOD_GPU" = 1 ]

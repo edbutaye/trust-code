@@ -581,6 +581,7 @@ do
       then
          CUDA_NVCC=${1#-cuda=}
       fi   
+      TRUST_STDCPP=c++20 # For Kokkos 5.x
 
    elif [ "${1#-rocm}" != "$1" ]
    then
@@ -589,6 +590,7 @@ do
       then 
          export ROCM_ARCH=${1#-rocm=}
       fi
+      TRUST_STDCPP=c++20 # For Kokkos 5.x
       
    elif [ "${1#-with-eos}" != "$1" ]
    then
@@ -839,6 +841,7 @@ echo "TRUST_WITHOUT_CONDA=$TRUST_WITHOUT_CONDA && export TRUST_WITHOUT_CONDA    
 echo "TRUST_USE_KOKKOS=$TRUST_USE_KOKKOS && export TRUST_USE_KOKKOS    	# TRUST built with Kokkos" >> $var
 echo "TRUST_USE_KOKKOS_OPENMP=$TRUST_USE_KOKKOS_OPENMP && export TRUST_USE_KOKKOS_OPENMP    	# TRUST built with Kokkos OpenMP backend" >> $var
 echo "TRUST_USE_KOKKOS_SIMD=$TRUST_USE_KOKKOS_SIMD && export TRUST_USE_KOKKOS_SIMD    	# TRUST built with Kokkos SIMD" >> $var
+echo "TRUST_STDCPP=$TRUST_STDCPP && export TRUST_STDCPP  # C++ standard to build TRUST" >> $var
 
 if [ "$TRUST_USE_EXTERNAL_MEDCOUPLING" != "" ]
 then

@@ -52,7 +52,7 @@ if [ ! -f $KOKKOS_ROOT_DIR/lib64/libkokkos.a ]; then
            #sed -i '/Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(/,/Kokkos::memory_fence();/d' $src_dir/core/src/Serial/Kokkos_Serial.hpp || exit -1 # Disable fence for serial without thread
         fi
         CMAKE_OPT="$CMAKE_OPT -DCMAKE_CXX_FLAGS=-fPIC"
-        CMAKE_OPT="$CMAKE_OPT -DCMAKE_CXX_STANDARD=${TRUST_STDCPP#c++}"
+        #CMAKE_OPT="$CMAKE_OPT -DCMAKE_CXX_STANDARD=${TRUST_STDCPP#c++}"
 	# TRUST don't support yet new MDSPAN view (introduced in from 4.7):
         [ "$Kokkos_ENABLE_IMPL_MDSPAN" != "" ] && CMAKE_OPT="$CMAKE_OPT -DKokkos_ENABLE_IMPL_MDSPAN=$Kokkos_ENABLE_IMPL_MDSPAN"
         # ARCH:

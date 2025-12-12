@@ -294,7 +294,7 @@ xxx()
 	      # Test support de C++20
 	      elif [ "$TRUST_STDCPP" = c++20 ]
 	      then
-	         echo $ECHO_OPTS "#include <concepts>\ntemplate <typename T> concept Number = std::integral<T> || std::floating_point<T>;\nint main() {}" > main.cpp
+	         echo $ECHO_OPTS "consteval int square(int x) { return x*x; };\nint main() {}" > main.cpp
 	      else
 	         echo "Option -std=$TRUST_STDCPP not supported." && exit -1
 	      fi
@@ -1103,7 +1103,6 @@ if [ "$compiler_found" = 0 ] ; then
   exit -1
 fi
 TRUST_VERSION_GNU=`print_GNU_VERSION`
-m="# C++ standard to use to build TRUST";e="TRUST_STDCPP=$TRUST_STDCPP && export TRUST_STDCPP";ecrit $m"|"$e"|"$env;eval $e
 ######################################################
 # Compilateur alternatif pour extp (librairies, tools)
 ######################################################
@@ -1959,10 +1958,9 @@ case $TRUST_ARCH_CC in
    	Defines="-D_COMPILE_AVEC_CLANG"
         if [ "$TRUST_USE_KOKKOS" = 1 ] && [ "$TRUST_USE_ROCM" = 1 ]
         then
-           TRUST_STDCPP="c++20"   # For Kokkos 5.x
            CppFlags=$CppFlags" --offload-arch=$ROCM_ARCH"
         fi   
-        CppFlags=$CppFlags" -O3 -fPIC -std=$TRUST_STDCPP -fno-common -Wno-long-long -Wall -Wno-inconsistent-missing-override -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -Wsynth -Wshadow -Wextra -Qunused-arguments -Wno-unsequenced -Wno-unused-parameter -Wno-tautological-compare -Wno-undefined-var-template -Wno-gpu-maybe-wrong-side -Werror"
+        CppFlags=$CppFlags" -O3 -fPIC -std=$TRUST_STDCPP -fno-common -Wno-long-long -Wall -Wno-inconsistent-missing-override -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -Wsynth -Wshadow -Wextra -Qunused-arguments -Wno-unsequenced -Wno-unused-parameter -Wno-tautological-compare -Wno-undefined-var-template -Wno-gpu-maybe-wrong-side -Wno-deprecated-this-capture -Werror"
         #CppFlags=$CppFlags" -h list=all" # Genere un fichier listing pour OpenMP-target
         #[ "$TRUST_CC_BASE_EXTP" != "" ] && SYSLIBS="-L$GCC_PREFIX/snos/lib64 -lstdc++ -lgfortran -lrt" # EXTP GNU
         [ "$TRUST_ARCH_CC" = "linux_crayCC" ] && SYSLIBS="-L$GCC_PREFIX/snos/lib64 -lstdc++ -lgfortran -lrt" # EXTP GNU
@@ -2001,7 +1999,6 @@ case $TRUST_ARCH_CC in
            [ "$CUDA_VERSION" = "" ] && CUDA_VERSION=`ls $CUDA_ROOT | grep "[0-9]\.[0-9]" | tail -1`
            gpu=" -gpu=nordc,cc$TRUST_CUDA_CC,cuda$CUDA_VERSION"
            CppFlags=$CppFlags$gpu
-           TRUST_STDCPP="c++20"   # For Kokkos 5.x
         fi
 	[ $HOST = jean-zay ] && [ "$TRUST_CUDA_CC" = 80 ] && CppFlags=$CppFlags" -tp=zen3" # Build sur AMD sinon illegal instruction
         if [ "${HOST#orcus}" != $HOST ] || [ $HOST = jean-zay ]
