@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -61,6 +61,7 @@ Entree& Op_Conv_Centre_PolyMAC_Face::readOn(Entree& is)
 
 double Op_Conv_EF_Stab_PolyMAC_Face::calculer_dt_stab() const
 {
+
   double dt = 1e10;
   const Domaine_Poly_base& domaine = le_dom_poly_.valeur();
   const DoubleVect& fs = domaine.face_surfaces(), &pf = equation().milieu().porosite_face(), &ve = domaine.volumes(), &pe = equation().milieu().porosite_elem();
@@ -164,7 +165,7 @@ void Op_Conv_EF_Stab_PolyMAC_Face::dimensionner(Matrice_Morse& mat) const
 
 // ajoute la contribution de la convection au second membre resu
 // renvoie resu
-inline DoubleTab& Op_Conv_EF_Stab_PolyMAC_Face::ajouter(const DoubleTab& inco, DoubleTab& secmem) const
+DoubleTab& Op_Conv_EF_Stab_PolyMAC_Face::ajouter(const DoubleTab& inco, DoubleTab& secmem) const
 {
   if (has_interface_blocs())
     return Operateur_base::ajouter(inco, secmem);
@@ -183,86 +184,104 @@ inline DoubleTab& Op_Conv_EF_Stab_PolyMAC_Face::ajouter(const DoubleTab& inco, D
 
   assert(N == 1);
   DoubleTrav dfac(2, N, N);
-  for (f = 0; f < domaine.nb_faces_tot(); f++)
-    if (f_e(f, 0) >= 0 && (f_e(f, 1) >= 0 ||  ch.fcl()(f, 0) == 1 ||  ch.fcl()(f, 0) == 3))
-      {
-        for (i = 0, dfac = 0; i < 2; i++)
-          {
-            //contribution a dfac
-            for (eb = f_e(f, i), n = 0; n < N; n++)
-              for (m = 0; m < N; m++)
-                dfac( ch.fcl()(f, 0) == 1 ? 0 : i, n, m) += fs(f) * inco[f] * pe(eb >= 0 ? eb : f_e(f, 0))
-                                                            * (1. + (vit[f] * (i ? -1 : 1) >= 0 ? 1. : vit[f] ? -1. : 0.) * alpha_) / 2;
-          }
-        for (i = 0; i < 2; i++)
-          if ((e = f_e(f, i)) >= 0)
+  double sum_dfac[2];
+  const int nb_faces_tot = domaine.nb_faces_tot();
+  const int nb_faces = domaine.nb_faces();
+  int nb_face_elem = e_f.dimension(1);
+  for (f = 0; f < nb_faces_tot; f++)
+    {
+      const int elem0 = f_e(f, 0);
+      const int elem1 = f_e(f, 1);
+      if (elem0 >= 0 && (elem1 >= 0 || ch.fcl()(f, 0) == 1 || ch.fcl()(f, 0) == 3))
+        {
+          //masse : diagonale + masse ajoutee si correlation
+          const double inv_masse = 1.0 / (std::fabs(vit[f]) > 1e-10 ? inco(f) / vit[f] : 1.0);
+          for (i = 0, dfac = 0; i < 2; i++)
             {
-              for (k = 0; k < e_f.dimension(1) && (fb = e_f(e, k)) >= 0; k++)
-                if (fb < domaine.nb_faces() &&  ch.fcl()(fb, 0) < 2) //partie "faces"
-                  {
-                    if ((fc = equiv(f, i, k)) >= 0 || f_e(f, 1) < 0)
-                      for (j = 0; j < 2; j++) //equivalence : face fd -> face fb
-                        {
-                          eb = f_e(f, j), fd = (j == i ? fb : fc); //element/face sources
-                          mult = (fd < 0 || domaine.dot(&nf(fb, 0), &nf(fd, 0)) > 0 ? 1 : -1) * (fd >= 0 ? pf(fd) / pe(eb) : 1); //multiplicateur pour passer de vf a ve
-                          for (n = 0; n < N; n++)
-                            for (m = 0; m < N; m++)
-                              if (dfac(j, n, m))
-                                {
-                                  double fac = (e == f_e(f, 0) ? 1 : -1) * vfd(fb, e != f_e(fb, 0)) * dfac(j, n, m) / ve(e);
-                                  if (fd >= 0)
-                                    secmem[fb] -= fac * mult * vit[fd]; //autre face calculee
-                                  else
-                                    {
-                                      const Cond_lim_base& my_cl = cls[ ch.fcl()(f, 1)].valeur();
-                                      //masse : diagonale + masse ajoutee si correlation
-                                      double masse = std::fabs(vit[f]) > 1e-10 ? inco(f) / vit[f] : 1.0;
-                                      if (sub_type(Dirichlet, my_cl)) // sinon : paroi -> pas de contrib
-                                        for (d = 0; d < D; d++)  //CL de Dirichlet
-                                          secmem[fb] -= fac * nf(fb, d) / fs(fb) * ref_cast(Dirichlet, my_cl).val_imp( ch.fcl()(f, 2), N * d + m) / masse;
-                                    }
-                                  if (comp) secmem[fb] += fac * vit[fb]; //partie v div(alpha rho v)
-                                }
-                        }
-                    else for (j = 0; j < 2; j++)  //pas d'equivalence : n_f * operateur aux elements
-                        {
-                          for (eb = f_e(f, j), l = 0; l < e_f.dimension(1) && (fc = e_f(eb, l)) >= 0; l++)
-                            {
-                              double num = (e == f_e(fb, 0) ? 1 : -1) * (e == f_e(f, 0) ? 1 : -1) * fs(fc) * fs(fb) * domaine.dot(&xv(fc, 0), &xv(fb, 0), &xp(eb, 0), &xp(e, 0)) * (eb == f_e(fc, 0) ? 1 : -1);
-                              double den = ve(eb) * ve(e);
-                              if (std::fabs(num) > 1e-9 * den)
-                                {
-                                  double num_den = num/den;
-                                  for (n = 0; n < N; n++)
-                                    for (m = 0; m < N; m++)
-                                      if (dfac(j, n, m))
-                                        {
-                                          double fac = dfac(j, n, m) * num_den;
-                                          secmem[fb] -= fac * vit[fc];
-                                        }
-                                }
-                            }
-                          if (comp)
-                            for (l = 0; l < e_f.dimension(1) && (fc = e_f(e, l)) >= 0; l++)
-                              {
-                                double num = (e == f_e(fb, 0) ? 1 : -1) * (e == f_e(f, 0) ? 1 : -1) * fs(fc) * fs(fb) * domaine.dot(&xv(fc, 0), &xv(fb, 0), &xp(e, 0), &xp(e, 0)) * (e == f_e(fc, 0) ? 1 : -1);
-                                double den = ve(e) * ve(e);
-                                if (std::fabs(num) > 1e-9 * den)
-                                  {
-                                    double num_den = num/den;
-                                    for (n = 0; n < N; n++)
-                                      for (m = 0; m < N; m++)
-                                        if (dfac(j, n, m))
-                                          {
-                                            double fac = dfac(j, n, m) * num_den;
-                                            secmem[fb] += fac * vit[fc];
-                                          }
-                                  }
-                              }
-                        }
-                  }
+              //contribution a dfac
+              for (eb = f_e(f, i), n = 0; n < N; n++)
+                {
+                  for (m = 0; m < N; m++)
+                    dfac(ch.fcl()(f, 0) == 1 ? 0 : i, n, m) += fs(f) * inco[f] * pe(eb >= 0 ? eb : elem0)
+                                                               * (1. + (vit[f] * (i ? -1 : 1) >= 0 ? 1. : vit[f] ? -1.
+                                                                        : 0.) *
+                                                                  alpha_) * 0.5;
+                }
+              sum_dfac[i] = 0;
+              for (n = 0; n < N; n++)
+                for (m = 0; m < N; m++)
+                  sum_dfac[i] += dfac(i, n, m);
             }
-      }
+          for (i = 0; i < 2; i++)
+            if ((e = f_e(f, i)) >= 0)
+              {
+                double inv_ve = 1.0 / ve(e);
+                for (k = 0; k < nb_face_elem && (fb = e_f(e, k)) >= 0; k++)
+                  if (fb < nb_faces && ch.fcl()(fb, 0) < 2) //partie "faces"
+                    {
+                      if ((fc = equiv(f, i, k)) >= 0 || elem1 < 0)
+                        for (j = 0; j < 2; j++) //equivalence : face fd -> face fb
+                          {
+                            eb = f_e(f, j), fd = (j == i ? fb : fc); //element/face sources
+                            mult = (fd < 0 || domaine.dot(&nf(fb, 0), &nf(fd, 0)) > 0 ? 1 : -1) *
+                                   (fd >= 0 ? pf(fd) / pe(eb) : 1); //multiplicateur pour passer de vf a ve
+                            for (n = 0; n < N; n++)
+                              for (m = 0; m < N; m++)
+                                if (dfac(j, n, m))
+                                  {
+                                    double fac = (e == elem0 ? 1 : -1) * vfd(fb, e != f_e(fb, 0)) *
+                                                 dfac(j, n, m) * inv_ve;
+                                    if (fd >= 0)
+                                      secmem[fb] -= fac * mult * vit[fd]; //autre face calculee
+                                    else
+                                      {
+                                        const Cond_lim_base& my_cl = cls[ch.fcl()(f, 1)].valeur();
+                                        if (sub_type(Dirichlet, my_cl)) // sinon : paroi -> pas de contrib
+                                          for (d = 0; d < D; d++)  //CL de Dirichlet
+                                            secmem[fb] -= fac * nf(fb, d) / fs(fb) *
+                                                          ref_cast(Dirichlet, my_cl).val_imp(
+                                                            ch.fcl()(f, 2), N * d + m) * inv_masse;
+                                      }
+                                    if (comp) secmem[fb] += fac * vit[fb]; //partie v div(alpha rho v)
+                                  }
+                          }
+                      else
+                        {
+                          for (j = 0; j < 2; j++)  //pas d'equivalence : n_f * operateur aux elements
+                            {
+                              for (eb = f_e(f, j), l = 0; l < nb_face_elem && (fc = e_f(eb, l)) >= 0; l++)
+                                {
+                                  double num =
+                                    (e == f_e(fb, 0) ? 1 : -1) * (e == elem0 ? 1 : -1) * fs(fc) * fs(fb) *
+                                    domaine.dot(&xv(fc, 0), &xv(fb, 0), &xp(eb, 0), &xp(e, 0)) *
+                                    (eb == f_e(fc, 0) ? 1 : -1);
+                                  double den = ve(eb) * ve(e);
+                                  if (std::fabs(num) > 1e-9 * den)
+                                    {
+                                      double num_den = num / den;
+                                      secmem[fb] -= sum_dfac[j] * num_den * vit[fc];
+                                    }
+                                }
+                              if (comp)
+                                for (l = 0; l < nb_face_elem && (fc = e_f(e, l)) >= 0; l++)
+                                  {
+                                    double num = (e == f_e(fb, 0) ? 1 : -1) * (e == elem0 ? 1 : -1) * fs(fc) *
+                                                 fs(fb) *
+                                                 domaine.dot(&xv(fc, 0), &xv(fb, 0), &xp(e, 0), &xp(e, 0)) *
+                                                 (e == f_e(fc, 0) ? 1 : -1);
+                                    double den = ve(e) * ve(e);
+                                    if (std::fabs(num) > 1e-9 * den)
+                                      {
+                                        double num_den = num / den;
+                                        secmem[fb] += sum_dfac[j] * num_den * vit[fc];
+                                      }
+                                  }
+                            }
+                        }
+                    }
+              }
+        }
+    }
 
   return secmem;
 }
