@@ -48,7 +48,6 @@ Entree& Modele_turbulence_scal_Prandtl::readOn(Entree& is)
       fonction1_.addVar("z");
       fonction1_.setString(LePrdt_fct_);
       fonction1_.parseString();
-      Cerr << "L'expression du nombre de Prandtl turbulent est " << LePrdt_fct_ << finl;
     }
   else
     Cerr << "La valeur par defaut du nombre de Prandtl turbulent est " << LePrdt_ << finl;

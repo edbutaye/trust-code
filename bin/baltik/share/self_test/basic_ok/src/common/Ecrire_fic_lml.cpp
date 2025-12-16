@@ -9,6 +9,9 @@
 #include <Domaine.h>
 #include <EcrFicPartage.h>
 #include <Format_Post_Lml.h>
+// umfpack.h n'a aucune relation avec Ecrire_fic_lml, ca permet juste de verifier
+// que ce fichier existe toujours car inclu dans un Baltik
+#include <suitesparse/umfpack.h>
 Implemente_instanciable(Ecrire_fic_lml,"Ecrire_fic_lml",Interprete);
 // XD Ecrire_fic_lml interprete Ecrire_fic_lml 0 description de   la classe
 // XD attr nom_domaine ref_domaine nom_domaine 0 not_set

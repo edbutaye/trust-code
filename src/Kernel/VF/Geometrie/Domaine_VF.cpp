@@ -1136,6 +1136,8 @@ void Domaine_VF::get_ind_integ_points(IntTab& ) const
 void Domaine_VF::init_dist_paroi_globale(const Conds_lim& conds_lim)
 {
   if(dist_paroi_initialisee_) return;
+  // TODO needs some optimization since very slow (cf bttriocfd #277330)
+  Cerr << "Calling Domaine_VF::init_dist_paroi_globale. This may take some time..." << finl;
 
   const Domaine_VF& domaine_ = *this;
   int D=Objet_U::dimension, nf = domaine_.nb_faces(), ne = domaine_.nb_elem();
@@ -1280,7 +1282,7 @@ void Domaine_VF::init_dist_paroi_globale(const Conds_lim& conds_lim)
           double x1 = 0 ;
           if (fe<nf) x1=local_xv(fe,d);
           else if (fe<nf+ne) x1=local_xp(fe-nf,d);
-          else { Cerr<<"Domaine_Poly_base::init_dist_bord : problem in the ditance to the edge calculation. Contact TRUST support."<<finl; Process::exit();}
+          else { Cerr<<"Domaine_VF::init_dist_paroi_globale : problem in the ditance to the edge calculation. Contact TRUST support."<<finl; Process::exit();}
           double x2=remote_xv[proc](fe2,d);
           distance2 += (x1-x2)*(x1-x2);
         }
@@ -1300,7 +1302,7 @@ void Domaine_VF::init_dist_paroi_globale(const Conds_lim& conds_lim)
     }
 
 #else
-  Cerr<<"Domaine_Poly_base::init_dist_bord needs TRUST compiled with MEDCoupling."<<finl;
+  Cerr<<"Domaine_VF::init_dist_paroi_globale needs TRUST compiled with MEDCoupling."<<finl;
   exit();
 #endif
 
@@ -1331,7 +1333,7 @@ void Domaine_VF::init_dist_paroi_globale(const Conds_lim& conds_lim)
   y_faces_.echange_espace_virtuel();
   y_elem_.echange_espace_virtuel();
   dist_paroi_initialisee_ = 1;
-  Cerr <<"Initialize the y table " << domaine_.domaine().le_nom();
+  Cerr << "Initialize the y table " << domaine_.domaine().le_nom() << finl;
 }
 
 /*! @brief Build the MEDCoupling **face** mesh.

@@ -804,7 +804,7 @@ void Save_Restart::finir()
       if (EcritureLectureSpecial::Active)
         sauver_xyz(1);
       else
-        Cerr << "As saving .xyz file disabled since 1.9.7, add into your datafile \"EcritureLectureFichier 1\" to enable it again if wanted." << finl;
+        Cerr << "As saving .xyz file disabled since 1.9.7, add into your datafile \"EcritureLectureSpecial 1\" to enable it again if wanted." << finl;
     }
 
   for(int i=0; i<pb_base_->nombre_d_equations(); i++)

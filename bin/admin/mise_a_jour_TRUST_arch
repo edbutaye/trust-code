@@ -802,6 +802,10 @@ do
             cp $TRUST_ROOT/src/Kernel/Postraitement/Postraitement.h $dev_dir/src
             chmod +w $dev_dir/src/Postraitement.h
             echo " " >> $dev_dir/src/Postraitement.h
+            # Modification du Perf_counters.cpp...
+            cp $TRUST_ROOT/src/Kernel/Utilitaires/Perf_counters.cpp $dev_dir/src
+            chmod +w $dev_dir/src/Perf_counters.cpp
+            echo " " >> $dev_dir/src/Perf_counters.cpp
             # On efface le repertoire
             baltik_build_configure -execute 1>Makeatelier.log 2>&1
             make optim 1>Makeatelier.log 2>&1

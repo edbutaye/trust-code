@@ -104,7 +104,7 @@ define_soumission_batch()
    # https://dci.dci-gitlab.cines.fr/webextranet/porting_optimization/detailed_binding_script.html#adastra-detailed-binding-script
    # Attention, le verbose est important sinon crash ! voir doc
    USE_MPIRUN=1 # Pour profiter du binding meme en sequentiel
-   if [ "$TRUST_USE_OLD_BINDING" = 1 ] || [ $ROCM_ARCH = gfx942 ] # Pas clair encore le binding sur MI300
+   if [ "$TRUST_USE_OLD_BINDING" = 1 ] || [ "$ROCM_ARCH" = gfx942 ] # Pas clair encore le binding sur MI300
    then
       mpirun="srun -l $srun_options --mpi=cray_shasta --mem-bind=local --cpu-bind=verbose,cores"
    else
