@@ -1,4 +1,8 @@
 -------------------------------------------------------------
+Developer notes version 1.9.8_beta : Changes since version 1.9.7 :
+-------------------------------------------------------------
+
+-------------------------------------------------------------
 Developer notes version 1.9.7 : Changes since version 1.9.6 :
 -------------------------------------------------------------
 21/11/25 (TRUST) NR Tests     : When running make ctest_MODE in TRUST or Baltiks, possible to add ctest options. For example:  'export CTEST_OPTS="$CTEST_OPTS --test-load $TRUST_NB_PHYSICAL_CORES"' adds ctest test load threshold.
