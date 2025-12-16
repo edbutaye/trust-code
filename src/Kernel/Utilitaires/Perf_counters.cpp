@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -552,21 +552,21 @@ CPUInfo Perf_counters::Impl::get_cpu() const
 #elif defined(__linux__)
   std::ifstream cpuinfo("/proc/cpuinfo");
   if (cpuinfo.good())
-  {
-  std::string line;
-  while (std::getline(cpuinfo, line))
     {
-      if (line.find("model name") != std::string::npos)
+      std::string line;
+      while (std::getline(cpuinfo, line))
         {
-          size_t pos = line.find(':');
-          if (pos != std::string::npos)
+          if (line.find("model name") != std::string::npos)
             {
-              info.model = line.substr(pos + 2); // +2 pour sauter ": "
-              break;
+              size_t pos = line.find(':');
+              if (pos != std::string::npos)
+                {
+                  info.model = line.substr(pos + 2); // +2 pour sauter ": "
+                  break;
+                }
             }
         }
     }
-  }
   if (info.model.empty())
     {
       info.model = "Unknown Linux CPU";
@@ -1364,7 +1364,12 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
       if (max_virtual_swap_c>0)
         {
           if (message=="Time loop statistics")
-            perfs_TU <<  std::left <<std::setw(text_width) << "Total number of virtual exchanges:" <<  std::left <<std::setw(number_width) << max_virtual_swap_c << std::endl;
+            {
+              if(nb_ts>0)
+                perfs_TU <<  std::left <<std::setw(text_width) << "Number of virtual exchanges per time step:" <<  std::left <<std::setw(number_width) << max_virtual_swap_c/nb_ts << std::endl;
+              else
+                perfs_TU <<  std::left <<std::setw(text_width) << "Number of virtual exchanges" <<  std::left <<std::setw(number_width) << max_virtual_swap_c << std::endl;
+            }
           else
             perfs_TU <<  std::left <<std::setw(text_width) << "Number of virtual exchanges:" <<  std::left <<std::setw(number_width) << max_virtual_swap_c << std::endl;
         }
