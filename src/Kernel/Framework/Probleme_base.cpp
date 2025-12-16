@@ -363,7 +363,7 @@ int Probleme_base::verifier()
 void Probleme_base::associer_domaine(const Domaine& un_domaine)
 {
   le_domaine_ = un_domaine;
-  statistics().get_nb_elem(un_domaine.nb_elem());
+  statistics().record_nb_elem(un_domaine.nb_elem());
 }
 
 void Probleme_base::discretiser_equations()

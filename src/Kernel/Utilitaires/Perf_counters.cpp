@@ -1,17 +1,17 @@
 /****************************************************************************
- * Copyright (c) 2024, CEA
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
- * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *****************************************************************************/
+* Copyright (c) 2025, CEA
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+* 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+* 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+* 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+* IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+* OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+*****************************************************************************/
 
 #include <Perf_counters.h>
 #include <stdio.h>
@@ -299,7 +299,7 @@ public:
   bool get_gpu_fence_impl() const {return gpu_fence_;}
   void set_gpu_fence_impl(bool fence) {gpu_fence_=fence;}
   bool running_impl(const STD_COUNTERS name) { return get_counter(name).running_(); }
-  void get_nb_elem_impl(long nb_elem) {nb_elem_tot_+=nb_elem;}
+  void record_nb_elem_impl(long nb_elem) {nb_elem_tot_+=nb_elem;}
 
 private:
   Counter& get_counter(const STD_COUNTERS name) ;
@@ -551,6 +551,8 @@ CPUInfo Perf_counters::Impl::get_cpu() const
 
 #elif defined(__linux__)
   std::ifstream cpuinfo("/proc/cpuinfo");
+  if (cpuinfo.good())
+  {
   std::string line;
   while (std::getline(cpuinfo, line))
     {
@@ -564,6 +566,7 @@ CPUInfo Perf_counters::Impl::get_cpu() const
             }
         }
     }
+  }
   if (info.model.empty())
     {
       info.model = "Unknown Linux CPU";
@@ -582,6 +585,11 @@ GPUInfo Perf_counters::Impl::get_gpu() const
 {
   GPUInfo info;
 #ifdef TRUST_USE_GPU
+
+#if  !(defined(__CUDACC__) || defined(__CUDA__) || defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__) || defined(__HIP__))
+#error "Neither CUDA nor HIP macros defined, but TRUST_USE_GPU is defined! Something's wrong."
+#endif
+
   gpuDeviceProp_t prop;
   int device;
   int driverVersion, runtimeVersion;
@@ -705,7 +713,7 @@ void Perf_counters::Impl::print_performance_to_csv(const std::string& message)
       file_header << "# Count means the number of time the counter is called during the overall calculation step." << std::endl;
       file_header << "# Min, max and SD accounts respectively for the minimum, maximum and Standard Deviation of the quantity of the previous row." << std::endl;
       file_header << "# Quantity is a custom variable that depends on the counter. It is used to compute bandwidth for communication counters for example. See the table at the end of the introduction on statistics in TRUST form for more details." << std::endl;
-      file_header << "# To retrieve the time not tracked by any counter of level 1 or higher, sum the time alone of counters of level -1 and 0." << std::endl;
+      file_header << "# To retrieve the time not tracked by any counter of level 1 or higher, sum the 'time alone' value of counters of level -1 and 0." << std::endl;
       file_header << "#" << std::endl << "#" << std::endl;
       /// Then we create a vector line_items that contains each item we want to print
       line_items[0] = "Overall_simulation_step";
@@ -2007,9 +2015,9 @@ int Perf_counters::get_last_opened_counter_level() const
   return pimpl_->get_last_opened_counter_level_impl();
 }
 
-void Perf_counters::get_nb_elem(long nb_elem)
+void Perf_counters::record_nb_elem(long nb_elem)
 {
-  pimpl_->get_nb_elem_impl(nb_elem);
+  pimpl_->record_nb_elem_impl(nb_elem);
 }
 
 void Perf_counters::start_gpu_timer()
