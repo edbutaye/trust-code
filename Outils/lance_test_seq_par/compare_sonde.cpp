@@ -433,7 +433,7 @@ int main(int argc, char* argv[])
   int nb_champ2=trouve_nb_champ(file2,nl2);
   if (nb_champ2!=nb_champ)
     {
-      cerr<<"les deux fichiers non pas le meme nombre de colonnes"<<endl;
+      cerr<<"les deux fichiers n'ont pas le meme nombre de colonnes"<<endl;
       exit(-1);
     }
   double* val_max=new double[nb_champ];

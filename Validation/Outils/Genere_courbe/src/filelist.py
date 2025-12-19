@@ -120,7 +120,11 @@ class FileAccumulator(object):
                 break
             except: pass
         if idx == -1:
-            raise ValueError("Invalid field name: %s" % name)
+            #raise ValueError("Invalid field name: %s" % name)
+            # ND: do not raise ValueError, in Algo_QC we defined fields by using something like
+            # DefineScalarExpression("ana_dv_y","0.*x*y*z") that we plot, but it has not a name
+            # which fits with field_location_dom
+            return "", "", ""
         loc = a[idx]
         var, dom = "_".join(a[:idx]), "_".join(a[idx+1:])
         return var, loc, dom
@@ -154,6 +158,8 @@ class FileAccumulator(object):
             cls.Append(file + "." + dom_name)
             # By default take all timesteps for the domain (simplify things for ALE):
             cls.Append(file + "." + dom_name + ".*")
+            # Add files generated/needed by Algo_QC
+            if not len(dom_name): cls.Append(file + ".*")
             # Extract first "Geometrie" from LATA - this domain is always needed by VisIt for example in case of Front Tracking
             direc = "/".join(file.split("/")[:-1])
             with open(file) as f:
