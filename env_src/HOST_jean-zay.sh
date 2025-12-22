@@ -20,7 +20,7 @@ define_modules_config()
       [ "$TRUST_CUDA_CC" = 70 ] && module="gcc/11.4.1"           # V100
       [ "$TRUST_CUDA_CC" = 80 ] && module="arch/a100 gcc/11.4.1" # A100
       [ "$TRUST_CUDA_CC" = 90 ] && module="arch/h100 gcc/11.3.1" # H100
-      module=$module" openmpi/4.1.5-cuda cmake/3.31.4 python/3.11.5"
+      module=$module" openmpi/4.1.5-cuda nvidia-compilers/25.1 cmake/3.31.4 python/3.11.5"
    else
       # 21/06/2023 : ND : passage a gcc
       module="gcc/8.5.0 openmpi/4.0.5"
