@@ -82,8 +82,14 @@ do
 done
 [ "$3" = "no_exec" ] && exit 0
 [ ${#DEC} = 0 ] && echo $ECHO_OPTS "Wait for partitionning...\c"
-trust $DEC_NOM 1>$DEC_NOM.out 2>$DEC_NOM.err
-err=$?
+if [ "x$SLURM_JOB_ID" = "x" ]
+then
+   trust $DEC_NOM 1>$DEC_NOM.out 2>$DEC_NOM.err
+   err=$?
+else  # to take into account the call of make_PAR.data from a computation node on orcus (bttrust #253844)
+   $exec $DEC_NOM 1>$DEC_NOM.out 2>$DEC_NOM.err
+   err=$?
+fi
 OK_make_par $err
 [ $err != 0 ] && exit 0
 
