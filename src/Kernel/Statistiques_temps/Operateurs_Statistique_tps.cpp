@@ -131,7 +131,7 @@ int Operateurs_Statistique_tps::reprendre(Entree& is)
             {
               Nom bidon2;
               double dbidon;
-              DoubleTab tab_bidon;
+              BigDoubleTab tab_bidon;
               auto& list = get_stl_list();
               for (auto&& itr = list.begin(); itr != list.end(); ) // On saute les champs
                 {
@@ -172,7 +172,7 @@ int Operateurs_Statistique_tps::reprendre(Entree& is)
       is >> temps_derniere_mise_a_jour_stats;
       Nom bidon;
       double dbidon;
-      DoubleTab tab_bidon;
+      BigDoubleTab tab_bidon;
       for (int i=0; i<n; i++)
         {
           is >> bidon >> bidon;
