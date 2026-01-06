@@ -2,7 +2,8 @@
 # Outil de NR des performances par analyse des .TU machine specifique
 check()
 {
-   for ligne in dt total
+   lignes="dt total" && [ "$3" = -total ] && lignes="total"
+   for ligne in $lignes
    do
       if [ $ligne = "dt" ]
       then
@@ -53,6 +54,6 @@ if [ ! -f $1.TU.ref_$HOST_BUILD ] || [ ${exec%_semi_opt} != $exec ] || [ ${exec%
 then
    exit 0
 else
-   check $1 $HOST_BUILD
+   check $1 $HOST_BUILD $2
 fi
 
