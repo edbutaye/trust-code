@@ -37,7 +37,7 @@
 #include <TRUST_Version.h>
 #include <thread>
 
-#if defined(__CUDACC__) || defined(__CUDA__)
+#ifdef TRUST_USE_CUDA
 // See https://nvidia.github.io/NVTX/
 // See https://stackoverflow.com/questions/23230003/something-between-func-and-pretty-function/29856690#29856690
 #include <nvtx3/nvToolsExt.h>
@@ -51,7 +51,7 @@
 #define VERSION_MOD 100
 #define GPU_SUCCESS cudaSuccess
 #endif
-#if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__) || defined(__HIP__)
+#ifdef TRUST_USE_ROCM
 #include <hip/hip_runtime.h>
 #define gpuDeviceProp_t hipDeviceProp_t
 #define gpuGetDevice hipGetDevice
@@ -170,7 +170,7 @@ void Counter::begin_count_(int counter_level, time_point t)
       parent_->time_alone_ +=duration (t - last_open_time_alone_);
       parent_->last_open_time_alone_ =  time_point();
     }
-#if defined(__CUDACC__) || defined(__CUDA__)
+#ifdef TRUST_USE_CUDA
   if (!is_comm_)
     nvtxRangePush(description_.c_str());
 #endif
@@ -196,7 +196,7 @@ void Counter::end_count_(int count_increment, long int quantity_increment, time_
   last_open_time_ = time_point();
   last_open_time_alone_ = time_point();
   open_time_ts_ = time_point();
-#if defined(__CUDACC__) || defined(__CUDA__)
+#ifdef TRUST_USE_CUDA
   if (!is_comm_) nvtxRangePop();
 #endif
 }
@@ -586,7 +586,7 @@ GPUInfo Perf_counters::Impl::get_gpu() const
   GPUInfo info;
 #ifdef TRUST_USE_GPU
 
-#if  !(defined(__CUDACC__) || defined(__CUDA__) || defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__) || defined(__HIP__))
+#if  !(defined(TRUST_USE_ROCM) || defined(TRUST_USE_CUDA))
 #error "Neither CUDA nor HIP macros defined, but TRUST_USE_GPU is defined! Something's wrong."
 #endif
 
@@ -693,11 +693,11 @@ void Perf_counters::Impl::print_performance_to_csv(const std::string& message)
         {
           GPUInfo gpu = get_gpu();
           file_header << "# GPU model: " << gpu.name << std::endl;
-#if defined(__CUDACC__) || defined(__CUDA__)
+#ifdef TRUST_USE_CUDA
           file_header << "# CUDA runtime version: " << gpu.runtime_version <<  std::endl;
           file_header << "# CUDA drivers version: " << gpu.driver_version << std::endl;
 #endif
-#if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__) || defined(__HIP__)
+#ifdef TRUST_USE_ROCM
           file_header << "# HIP runtime version: " << gpu.runtime_version <<  std::endl;
           file_header << "# HIP drivers version: " << gpu.driver_version << std::endl;
 #endif
@@ -1266,11 +1266,11 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
             {
               GPUInfo gpu = get_gpu();
               file_header << "GPU model: " << gpu.name << std::endl;
-#if defined(__CUDACC__) || defined(__CUDA__)
+#ifdef TRUST_USE_CUDA
               file_header << "CUDA runtime version: " << gpu.runtime_version <<  std::endl;
               file_header << "CUDA drivers version: " << gpu.driver_version << std::endl;
 #endif
-#if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__) || defined(__HIP__)
+#ifdef TRUST_USE_ROCM
               file_header << "HIP runtime version: " << gpu.runtime_version <<  std::endl;
               file_header << "HIP drivers version: " << gpu.driver_version << std::endl;
 #endif
