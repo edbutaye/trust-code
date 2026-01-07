@@ -1366,6 +1366,11 @@ then
                          echo $ECHO_OPTS "End."
                       fi
                    fi
+                   # Verification des performances basees sur les .TU
+                   if [ "$TRUST_CHECK_PERF" = 1 ]
+                   then
+                      compare_TU $NOM2 || PB=254
+                   fi
                    #Pour tester Check_solver.sh
                    #Check_solver.sh -not_lml -solver 1:3:4 $NOM2
                    # Si le copie_cas_test a echoue (par exemple le prepare a mal tourne)

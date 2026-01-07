@@ -1120,6 +1120,7 @@ then
    echo $ECHO_OPTS "ctest_rerun_failed_semi_optim:\t ctest_rerun_failed_semi_opt"  >> $TRUST_ROOT/Makefile
    echo $ECHO_OPTS "gui:\n\t(source ./env_TRUST.sh && cd Outils/TRIOXDATA && ./Install_all)" >> $TRUST_ROOT/Makefile
    echo $ECHO_OPTS "check_gui:\n\t(source ./env_TRUST.sh && cd Outils/TRIOXDATA && ./check_jdd)" >> $TRUST_ROOT/Makefile
+   echo $ECHO_OPTS "check_perf:\n\t(source ./env_TRUST.sh && compare_TU)" >> $TRUST_ROOT/Makefile
    [ "${#ECHO_OPTS}" = 0 ] && echo "Error: Check "$TRUST_ROOT"/Makefile !!! (ECHO_OPTS="$ECHO_OPTS")" && exit -1
    ##################################
    # Desormais on recree les makefile

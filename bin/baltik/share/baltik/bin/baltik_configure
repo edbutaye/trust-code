@@ -697,6 +697,13 @@ printf "\t@echo \"########################\"\n"                 >> $project_make
 printf "\t@source $env_file; check_jdd \$(OPTIONS_GUI)\n"                       >> $project_makefile
 printf "\n"                                                     >> $project_makefile
 
+printf "# help check_perf \t: Checking performance\n" >> $project_makefile
+printf "check_perf : optim\n"                                              >> $project_makefile
+printf "\t@echo \"########################\"\n"                 >> $project_makefile
+printf "\t@echo \"# Checking perf        #\"\n"                 >> $project_makefile
+printf "\t@echo \"########################\"\n"                 >> $project_makefile
+printf "\t@source $env_file; compare_TU \n"                       >> $project_makefile
+printf "\n"                                                     >> $project_makefile
 
 printf "# help trustify \t: Build trustify Python module for the baltik\n" >> $project_makefile
 printf "trustify :\n"                                              >> $project_makefile

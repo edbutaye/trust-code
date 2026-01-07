@@ -1,8 +1,10 @@
 #!/bin/bash
 # Outil de NR des performances par analyse des .TU machine specifique
+# ToDo: fusionner au script check_perf.sh sous tests/GPU
 check()
 {
-   lignes="dt total" && [ "$3" = -total ] && lignes="total"
+   # Si un seul pas de temps, on regarde le temps total du calcul (utilse pour Flica5 et le modele simplifie):
+   lignes="dt" && [ `TU.sh $1.TU -ndt` = 1 ] && lignes="total"
    for ligne in $lignes
    do
       if [ $ligne = "dt" ]
@@ -36,16 +38,32 @@ check()
       then
          if [ "$project_directory" != "" ]
          then
-            cp `pwd`/$1.TU `find $project_directory/tests -name $1.TU.ref_$2`
+            ref=`find $project_directory/tests -name $1.TU.ref_$2`
          else
-            cp `pwd`/$1.TU `find $TRUST_ROOT/tests -name $1.TU.ref_$2`
+            ref=`find $TRUST_ROOT/tests -name $1.TU.ref_$2`
          fi
+         cp `pwd`/$1.TU $ref
          echo "$1.TU.ref_$2" updated !      
       fi
       [ $OK = 0 ] && exit -1
       exit 0
    done   
 }
+# When called with "make check_perf":
+if [ "$1" = "" ]
+then
+   err_bench=0
+   # TU.ref_$HOST   : CPU bench
+   TU=TU.ref_$HOST_BUILD
+   echo "Running performance benchmarking (looking for archived .$TU files) ..."
+   for dir in `find tests -name '*'.$TU'*' -exec dirname {} \; | sort -u`
+   do
+      cas=`basename $dir`
+      TRUST_CHECK_PERF=1 trust -check $cas 2>&1 | grep "Performance"
+      [ ${PIPESTATUS[0]} != 0 ] && err_bench=${PIPESTATUS[0]}
+   done
+   exit $err_bench
+fi
 # ToDo: prevoir dans le script trust un lock avant le lancement
 # On compare les performances avec le fichier jdd.TU.ref_$HOST_BUILD
 # Si le fichier existe
@@ -54,6 +72,6 @@ if [ ! -f $1.TU.ref_$HOST_BUILD ] || [ ${exec%_semi_opt} != $exec ] || [ ${exec%
 then
    exit 0
 else
-   check $1 $HOST_BUILD $2
+   check $1 $HOST_BUILD
 fi
 

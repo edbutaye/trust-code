@@ -14,6 +14,10 @@ elif [ $2 = "-its" ]
 then
    # Iterations solver
    awk '/Iterations/ && /solveur/ {val=$NF} /Average number of iteration of the linear solver per call/ {val=$NF} END {print val}' $TU
+elif [ $2 = "-ndt" ]
+then
+   # Number of time steps
+   awk '/Number of time steps:/ {val=$NF} END {print val}' $TU
 else
    echo "Option $2 unknown"
    exit -1
