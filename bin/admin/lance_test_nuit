@@ -392,7 +392,7 @@ check_components()
                            WORKBETA=""
                            trustversion=""
                            [ "$Composant" == "flica5" ] && trustversion=1.9.6
-                           [ "$Composant" == "module3D" ] && trustversion=1.9.6
+                           [ "$Composant" == "module3D" ] && trustversion=1.9.7
                            [ "$Composant" == "triomc" ] && trustversion=1.9.5
                            if  [ "${machine:0:5}" = "orcus" ] || [ "${machine:0:6}" = "altair" ]
                            then
@@ -891,7 +891,7 @@ echo " "
          git checkout .
          git pull 1>tmp.log 2>&1
          cat tmp.log
-         [ "`grep 'Everything up-to-date' tmp.log`" = "" ] && cat tmp.log | mail_ -s\"[lance_test_nuit] $Composant git pull origin TMA\" $TRUST_MAIL
+         [ "`grep 'Already up to date' tmp.log`" = "" ] && cat tmp.log | mail_ -s\"[lance_test_nuit] $Composant git pull origin TMA\" $TRUST_MAIL
          rm tmp.log 1>/dev/null 2>&1
          cd $WORKDIR/tuleap/Maintenance/Composants/$Composant
          git remote update
@@ -916,8 +916,8 @@ echo " "
          if [ $? != 0 ]
          then
             cat tmp.log | mail_ -s\"[lance_test_nuit] $Composant : git pull next KO \" $TRUST_MAIL
-         else
-            [ "`grep 'Already up to date' tmp.log`" = "" ] && cat tmp.log | mail_ -s\"[lance_test_nuit] $Composant : git pull next OK \" $TRUST_MAIL
+         #else
+         #   [ "`grep 'Already up to date' tmp.log`" = "" ] && cat tmp.log | mail_ -s\"[lance_test_nuit] $Composant : git pull next OK \" $TRUST_MAIL
          fi
          cat tmp.log
          rm tmp.log 1>/dev/null 2>&1
@@ -929,8 +929,8 @@ echo " "
          if [ $? != 0 ]
          then
             cat tmp.log | mail_ -s\"[lance_test_nuit_maintenance] $Composant : git pull advance KO \" $TRUST_MAIL
-         else
-            [ "`grep 'Already up to date' tmp.log`" = "" ] && cat tmp.log | mail_ -s\"[lance_test_nuit_maintenance] $Composant : git pull advance OK \" $TRUST_MAIL
+         #else
+         #   [ "`grep 'Already up to date' tmp.log`" = "" ] && cat tmp.log | mail_ -s\"[lance_test_nuit_maintenance] $Composant : git pull advance OK \" $TRUST_MAIL
          fi
          cat tmp.log
          rm tmp.log 1>/dev/null 2>&1
@@ -1716,11 +1716,11 @@ then
    echo "" >> $MESSAGES_NUIT
 fi
 Composant="triocfd"
-if [ -f $TRUST_ROOT/../Composants/$Composant/share/RELEASE_NOTES ]
+if [ -f $TRUST_ROOT/../Composants/$Composant/RELEASE_NOTES ]
 then
    echo "--------------------------------------------------------------------------------------------------" >> $MESSAGES_NUIT
    echo "-------------------------------------- TrioCFD RELEASE NOTES -------------------------------------" >> $MESSAGES_NUIT
-   $TRUST_Awk '/Release notes/ {i++} (i==1) {print $0}' $TRUST_ROOT/../Composants/$Composant/share/RELEASE_NOTES | tail -n +3 | head -n -1 >> $MESSAGES_NUIT
+   $TRUST_Awk '/Release notes/ {i++} (i==1) {print $0}' $TRUST_ROOT/../Composants/$Composant/RELEASE_NOTES | tail -n +3 | head -n -1 >> $MESSAGES_NUIT
    echo "" >> $MESSAGES_NUIT
 fi
 echo $ECHO_OPTS "---------------------------------------------------------------------------------" >> $MESSAGES_NUIT
@@ -3705,6 +3705,7 @@ do
       fi
    fi
 done
+force_validation_doxygen=~/force_validation_doxygen && [ -f $force_validation_doxygen ] && validation_doxygen=1 && rm -f $force_validation_doxygen
 echo " "
 if [ $validation_doxygen = 1 ]
 then
@@ -3859,7 +3860,8 @@ then
             then
                # On previent l'administrateur et les project leader
                BALTIK_PROJECT_LEADER=$Composant"_PROJECT_LEADER"
-               cat $WORKDIR/tuleap/Livraison/Composants/$Composant/share/RELEASE_NOTES | mail_ -s\"[lance_test_nuit] $Composant Release version - Tag a $release version: $label_pose \(See origin/next branch\)\" $TRUST_MAIL $TMA_PROJECT_LEADER ${!BALTIK_PROJECT_LEADER}
+               [ -f $WORKDIR/tuleap/Livraison/Composants/$Composant/share/RELEASE_NOTES ] && cat $WORKDIR/tuleap/Livraison/Composants/$Composant/share/RELEASE_NOTES | mail_ -s\"[lance_test_nuit] $Composant Release version - Tag a $release version: $label_pose \(See origin/next branch\)\" $TRUST_MAIL $TMA_PROJECT_LEADER ${!BALTIK_PROJECT_LEADER}
+               [ -f $WORKDIR/tuleap/Livraison/Composants/$Composant/RELEASE_NOTES ] && cat $WORKDIR/tuleap/Livraison/Composants/$Composant/RELEASE_NOTES | mail_ -s\"[lance_test_nuit] $Composant Release version - Tag a $release version: $label_pose \(See origin/next branch\)\" $TRUST_MAIL $TMA_PROJECT_LEADER ${!BALTIK_PROJECT_LEADER}
             else
                echo "" | mail_ -s\"[lance_test_nuit] $Composant - Tag a $release version: $label_pose KO\" $TRUST_MAIL
             fi
@@ -4194,17 +4196,17 @@ type mpicxx
 # for CEA Saclay (PC Titania file system or orcus cluster):
 source /home/trust_trio-public/env_TRUST-$new.sh
 
-# for TOPAZE and IRENE (Skylake & AMD Rome) supercomputers (64-bit integers version):
-source /ccc/cont002/home/den/triou/env_TRUST-$new-int64.sh
+# for TOPAZE and IRENE (Skylake & AMD Rome) supercomputers:
+source /ccc/cont002/home/den/triou/env_TRUST-$new.sh
 
 # for TOPAZE and IRENE (AMD Rome) supercomputers (GPU version):
 source /ccc/cont002/home/den/triou/env_TRUST-$new-gpu.sh
 
-# for IDRIS (jean-zay) supercomputer (64-bit integers version):
-source /gpfswork/rech/fej/ugz82dj/env_TRUST-$new-int64.sh
+# for IDRIS (jean-zay) supercomputer:
+source /gpfswork/rech/aih/ume72pt/env_TRUST-$new.sh
 
 # for IDRIS (jean-zay) supercomputer (GPU version):
-source /gpfswork/rech/fej/ugz82dj/env_TRUST-$new-gpu.sh
+source /gpfswork/rech/aih/ume72pt/env_TRUST-$new-gpu.sh
 
 # for mezel supercomputer:
 source /soft/commun/CODES/TRUST/env_TRUST-$new.sh
@@ -4306,22 +4308,23 @@ Then, install TrioCFD-$new using one of these methods:
 # for CEA Saclay (PC Titania file system or orcus cluster):
 source /home/trust_trio-public/env_TrioCFD-$new.sh
 
-# for TOPAZE and IRENE (Skylake & AMD Rome) supercomputers (64-bit integers version):
-source /ccc/cont002/home/den/triou/env_TrioCFD-$new-int64.sh
+# for TOPAZE and IRENE (Skylake & AMD Rome) supercomputers:
+source /ccc/cont002/home/den/triou/env_TrioCFD-$new.sh
 
 # for TOPAZE and IRENE (AMD Rome) supercomputers (GPU version):
 source /ccc/cont002/home/den/triou/env_TrioCFD-$new-gpu.sh
 
-# for IDRIS (jean-zay) supercomputer (64-bit integers version):
-source /gpfswork/rech/fej/ugz82dj/env_TrioCFD-$new-int64.sh
+# for IDRIS (jean-zay) supercomputer:
+source /gpfswork/rech/aih/ume72pt/env_TrioCFD-$new.sh
 
 # for IDRIS (jean-zay) supercomputer (GPU version):
-source /gpfswork/rech/fej/ugz82dj/env_TrioCFD-$new-gpu.sh
+source /gpfswork/rech/aih/ume72pt/env_TrioCFD-$new-gpu.sh
 ----------------------------------------------------------------------------------------------------" >> $MESSAGES_LIVRAISON
       echo $ECHO_OPTS "
 --------------------------------------------------------------------------------------------------
 3. \c" >> $MESSAGES_LIVRAISON
          [ -f $TRUST_ROOT/../Composants/$Composant/share/RELEASE_NOTES ] && echo $ECHO_OPTS "$Composant \c" >> $MESSAGES_LIVRAISON && $TRUST_Awk '/Release notes/ {i++} (i==1) {print $0}' $TRUST_ROOT/../Composants/$Composant/share/RELEASE_NOTES >> $MESSAGES_LIVRAISON
+         [ -f $TRUST_ROOT/../Composants/$Composant/RELEASE_NOTES ] && echo $ECHO_OPTS "$Composant \c" >> $MESSAGES_LIVRAISON && $TRUST_Awk '/Release notes/ {i++} (i==1) {print $0}' $TRUST_ROOT/../Composants/$Composant/RELEASE_NOTES >> $MESSAGES_LIVRAISON
          echo " " >> $MESSAGES_LIVRAISON
          mail_ -s \"New TrioCFD v$new released\" $TRUST_MAIL < $MESSAGES_LIVRAISON
          sleep 5
