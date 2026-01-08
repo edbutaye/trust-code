@@ -1304,10 +1304,10 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
               else
                 file_header << "The first time step is not accounted for the computation of the time loop statistics"<< std::endl;
             }
-          file_header <<  std::left <<std::setw(text_width)<< "Total time of the time loop: "<<  std::left <<std::setw(number_width) << c_total_time.total_time_.count() << std::endl;
+          file_header <<  std::left <<std::setw(text_width)<< "Total time of the time loop: "<<  std::left <<std::setw(number_width) << time_tl << std::endl;
           file_header <<  std::left <<std::setw(text_width) << "Number of time steps: " <<  std::left <<std::setw(number_width) << nb_ts << std::endl;
           file_header <<  std::left <<std::setw(text_width) << "Skipped time steps: " <<  std::left <<std::setw(number_width) << nb_steps_elapsed_ << std::endl;
-          file_header <<  std::left <<std::setw(text_width) << "Average time per time step: " <<  std::left <<std::setw(number_width) << c_total_time.total_time_.count()/nb_ts << endl;
+          file_header <<  std::left <<std::setw(text_width) << "Average time per time step: " <<  std::left <<std::setw(number_width) << time_tl/nb_ts << endl;
           file_header <<  std::left <<std::setw(text_width) << "Standard deviation between time steps: " <<  std::left <<std::setw(number_width) << std::sqrt(c_timeloop.var_time_per_step_) << std::endl;
           file_header <<  std::left <<std::setw(text_width) << "Time elapsed in the skipped time steps: " <<  std::left <<std::setw(number_width) << time_skipped_ts_.count() <<std::endl << std::endl;
           if (Process::is_parallel())
@@ -1672,6 +1672,8 @@ void Perf_counters::Impl::reset_counters_impl()
 void Perf_counters::Impl::set_time_steps_elapsed_impl(int time_step_elapsed)
 {
   nb_steps_elapsed_=time_step_elapsed;
+  if (time_step_elapsed>0)
+    end_cache_ =false;
 }
 
 double Perf_counters::Impl::get_computation_time_impl()
@@ -1811,7 +1813,7 @@ void Perf_counters::Impl::end_time_step_impl(long int tstep)
       end_cache_ = tstep >= nb_steps_elapsed_;
       if (end_cache_)
         {
-          time_skipped_ts_ += get_counter(STD_COUNTERS::total_execution_time).total_time_;
+          time_skipped_ts_ = get_counter(STD_COUNTERS::timeloop).total_time_;
           computation_time_ += get_counter(STD_COUNTERS::total_execution_time).total_time_;
           reset_counters_impl();
         }
