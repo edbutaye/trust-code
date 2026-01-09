@@ -122,6 +122,7 @@ check_components()
                echo " "
                # Pas de check_gui sur baltiks sans XD
                make gui 1>$Gui_log 2>&1 && echo $Composant"_Reference_Manual.pdf OK" && DOC_PDF_OK=1
+               make trustify_check 1>>$Gui_log 2>&1
                grep "Error" $Gui_log
                [ "`grep "Error" $Gui_log`" != "" ] && DOC_PDF_OK=0 && echo DOC_PDF_OK=0
                if [[ "$ComposantsOfficial" = *"$Composant"* ]] || [[ "$ComposantsLns" = *"$Composant"* ]] # Test si Composant n est pas dans la liste des composants Beta
@@ -130,7 +131,10 @@ check_components()
                   then
                      ([ "`date '+%u'`" -gt 5 ] || ([ "`date '+%u'`" = 5 ] && [ `date '+%H'` -gt 17 ])) && make check_gui 1>>$Gui_log 2>&1 &
                   fi
-                  make doxygen 1>$Doc_log 2>&1
+                  if [ "$Composant" != "triomc" ] && [ "$Composant" != "mathys" ]
+                  then
+                     make doxygen 1>$Doc_log 2>&1
+                  fi
                fi
             fi
             echo " "
@@ -391,7 +395,7 @@ check_components()
                            # Debut de partie a revoir !!!!
                            WORKBETA=""
                            trustversion=""
-                           [ "$Composant" == "flica5" ] && trustversion=1.9.6
+                           [ "$Composant" == "flica5" ] && trustversion=1.9.7b
                            [ "$Composant" == "module3D" ] && trustversion=1.9.7
                            [ "$Composant" == "triomc" ] && trustversion=1.9.5
                            if  [ "${machine:0:5}" = "orcus" ] || [ "${machine:0:6}" = "altair" ]
@@ -896,7 +900,7 @@ echo " "
          cd $WORKDIR/tuleap/Maintenance/Composants/$Composant
          git remote update
          git checkout .
-         git checkout master
+         git checkout Livraison
          git pull 1>tmp.log 2>&1
          if [ $? != 0 ]
          then

@@ -1656,7 +1656,7 @@ void Perf_counters::Impl::restart_counters_impl()
 
 void Perf_counters::Impl::reset_counters_impl()
 {
-  // Reset all counters excpet the highest level one, hence starting the loop at 1:
+  // Reset all counters except the highest level one, hence starting the loop at 1:
   for (int i = 1 ; i< static_cast<int>(STD_COUNTERS::NB_OF_STD_COUNTER); i++)
     {
       Counter& c = *std_counters_[i];
