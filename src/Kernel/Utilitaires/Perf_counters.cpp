@@ -299,7 +299,7 @@ public:
   bool get_gpu_fence_impl() const {return gpu_fence_;}
   void set_gpu_fence_impl(bool fence) {gpu_fence_=fence;}
   bool running_impl(const STD_COUNTERS name) { return get_counter(name).running_(); }
-  void record_nb_elem_impl(long nb_elem) {nb_elem_tot_+=nb_elem;}
+  void record_nb_elem_impl(trustIdType nb_elem) {nb_elem_tot_+=nb_elem;}
 
 private:
   Counter& get_counter(const STD_COUNTERS name) ;
@@ -337,7 +337,7 @@ private:
   time_point gpu_timer_start_;
   int gpu_timer_count_=0;
   int max_str_length_=118;
-  long nb_elem_tot_=0;
+  trustIdType nb_elem_tot_=0;
 };
 Perf_counters::Impl::~Impl()=default;
 
@@ -665,7 +665,7 @@ void Perf_counters::Impl::print_performance_to_csv(const std::string& message)
   std::ostringstream perfs;   ///< Stringstream that contains stats for each processor
   std::ostringstream perfs_globales;   ///< Stringstream that contains stats average on the processors : processor number = -1
   std::ostringstream file_header;      ///< Stringstream that contains the lines at the start of the file
-  long nb_elem_tot = Process::mp_sum(nb_elem_tot_);
+  trustIdType nb_elem_tot = Process::mp_sum(nb_elem_tot_);
   const int length_line = 24; ///< number of item of a line of the _csv.Tu file
   std::array<int,length_line> item_size; ///< Contains the the width of the printed string, 20 for numbers by default
   for (int& j:item_size)
@@ -1088,7 +1088,7 @@ void Perf_counters::Impl::print_global_TU(const std::string& message)
   double avg_solv_time = Process::mp_max(c_system_solver.total_time_.count());
   double total_time = c_total_time.total_time_.count();
   double total_quantity = Process::mp_sum(static_cast<double>(c_backup.quantity_));
-  long nb_elem_tot = Process::mp_sum(nb_elem_tot_);
+  trustIdType nb_elem_tot = Process::mp_sum(nb_elem_tot_);
   int max_nb_backup = Process::mp_max(c_backup.count_);
   double total_comm_time=0.;
   int solver_calls=  Process::mp_max(c_system_solver.count_);
@@ -2022,7 +2022,7 @@ int Perf_counters::get_last_opened_counter_level() const
   return pimpl_->get_last_opened_counter_level_impl();
 }
 
-void Perf_counters::record_nb_elem(long nb_elem)
+void Perf_counters::record_nb_elem(trustIdType nb_elem)
 {
   pimpl_->record_nb_elem_impl(nb_elem);
 }

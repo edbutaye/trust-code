@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -13,13 +13,14 @@
 *
 *****************************************************************************/
 
+#ifndef Perf_counters_included
+#define Perf_counters_included
+
+#include <iostream>
 #include <string>
 #include <chrono>
 #include <memory>
-#include <iostream>
-
-#ifndef Perf_counters_included
-#define Perf_counters_included
+#include <arch.h>
 
 // This file contains all of the needed for the description of the counter associated with the tracking of performance in the TRUST code.
 
@@ -259,7 +260,7 @@ public:
 
   int get_last_opened_counter_level() const ;
 
-  void record_nb_elem(long nb_elem);
+  void record_nb_elem(trustIdType nb_elem);
 
   /////// GPU features for a cleaner Device class
 
