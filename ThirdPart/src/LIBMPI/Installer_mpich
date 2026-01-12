@@ -91,10 +91,17 @@ if [ "`uname -s`" = Darwin ] # Darwin linkers dont support anymore -commons flag
    echo "HACK FOR MAC"
    sed -i "s/WRAPPER_LDFLAGS -Wl,-commons,use_dylibs/WRAPPER_LDFLAGS/g" configure
 fi
-# Hack a file for 3.4.2 if Cuda installed:
+
+# Yaksa
 if [ "$TRUST_FORCE_LATEST_MPICH" = 1 ]
 then
+   # Hack a file for 3.4.2 if Cuda installed:
    sed -i "1,$ s?/bin/sh?/bin/bash?g" modules/yaksa/src/backend/cuda/cudalt.sh || exit -1
+fi
+if [ "$TRUST_USE_CUDA" != 1 ]
+then
+   # Hack a file for non CUDA version
+   sed -i "1,$ s?nvcc?nvcc_disabled?g" modules/yaksa/configure || exit -1
 fi
 
 ###############################
