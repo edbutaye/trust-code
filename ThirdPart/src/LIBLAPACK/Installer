@@ -12,7 +12,6 @@ install_OpenBlas()
    OPENBLAS_USE_OPENMP=$TRUST_USE_OPENMP
    # Disable OpenMP for PETSc (Probleme avec STRUMPACK sur GPU)
    OPENBLAS_USE_OPENMP=0 
-   echo "Installation of $package (USE_THREAD=$OPENBLAS_USE_OPENMP USE_OPENMP=$OPENBLAS_USE_OPENMP)..."
    gunzip -f -c $package | tar -xf -
    cd OpenBLAS-$version_openblas
    if [ "$TRUST_CC_BASE_EXTP" != "" ]
@@ -26,11 +25,22 @@ install_OpenBlas()
    fi
    # On ne construit que les libs (tests plantent parfois):
    targets="libs netlib"
+   
+   # Architecture:
+   # Sur 13.3.0, ./getarch 1 ne retourne pas la bonne arch Intel:
+   CPU_ARCH="" && [ "$TRUST_VERSION_GNU" = 13.3.0 ] && [ "`grep intel /proc/cpuinfo`" != "" ] && CPU_ARCH="TARGET=SKYLAKEX"
+   #if [ "`lscpu 2>/dev/null | grep avx512`" != "" ]
+   #then
+   #   CPU_ARCH="TARGET=SKYLAKEX"
+   #elif [ "`lscpu 2>/dev/null | grep avx2`" != "" ]
+   #then
+   #   CPU_ARCH="TARGET=HASWELL"
+   #else
+   #   CPU_ARCH=""
+   #fi
    # Instructions -mavx512 fait crasher valgrind sur les machines avec instructions avx512 ... On desactive (comme dans TRUST d'ailleurs)
-   options="CC=$CC FC=$FC USE_THREAD=$OPENBLAS_USE_OPENMP USE_OPENMP=$OPENBLAS_USE_OPENMP NO_AVX512=1"
-   # Sur CalculCSPG PROMES, il faut decommenter la ligne ci-apres pour ajouter TARGET=NEHALEM sinon openblas ne s'installe pas
-   #options="CC=$CC FC=$FC USE_THREAD=$OPENBLAS_USE_OPENMP USE_OPENMP=$OPENBLAS_USE_OPENMP NO_AVX512=1 TARGET=NEHALEM"
-
+   options="CC=$CC FC=$FC USE_THREAD=$OPENBLAS_USE_OPENMP USE_OPENMP=$OPENBLAS_USE_OPENMP NO_AVX512=1 $CPU_ARCH"
+   echo "Installation of $package ($options)..."
    if [ `uname -s` = Darwin ]
    then
       $TRUST_MAKE $targets $options
