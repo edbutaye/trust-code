@@ -560,7 +560,7 @@ TEST(DeviceTest, resizeGPUArrayDOWN){
   bool all_correct = true;
   Kokkos::parallel_reduce("CheckValues", policy,
                           KOKKOS_LAMBDA(int i, bool& result) {
-                            if (view_rw(i) != i) {result = false;printf("Mismatch at i=%d, view_rw(i)=%d\n", i, view_rw(i));}},
+                            if (view_rw(i) != i) {result = false;printf("Mismatch at i=%d, view_rw(i)=%f\n", i, view_rw(i));}},
           Kokkos::LAnd<bool>(all_correct));
   EXPECT_TRUE(all_correct);
 }

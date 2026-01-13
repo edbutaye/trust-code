@@ -410,8 +410,7 @@ check_components()
                            elif [ "${machine:0:7}" = "cezanne" ]
                            then
                               WORKBETA=`$SSHP ssh_ $BATCHMODE $log@$adr -n 'source /soft/der/sesi/TRUST/env_TRUST-'$trustversion'.sh 1>/dev/null 2>&1; echo \$TRUST_ROOT;'`
-                           elif  [ "${machine:0:2}" = "is" ]
-                           then
+                           else
                               WORKBETA=`$SSHP ssh_ $BATCHMODE $log@$adr -n 'source /home/trust_trio-public/env_TRUST-'$trustversion'.sh 1>/dev/null 2>&1; echo \$TRUST_ROOT;'`
                            fi
                            if [ "$WORKBETA" != "" ]
