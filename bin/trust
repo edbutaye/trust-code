@@ -1262,6 +1262,13 @@ export FI_CXI_DEFAULT_CQ_SIZE=393216" >> $GPU_DIRECT
          echo "$profiler $TRUST_ROOT/bin/mpirun.sh -np $NB_PROCS \$exec \$case $NB_PROCS $PETSC_OPTIONS 1>$OUTPUT.out 2>$OUTPUT.err" >> $sub_file
       fi
    fi
+   #########################
+   # Consommation electrique
+   #########################
+   if [ "$sub" = SLURM ]
+   then
+      echo "sacct --format=ElapsedRaw,ConsumedEnergyRaw --jobs=\$SLURM_JOB_ID | awk '(NR==3 && $2!=0) {kw=0.001*\$2/\$1;kwh=\$2/3.6e6;print \"Power consumption: \"kw\" kW \" kwh\" kWh \" kwh*0.12\" Euros\"}' >> \$case.TU" >> $sub_file
+   fi
    #######
    # IPM #
    #######
