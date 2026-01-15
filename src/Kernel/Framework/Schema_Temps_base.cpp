@@ -770,21 +770,34 @@ bool Schema_Temps_base::corriger_dt_calcule(double& dt_calc) const
       imprimer_ram_totale();
     }
 
-  bool adapt_dt_max = false;
+  // proposed time step = stability time step (dt_stab) * security factor (facsec)
+  const double dt_propose = dt_stab_ * facsec_;
+
+  // Compute the time step dt as the minimal value between dt_max_ and proposed time step
+  double dt = std::min(dt_max_, dt_propose);
+
+  // si option adapt_dt_tmax active ... a la cathare
+  bool adapt_dt_tmax = false;
   if (adapt_dt_tmax_)
     {
-      if (temps_courant_ + (dt_stab_ * facsec_) > tmax_)
+      if (temps_courant_ + dt > tmax_)
         {
-          dt_max_ = tmax_ - temps_courant_;
-          adapt_dt_max = true;
+          dt = tmax_ - temps_courant_;
+          adapt_dt_tmax = true;
+        }
+      else if (temps_courant_ + 2. * dt > tmax_)
+        {
+          dt = 0.5 * (tmax_ - temps_courant_);
+          adapt_dt_tmax = true;
         }
     }
 
-  // Compute the time step dt as the minimal value between dt_max_ and stability time step (dt_stab) * security factor (facsec)
-  double dt = std::min (dt_max_, dt_stab_ * facsec_);
   if (limpr() || (nb_pas_dt_ == 0))
-    Cout<<"Time step finally used to solve the next time step (taking into account facsec) : " << dt << " s." << finl;
-  if ((dt - dt_min_)/(dt+DMINFLOAT) < -1.e-6 && !adapt_dt_max)
+    Cout << "Time step finally used to solve the next time step (taking into account facsec) : " << dt << " s." << finl;
+
+  dt_calc = dt;
+
+  if ((dt - dt_min_) / (dt + DMINFLOAT) < -1.e-6 && !adapt_dt_tmax)
     {
       // Calculation stops if time step dt is less than dt_min
       Cerr << "---------------------------------------------------------" << finl;
@@ -797,8 +810,8 @@ bool Schema_Temps_base::corriger_dt_calcule(double& dt_calc) const
       pb.sauver();
       Process::exit();
     }
-  dt_calc=dt;
-  return 1;
+
+  return true;
 }
 
 
