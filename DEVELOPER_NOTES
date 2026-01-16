@@ -1,11 +1,11 @@
-XX/XX/25 (TRUST) NR           : Add a new target "make check_perf" to assess performance non-regression on archived .TU.ref_$HOST files
-XX/XX/25 (TRUST) GPU          : Add ArborX Kokkos-based library to provide performance portable algorithms for geometric search (e.g: nearest search, cells containing points, raytracing, ...)
-XX/XX/25 (TRUST) GPU          : Cuda 12.9 and NVHPC 25.5 supported to build TRUST Nvidia version
-XX/XX/25 (TRUST) GPU          : Use public_for_cuda macro to declare protected/private methods with Kokkos regions as Cuda kernels should be implemented into public methods
-XX/XX/25 (TRUST) GPU          : As Cuda build with nvc++ will be soon deprecated, enable it with Kokkos nvcc wrapper with: ./configure -cuda -c++=nvcc_wrapper
 -------------------------------------------------------------
 Developer notes version 1.9.8_beta : Changes since version 1.9.7 :
 -------------------------------------------------------------
+16/01/25 (TRUST) NR           : Add a new target "make check_perf" to assess performance non-regression on archived .TU.ref_$HOST files
+16/01/25 (TRUST) GPU          : Add ArborX Kokkos-based library to provide performance portable algorithms for geometric search (e.g: nearest search, cells containing points, raytracing, ...)
+16/01/25 (TRUST) GPU          : Cuda 12.9 and NVHPC 25.5 supported to build TRUST Nvidia version
+16/01/25 (TRUST) GPU          : Use public_for_cuda macro to declare protected/private methods with Kokkos regions as Cuda kernels should be implemented into public methods
+16/01/25 (TRUST) GPU          : As Cuda build with nvc++ will be soon deprecated, enable it with Kokkos nvcc wrapper with: ./configure -cuda -c++=nvcc_wrapper
 
 -------------------------------------------------------------
 Developer notes version 1.9.7 : Changes since version 1.9.6 :

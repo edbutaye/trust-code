@@ -1,13 +1,13 @@
-XX/XX/26 (TRUST) Performance  : 3D VEF convective schemes muscl/upwind/muscl3/centre are computed faster (between 20-50%) on CPU and GPU
-XX/XX/25 (TRUST) Fix          : Possible rtol 0 with high initial residual for PETSc solvers created KSP_DIVERGENCE
-XX/XX/25 (TRUST) New option   : facsec_cfl (default disabled) computes for an Euler implicit time scheme a time step based on CFL (as diffusive operators are implicited): dt=min(facsec,facsec_max)*dt(CFL) 
-XX/XX/25 (TRUST) GPU          : Distances to boundary faces computed by ArborX library (fix bottleneck in K-Omega calculation during startup) + Prandtl model ported
-XX/XX/25 (TRUST) GPU          : TRUST linear solver GMRES implementation rewritten in Kokkos
-XX/XX/25 (TRUST) GPU          : EuroHPC computers lumi (MI250X) and marenostrum (H100) supported + Nvidia B300
-XX/XX/25 (TRUST) GPU          : Mandatory C++20 compiler (e.g. GNU>=10.4.0) to build the GPU version of the code (prepare to Kokkos 5.x migration)
 --------------------------------------------------------------------------------------------------
 Release notes version 1.9.8_beta : Enhancements, modifications and corrected bugs since version 1.9.7 :
 --------------------------------------------------------------------------------------------------
+16/01/26 (TRUST) Performance  : 3D VEF convective schemes muscl/upwind/muscl3/centre are computed faster (between 20-50%) on CPU and GPU
+16/01/26 (TRUST) Fix          : Possible rtol 0 with high initial residual for PETSc solvers created KSP_DIVERGENCE
+16/01/26 (TRUST) New option   : facsec_cfl (default disabled) computes for an Euler implicit time scheme a time step based on CFL (as diffusive operators are implicited): dt=min(facsec,facsec_max)*dt(CFL)
+16/01/26 (TRUST) GPU          : Distances to boundary faces computed by ArborX library (fix bottleneck in K-Omega calculation during startup) + Prandtl model ported
+16/01/26 (TRUST) GPU          : TRUST linear solver GMRES implementation rewritten in Kokkos
+16/01/26 (TRUST) GPU          : EuroHPC computers lumi (MI250X) and marenostrum (H100) supported + Nvidia B300
+16/01/26 (TRUST) GPU          : Mandatory C++20 compiler (e.g. GNU>=10.4.0) to build the GPU version of the code (prepare to Kokkos 5.x migration)
 13/01/26 (TRUST) New feature  : Add new flag 'adapt_dt_tmax' in time scheme that ensures that the simulation ends at tmax
 08/01/26 (TRUST) Bug fix      : Fix for the case where dt_post is specified once in the header of post-processing block and where a mix of post-processings from files and old fashion is requested
 08/01/26 (TRUST) Bug fix      : Possible memory increase when writing some files (typically opened/closed at each write)

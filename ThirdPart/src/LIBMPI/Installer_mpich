@@ -97,11 +97,11 @@ if [ "$TRUST_FORCE_LATEST_MPICH" = 1 ]
 then
    # Hack a file for 3.4.2 if Cuda installed:
    sed -i "1,$ s?/bin/sh?/bin/bash?g" modules/yaksa/src/backend/cuda/cudalt.sh || exit -1
-fi
-if [ "$TRUST_USE_CUDA" != 1 ]
-then
-   # Hack a file for non CUDA version
-   sed -i "1,$ s?nvcc?nvcc_disabled?g" modules/yaksa/configure || exit -1
+   if [ "$TRUST_USE_CUDA" != 1 ]
+   then
+      # Hack a file for non CUDA version
+      sed -i "1,$ s?nvcc?nvcc_disabled?g" modules/yaksa/configure || exit -1
+   fi
 fi
 
 ###############################

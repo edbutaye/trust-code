@@ -1,6 +1,6 @@
 arch	maj		recup	hostname		Update	lance_test	baltiks						Tasks		Options	
 linux	rsync_ssh	tache	altair-valgrind.intra.cea.fr    -limited  	-FLICA5 		 		    -ctest_valgrind 	-without-pdflatex 			# Rocky 9 serveur rackable pour TRUST titania
-linux   rsync_ssh	tache	salacia.intra.cea.fr 		-all		 -TrioCFD  	 		-force_latest_openmpi -without-pdflatex -without-visit     # Ubuntu 22.04 serveur rackable titania
+linux   rsync_ssh	tache	salacia.intra.cea.fr 		-all		 -TrioCFD  	 		-without-pdflatex -without-visit     # Ubuntu 22.04 serveur rackable titania
 linux	rsync_ssh	tache	petra.intra.cea.fr    -all  	-FLICA5 		 		     	-without-pdflatex 			# Ubuntu 20 TRUST
 linux   rsync_ssh   cible   is246427.intra.cea.fr 			   -ICoCo -TrioCFD -FLICA5 -GENEPI3 -STT -PEMFC -C3D -SIDES -SCORPIO -TrioMC -MATHYS    	 		   -semi_opt			-without-pdflatex  					# Ubuntu 24 MF titania
 linux	rsync_ssh	tache	unitas22-mv-install.intra.cea.fr		-all	-ICoCo 	  	 	 -move-install -disable-valgrind	  							# Ubuntu 22	rack titania 
@@ -11,7 +11,7 @@ linux	rsync_ssh	cible	is242981.intra.cea.fr	-all 		 	-ICoCo -FLICA5 			-semi_opt
 linux   rsync_ssh   tache   is157083-clang.intra.cea.fr 		-all	   -ICoCo -TrioCFD -FLICA5 	 		   		-clang  	 -force_latest_mpich -without-pdflatex  					# Fedora 38 GF 
 linux   rsync_ssh   tache   is234637-clang.intra.cea.fr 		-all	   -FLICA5	 		   		-clang  	 -force_latest_mpich -without-pdflatex -without-visit -disable-plot2d -disable-gmsh   					# Fedora 40 GA 
 linux   rsync_ssh   tache   is245205-clang.intra.cea.fr 		-all	   -ICoCo -TrioCFD -FLICA5 -GENEPI3 -STT -PEMFC -C3D -SIDES -SCORPIO -TRUST_NK -TrioMC -MATHYS -MPCube  	 		   		-clang  	 -disable-gtest -disable-gmsh -disable-plot2d -force_latest_mpich -without-pdflatex  					# Fedora 41 GA
-linux	rsync_ssh	tache	is157083-cpp14.intra.cea.fr	-all 		-ICoCo -GENEPI3 -STT -PEMFC -C3D -SIDES -SCORPIO -TrioMC -MATHYS     		-stdcpp14 			 -without-pdflatex    							# Fedora 38 	Bat 454 LMEC titania  GF
+linux	rsync_ssh	tache	is157083-cpp20.intra.cea.fr	-all 		-ICoCo -GENEPI3 -STT -PEMFC -C3D -SIDES -SCORPIO -TrioMC -MATHYS     		-stdcpp20 			 -without-pdflatex    							# Fedora 38 	Bat 454 LMEC titania  GF
 linux	rsync_ssh	tache	is231001-cpp14.intra.cea.fr	-all 		-GENEPI3 -C3D     		-stdcpp14 			 -without-pdflatex    							# Fedora 26 	Bat 454 LMEC titania  CP
 linux	rsync_ssh	tache	is245205.intra.cea.fr	-all 		-ICoCo -FLICA5 -TrioCFD -GENEPI3 -STT -PEMFC -C3D -SIDES -SCORPIO -TRUST_NK -TrioMC -MATHYS -MPCube     		 	 -disable-plot2d -disable-gmsh -force_even_unsupported -without-pdflatex    							# Fedora 41 	Bat 454 SGLS titania  GA
 linux	rsync_ssh	cible	is227246.intra.cea.fr		-all     	-ICoCo -MPCube -TrioCFD -TRUST_NK -GENEPI3 -SIDES -SCORPIO -STT -PEMFC -FLICA5 -C3D -TrioMC -MATHYS    -force_latest_mpich  							# Fedora 34	Bat 451 Erwan titania
@@ -34,7 +34,7 @@ linux   rsync_ssh	tache	is158963-gpu.intra.cea.fr 		-all	 	-TrioCFD             
 linux   rsync_ssh   tache   is246524-gpu.intra.cea.fr  		-all	-benchmark	-TrioCFD			-gcc12 -rocm -without-pdflatex -without-visit     # PC Pierre titania 
 linux   rsync_ssh   tache   is247793-gpu.intra.cea.fr  		-limited 	-benchmark -ICoCo -TrioCFD				-rocm -force_latest_mpich -without-pdflatex -without-visit     # PC Guillaume titania 
 linux	rsync_ssh	tache	desactive_pegasi2.intra.cea.fr	  	-ICoCo -TrioCFD     		-ctest_mode_valgrind 		 		     -without-pdflatex			# Redhat 9 serveur rackable pour validation TrioCFD titania
-linux	rsync_ssh	tache	UB24.intra.cea.fr	  	  		-TrioCFD   	 		 -disable-openblas -without-doc      			# Ubuntu 24 serveur rackable eureka titania
+linux	rsync_ssh	tache	UB24.intra.cea.fr	  	  		-TrioCFD   	 		 -without-doc      			# Ubuntu 24 serveur rackable eureka titania
 linux	ssh_pass	cible	rhodia8-4.intra.cea.fr	  	-all  		-ICoCo -GENEPI3 -TrioCFD -FLICA5   	 		      -without-pdflatex  			# Redhat 8.4 serveur rackable titania
 linux	ssh_pass	tache	rhodia8-4-woconda.intra.cea.fr  		-ICoCo -FLICA5 -C3D    	 		     -without-conda -alternative-cmake -without-pdflatex  			# Redhat 8.4 serveur rackable titania
 linux	rsync_ssh	tache	is248238-coolprop-eos.intra.cea.fr	  	-all  		-GENEPI3 -TrioCFD    	 		      -coolprop -eos210 -without-pdflatex  			# Ubuntu 24 titania 

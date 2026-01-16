@@ -413,6 +413,7 @@ option_configure=" -disable-ccache "
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-disable-gnuplot" | grep ^$HOST"\."`" != "" ]                && option_configure=$option_configure" -disable-gnuplot"
 # c++ standard
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-stdcpp14" | grep ^$HOST"\."`" != "" ]                       && option_configure=$option_configure" -std=c++14"
+[ "`$TRUST_ROOT/bin/admin/liste_machines "\-stdcpp20" | grep ^$HOST"\."`" != "" ]                       && option_configure=$option_configure" -std=c++20"
 
 ########################
 # Lancement du configure

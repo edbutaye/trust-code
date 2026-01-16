@@ -65,6 +65,7 @@ AmgX,AmgXWrapper_331eba32db693528749bd2c46158073079d80972.tar.gz,,PL,MIT,https:/
 AmgX,nvc_get_devices.tgz,,GF,LGPL,http://files.salome-platform.org,http://downloads.sourceforge.net/project/trust-platform/1.7.3/extra/nvc_get_devices.tgz,
 AmgX,AmgX_4d1bda0016.tar.gz,,PL,,,https://github.com/NVIDIA/AMGX/archive/4d1bda0016.tar.gz,
 AmgX,AmgX_69e625e99b.tar.gz,,PL,,,https://github.com/NVIDIA/AMGX/archive/69e625e99b.tar.gz,
+kokkos,arborx-2.0.1.tar.gz,,PL,"BSD-3-Clause",https://github.com/arborx,https://github.com/arborx/ArborX/archive/refs/tags/v2.0.1.tar.gz,
 kokkos,kokkos-3.7.02.tgz,,PL,"Apache License v2.0 with LLVM Exceptions",https://github.com/kokkos,https://github.com/kokkos/kokkos/archive/refs/tags/3.7.02.tar.gz,
 kokkos,kokkos-4.7.00.tar.gz,,PL,"Apache License v2.0 with LLVM Exceptions",https://github.com/kokkos,https://github.com/kokkos/kokkos/archive/refs/tags/4.7.00.tar.gz,
 gnuplot,gnuplot-5.2.7.tar.gz,outil,AC,specifique,http://gnuplot.sourceforge.net/,http://sourceforge.net/projects/gnuplot/files/gnuplot/5.2.7/gnuplot-5.2.7.tar.gz/download,
