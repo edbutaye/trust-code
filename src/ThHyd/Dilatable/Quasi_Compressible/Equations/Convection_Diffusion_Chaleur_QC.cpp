@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -25,6 +25,8 @@
 Implemente_instanciable_sans_constructeur(Convection_Diffusion_Chaleur_QC,"Convection_Diffusion_Chaleur_QC",Convection_Diffusion_Chaleur_Fluide_Dilatable_base);
 // XD convection_diffusion_chaleur_QC eqn_base convection_diffusion_chaleur_QC -1 Temperature equation for a quasi-compressible fluid.
 // XD attr mode_calcul_convection chaine(into=["ancien","divuT_moins_Tdivu","divrhouT_moins_Tdivrhou"]) mode_calcul_convection 1 Option to set the form of the convective operatorNL2 divrhouT_moins_Tdivrhou (the default since 1.6.8): rho.u.gradT = div(rho.u.T )- Tdiv(rho.u.1) NL2ancien: u.gradT = div(u.T) - T.div(u) NL2 divuT_moins_Tdivu : u.gradT = div(u.T) - Tdiv(u.1)
+// XD attr T_min double T_min 1  Specifies T_min (and T_max) to keep temperature within [T_min, T_max] and avoid excessive excursions beyond physical limits in QC simulations. Use with caution.
+// XD attr T_max double T_max 1  Should be set when T_min set in the datafile.
 
 Convection_Diffusion_Chaleur_QC::Convection_Diffusion_Chaleur_QC():mode_convection_(2) { }
 
@@ -35,14 +37,52 @@ Sortie& Convection_Diffusion_Chaleur_QC::printOn(Sortie& is) const
 
 Entree& Convection_Diffusion_Chaleur_QC::readOn(Entree& is)
 {
+  Cerr<<"Reading of data for a "<<que_suis_je()<<" equation"<<finl;
+  Param param(que_suis_je());
+  set_param(param);
+
   Convection_Diffusion_Chaleur_Fluide_Dilatable_base::readOn(is);
+
+  if (std::isfinite(TMIN_) && std::isfinite(TMAX_))
+    {
+      Cerr << "TMIN and TMAX are specified in the " << que_suis_je() << " equation." << finl;
+    }
+  else if  (std::isfinite(TMIN_) || std::isfinite(TMAX_))
+    {
+      Cerr << "Error: You have defined only TMIN or TMAX in your datafile (equation " << que_suis_je() << ")"<< finl;
+      Cerr << "       You should specify both!!" << finl;
+      Process::exit();
+    }
+
   return is;
+}
+
+void Convection_Diffusion_Chaleur_QC ::mettre_a_jour(double temps)
+{
+
+  inconnue().mettre_a_jour(temps);
+  if (std::isfinite(TMIN_) && std::isfinite(TMAX_))
+    {
+      DoubleTab& T = inconnue().valeurs();
+      const int n = T.size_array();
+      const double eps = std::numeric_limits<double>::epsilon();
+
+      for (int i = 0; i < n; i++)
+        {
+          T(i) = std::min(std::max(TMIN_,T(i)),TMAX_);
+          if (std::abs(T(i)) < eps)
+            T(i) = 0.0;
+        }
+    }
+  Equation_base::mettre_a_jour(temps);
 }
 
 void Convection_Diffusion_Chaleur_QC::set_param(Param& param)
 {
   Convection_Diffusion_Chaleur_Fluide_Dilatable_base::set_param(param);
   param.ajouter_non_std("mode_calcul_convection",(this));
+  param.ajouter("T_min",&TMIN_);
+  param.ajouter("T_max",&TMAX_);
 }
 
 int Convection_Diffusion_Chaleur_QC::lire_motcle_non_standard(const Motcle& mot, Entree& is)

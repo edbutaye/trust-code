@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -44,9 +44,9 @@ public :
 
 protected :
   bool is_exp_ = false;
+  double  Tmin_for_exit_=-1000;
   OWN_PTR(Champ_Don_base) rho_xyz_;
   DoubleTab rho_;
-  double TMIN_=-1000;
   mutable Parser_U  parser_;
 };
 

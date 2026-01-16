@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -39,7 +39,7 @@ Entree& Loi_Etat_rhoT_GP_QC::readOn( Entree& is )
   param.ajouter("Prandtl",&Pr_); // XD_ADD_P double Prandtl number of the gas Pr=mu*Cp/lambda
   param.ajouter("rho_xyz",&rho_xyz_); // XD_ADD_P field_base Defined with a Champ_Fonc_xyz to define a constant rho with time (space dependent)
   param.ajouter("rho_t",&expression_); // XD_ADD_P chaine Expression of T used to calculate rho. This can lead to a variable rho, both in space and in time.
-  param.ajouter("T_min",&TMIN_); // XD_ADD_P double Temperature may, in some cases, locally and temporarily be very small (and negative) even though computation converges. T_min keyword allows to set a lower limit of temperature (in Kelvin, -1000 by default). WARNING: DO NOT USE THIS KEYWORD WITHOUT CHECKING CAREFULY YOUR RESULTS!
+  param.ajouter("Tmin_for_exit",&Tmin_for_exit_); // XD_ADD_P double If temperature goes below Tmin_for_exit (default value -1000), computation will stop.
   param.lire_avec_accolades(is);
 
   if (expression_ == "??" && rho_xyz_.est_nul())
@@ -114,17 +114,15 @@ double Loi_Etat_rhoT_GP_QC::calculer_masse_volumique(double P, double T) const
 // Overload
 double Loi_Etat_rhoT_GP_QC::calculer_masse_volumique(double P, double T, int ind) const
 {
-  if (inf_ou_egal(T,TMIN_))
+  if (inf_ou_egal(T,Tmin_for_exit_))
     {
       Cerr << finl << "Error, we find a temperature of " << T << " !" << finl;
-      Cerr << "The minium of temperature is definied to " << TMIN_ << " !" << finl;
       Cerr << "Either your calculation has diverged or you don't define" << finl;
       Cerr << "temperature in Kelvin somewhere in your data file." << finl;
       Cerr << "It is mandatory for Quasi compressible model." << finl;
       Cerr << "Check your data file." << finl;
       Process::exit();
     }
-
   if (is_exp_)
     {
       parser_.setVar(0,T);
@@ -154,17 +152,21 @@ void Loi_Etat_rhoT_GP_QC::calculer_masse_volumique()
   int n=tab_rho.size();
   if (is_exp_)
     {
-      double TMIN = TMIN_;
       ParserView parser(parser_);
       parser.parseString();
       CDoubleTabView ICh = tab_ICh.view_ro();
       CDoubleArrView rho_n = static_cast<const DoubleVect&>(tab_rho_n).view_ro();
       DoubleArrView rho_np1 = static_cast<DoubleVect&>(tab_rho_np1).view_wo();
       DoubleTabView rho = tab_rho.view_wo();
+      double eps = std::numeric_limits<double>::epsilon();
       Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__), n, KOKKOS_LAMBDA(const int i)
       {
         double T = ICh(i, 0);
-        if (T<=TMIN) Process::Kokkos_exit("Dumb temperature in Loi_Etat_rhoT_GP_QC::calculer_masse_volumique !");
+        if (Kokkos::abs(T) < eps)
+          {
+            T = 0.0;
+          }
+        if (T<=Tmin_for_exit_) Process::Kokkos_exit("Dumb temperature in Loi_Etat_rhoT_GP_QC::calculer_masse_volumique !");
         int threadId = parser.acquire();
         parser.setVar(0, T, threadId);
         rho_np1(i) = parser.eval(threadId);

@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2022, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -36,6 +36,7 @@ public :
   void set_param(Param& titi) override;
   void calculer_div_u_ou_div_rhou(DoubleTab& res) const override;
   int lire_motcle_non_standard(const Motcle&, Entree&) override;
+  void mettre_a_jour(double) override;
   int preparer_calcul() override;
   const Champ_base& vitesse_pour_transport() const override;
 
@@ -43,6 +44,8 @@ public :
   inline bool is_generic() const override { return mode_convection_ == 2 ? true : false;}
 
 protected :
+  double TMIN_ = std::numeric_limits<double>::quiet_NaN();
+  double TMAX_ = std::numeric_limits<double>::quiet_NaN();
   int mode_convection_; // 0 par divergence u 1 par conv(u) 2 par conv(rho u)
 };
 

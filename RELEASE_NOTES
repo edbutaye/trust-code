@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------------------------
 Release notes version 1.9.8_beta : Enhancements, modifications and corrected bugs since version 1.9.7 :
 --------------------------------------------------------------------------------------------------
+02/02/26 (TRUST) New keyword  : Added T_min and T_max keywords in Convection_diffusion_chaleur_QC to keep temperature within [T_min, T_max] and avoid excessive excursions beyond physical limits in QC simulations. Use with caution.
 26/01/26 (TRUST) Change       : Rename PolyMAC discretisation family: PolyMAC-->PolyMAC_CDO ; PolyMAC_P0-->PolyMAC_MPFA ; PolyMAC_P0P1NC-->PolyMAC_HFV ; Option_PolyMAC-->Option_PolyMAC_family ; is_polymac_family-->is_poly_family. Old names are can still be used in .data files, but will be depreciated after TRUST 1.9.9
 16/01/26 (TRUST) Performance  : 3D VEF convective schemes muscl/upwind/muscl3/centre are computed faster (between 20-50%) on CPU and GPU
 16/01/26 (TRUST) Fix          : Possible rtol 0 with high initial residual for PETSc solvers created KSP_DIVERGENCE
