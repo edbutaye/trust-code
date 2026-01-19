@@ -121,7 +121,9 @@ public :
 #endif
 
   public_for_cuda
+#ifdef PETSCKSP_H
   virtual void Update_matrix(Mat& MatricePetsc, const Matrice_Morse& mat_morse); // Fill the (previously allocated) PETSc matrix with mat_morse coefficients
+#endif
 
   static int instance;               // Nombre d'instances en cours de la classe
   static int numero_solveur;         // Compte les solveurs crees et utilises pour le prefix des options
