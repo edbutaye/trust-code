@@ -8,7 +8,7 @@ Time is given in seconds
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                               Context of the computation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Date:     13-01-2026 -- 17:44:16
+Date:     19-01-2026 -- 12:10:19
 OS:       is245197.intra.cea.fr__Linux__x86_64__5.6.6-300.fc32.x86_64__#1 SMP Tue Apr 21 13:44:19 UTC 2020
 CPU model : Intel(R) Core(TM) i9-10900 CPU @ 2.80GHz
 Total number of threads:20
@@ -20,41 +20,41 @@ Total number of elements used for the calculation: 40769
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                            Computation start-up statistics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Total time of the start-up:                                                1.354          
+Total time of the start-up:                                                1.35454        
 
 Number of calls to the linear solver per time step:                        2              
-Average time of the resolution of the linear problem per call:             0.398382       
+Average time of the resolution of the linear problem per call:             0.393415       
 Average number of iteration of the linear solver per call:                 2              
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                                  Time loop statistics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Total time of the time loop:                                               1.20359        
+Total time of the time loop:                                               1.12035        
 Number of time steps:                                                      10             
 Skipped time steps:                                                        0              
-Average time per time step:                                                0.120359       
-Standard deviation between time steps:                                     0.0257736      
+Average time per time step:                                                0.112035       
+Standard deviation between time steps:                                     0.0269912      
 Time elapsed in the skipped time steps:                                    0              
 
 
 Standard counter description             | Time/step       | % loop time | Call(s)/step   
 ------------------------------------------------------------------------------------------
-Linear solver resolutions Ax=B           | 0.0269693       | 22.4        | 1              
-Convection operator                      | 0.03714389      | 30.9        | 2              
-Diffusion operator                       | 0.0113195       |  9.4        | 2              
-Gradient operator                        | 0.01078746      |  9.0        | 2              
-Divergence operator                      | 0.003952719     |  3.3        | 2              
-Update ::mettre_a_jour                   | 0.003406236     |  2.8        | 1              
-Computation of the time step dt          | 0.008180432     |  6.8        | 4              
-Post-treatment operations                | 0.01284485      | 10.7        | 1              
-Other operations                         | 0.005756409     |  4.8        | 
+Linear solver resolutions Ax=B           | 0.0262914       | 23.5        | 1              
+Convection operator                      | 0.02945754      | 26.3        | 2              
+Diffusion operator                       | 0.01119589      | 10.0        | 2              
+Gradient operator                        | 0.010712        |  9.6        | 2              
+Divergence operator                      | 0.003908897     |  3.5        | 2              
+Update ::mettre_a_jour                   | 0.003348978     |  3.0        | 1              
+Computation of the time step dt          | 0.008126706     |  7.3        | 4              
+Post-treatment operations                | 0.01328501      | 11.9        | 1              
+Other operations                         | 0.005709937     |  5.1        | 
 
 Average number of iteration of the linear solver per call:                 2              
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                               Post-resolution statistics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Time of the post-resolution:                                               0.00288322     
+Time of the post-resolution:                                               0.00283324     
 
-Total time for the whole computation                                       2.56049        
+Total time for the whole computation                                       2.47774        
 
