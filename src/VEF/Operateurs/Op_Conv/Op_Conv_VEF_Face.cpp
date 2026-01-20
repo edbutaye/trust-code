@@ -433,7 +433,8 @@ void compute_flux_tetra_kernel(const FluxTetraKernelData& data)
             // Determination des faces amont pour les points M,C,S,S2
             int face_amont_m = (psc_m >= 0) ? num10 : num20;
 
-            int face_amont_c, face_amont_s, face_amont_s2;
+            [[maybe_unused]] int face_amont_c;
+            int face_amont_s, face_amont_s2;
             TRUST_IFCONSTEXPR (ordre == 3 && isMuscl)
             {
               face_amont_c = ((psc_c >= 0) ? num10 : num20);
@@ -447,7 +448,8 @@ void compute_flux_tetra_kernel(const FluxTetraKernelData& data)
                 face_amont_s2= face_amont_m;
               }
 
-            int item_m, item_c, item_s, item_s2;
+            int item_m, item_s, item_s2;
+            [[maybe_unused]] int item_c;
 
             TRUST_IFCONSTEXPR (isMuscl)
             {
