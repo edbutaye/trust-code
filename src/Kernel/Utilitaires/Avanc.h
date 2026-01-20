@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2022, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -26,6 +26,7 @@ class Motcle;
 class Nom;
 
 double avancer_fichier(Entree&, const Nom&, const int read_header=0);
+double avancer_fichier_with_syno(Entree& fich, const Nom& id, const Nom& syn_id, const int read_header=0);
 double get_last_time(Entree&);
 
 #endif

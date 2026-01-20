@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -1197,7 +1197,14 @@ int Navier_Stokes_std::reprendre(Entree& is)
       ident_pression += la_pression->que_suis_je();
       ident_pression += probleme().domaine().le_nom();
       ident_pression += Nom(temps,probleme().reprise_format_temps());
-      avancer_fichier(is, ident_pression);
+      if (probleme().discretisation().is_poly_family())
+        {
+          Nom field_tag_syno = create_polymacfamily_syno(ident_pression);
+          avancer_fichier_with_syno(is,ident_pression,field_tag_syno);
+        }
+      // end of the backward compatibility
+      else
+        avancer_fichier(is,ident_pression);
     }
   la_pression->reprendre(is);
 

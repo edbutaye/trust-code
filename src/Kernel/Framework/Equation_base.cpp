@@ -463,12 +463,49 @@ int Equation_base::reprendre(Entree& fich)
       field_tag += inconnue().que_suis_je();
       field_tag += probleme().domaine().le_nom();
       field_tag += Nom(temps,probleme().reprise_format_temps());
-      avancer_fichier(fich, field_tag);
+      // This part ensure the backwards compatibility of TRUST regarding the renaming of the PolyMAC family of discretisation. It will be deprecated in the TRUST 2.0
+
+      if (probleme().discretisation().is_poly_family())
+        {
+          Nom field_tag_syno = create_polymacfamily_syno(field_tag);
+          avancer_fichier_with_syno(fich,field_tag,field_tag_syno);
+        }
+      // end of the backward compatibility
+      else
+        avancer_fichier(fich,field_tag);
     }
   inconnue().reprendre(fich);
   return 1;
 }
 
+/*! @brief Create a synonym of a field name in order to ensure backward compatibility with old names of the PolyMAC discretisation family
+ *
+ * @param field_tag
+ * @return synonym of the field tag
+ */
+Nom Equation_base::create_polymacfamily_syno(const Nom& field_tag) const
+{
+  Nom field_tag_syno=field_tag;
+  auto create_syno= [field_tag](std::string pattern, std::string replace)
+  {
+    std::string s = field_tag.getString();
+    std::size_t pos = s.find(pattern);
+    while (pos != std::string::npos)
+      {
+        s.replace(pos, pattern.length(), replace);
+        pos = s.find(pattern, pos + replace.length());
+      }
+    return Nom(s);
+  };
+
+  if (probleme().discretisation().is_PolyMAC_CDO())
+    field_tag_syno=create_syno("PolyMAC_CDO","PolyMAC");
+  else if (probleme().discretisation().is_PolyMAC_MPFA())
+    field_tag_syno=create_syno("PolyMAC_MPFA","PolyMAC_P0");
+  else if (probleme().discretisation().is_PolyMAC_HFV())
+    field_tag_syno=create_syno("PolyMAC_HFV","PolyMAC_P0P1NC");
+  return field_tag_syno;
+}
 /*! @brief Demande au schema en temps si il faut effectuer une impression.
  *
  * Renvoie 1 si il faut effectuer une impression.

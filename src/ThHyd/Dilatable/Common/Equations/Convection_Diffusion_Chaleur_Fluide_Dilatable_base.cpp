@@ -160,7 +160,14 @@ int Convection_Diffusion_Chaleur_Fluide_Dilatable_base::reprendre(Entree& is)
     {
       double temps = schema_temps().temps_courant();
       ident_Pth += Nom(temps,probleme().reprise_format_temps());
-      avancer_fichier(is, ident_Pth);
+      if (probleme().discretisation().is_poly_family())
+        {
+          Nom field_tag_syno = create_polymacfamily_syno(ident_Pth);
+          avancer_fichier_with_syno(is,ident_Pth,field_tag_syno);
+        }
+      // end of the backward compatibility
+      else
+        avancer_fichier(is, ident_Pth);
       is>>pth;
     }
   le_fluide->set_pression_th(pth);

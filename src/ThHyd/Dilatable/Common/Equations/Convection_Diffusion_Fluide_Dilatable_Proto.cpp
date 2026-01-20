@@ -513,7 +513,14 @@ int Convection_Diffusion_Fluide_Dilatable_Proto::Reprendre_WC(Entree& is,
           field_tag += p_tab->que_suis_je();
           field_tag += pb.domaine().le_nom();
           field_tag += Nom(temps,pb.reprise_format_temps());
-          avancer_fichier(is, field_tag);
+          if (pb.discretisation().is_poly_family())
+            {
+              Nom field_tag_syno = eq.create_polymacfamily_syno(field_tag);
+              avancer_fichier_with_syno(is,field_tag,field_tag_syno);
+            }
+          // end of the backward compatibility
+          else
+            avancer_fichier(is,field_tag);
         }
       p_tab->reprendre(is);
     }

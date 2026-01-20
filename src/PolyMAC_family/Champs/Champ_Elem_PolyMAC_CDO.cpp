@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -17,8 +17,8 @@
 #include <TRUSTTab_parts.h>
 #include <Synonyme_info.h>
 
-Implemente_instanciable(Champ_Elem_PolyMAC_CDO, "Champ_Elem_PolyMAC_CDO", Champ_Inc_P0_base);
-Add_synonym(Champ_Elem_PolyMAC_CDO, "Champ_Elem_PolyMAC");
+Implemente_instanciable(Champ_Elem_PolyMAC_CDO, "Champ_Elem_PolyMAC_CDO|Champ_Elem_PolyMAC", Champ_Inc_P0_base);
+//Add_synonym(Champ_Elem_PolyMAC_CDO, "Champ_Elem_PolyMAC");
 
 Sortie& Champ_Elem_PolyMAC_CDO::printOn(Sortie& s) const { return s << que_suis_je() << " " << le_nom(); }
 

@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -99,6 +99,7 @@ public :
   virtual std::vector<YAML_data> data_a_sauvegarder() const;
   int sauvegarder(Sortie&) const override;
   int reprendre(Entree&) override;
+  Nom create_polymacfamily_syno(const Nom& field_tag) const;
   // if some equations need to save some parts of their data in a different backup file, we need to override these 2 methods below
   // (useful if some backup formats are not available for every equations)
   virtual void init_save_file() { }

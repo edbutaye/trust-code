@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -284,13 +284,22 @@ int Navier_Stokes_Turbulent::sauvegarder(Sortie& os) const
 int Navier_Stokes_Turbulent::reprendre(Entree& is)
 {
   Navier_Stokes_std::reprendre(is);
-  double temps = schema_temps().temps_courant();
-  Nom ident_modele(le_modele_turbulence->que_suis_je());
-  ident_modele += probleme().domaine().le_nom();
-  ident_modele += Nom(temps, probleme().reprise_format_temps());
-
   if(!TRUST_2_PDI::is_PDI_restart())
-    avancer_fichier(is, ident_modele);
+    {
+      double temps = schema_temps().temps_courant();
+      Nom ident_modele(le_modele_turbulence->que_suis_je());
+      ident_modele += probleme().domaine().le_nom();
+      ident_modele += Nom(temps, probleme().reprise_format_temps());
+
+      if (probleme().discretisation().is_poly_family())
+        {
+          Nom field_tag_syno = create_polymacfamily_syno(ident_modele);
+          avancer_fichier_with_syno(is,ident_modele,field_tag_syno);
+        }
+      // end of the backward compatibility
+      else
+        avancer_fichier(is,ident_modele);
+    }
   le_modele_turbulence->reprendre(is);
 
   return 1;

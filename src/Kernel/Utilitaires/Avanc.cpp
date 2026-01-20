@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2023, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -21,6 +21,14 @@ inline void erreur(const Nom& id)
 {
   Cerr << finl;
   Cerr << "The restarting has failed. The tag " << id << " has not been" << finl;
+  Cerr << "found in the restarting file. Check the restarting time in your data set." << finl;
+  Process::exit();
+}
+
+inline void erreur_syn(const Nom& id,const Nom& syn_id)
+{
+  Cerr << finl;
+  Cerr << "The restarting has failed. The tag " << id << " or its synonym"<< syn_id << " has not been" << finl;
   Cerr << "found in the restarting file. Check the restarting time in your data set." << finl;
   Process::exit();
 }
@@ -92,6 +100,70 @@ double avancer_fichier(Entree& fich, const Nom& id, const int read_header)
           fich >> type_lu;
         }
       Cerr << "-> Find object " << id << " and reading data in it ..." << finl;
+    }
+  envoyer_broadcast(temps, 0);
+  fich.set_diffuse(1);
+  return temps;
+}
+
+// In the file fich, go up to the identifier id and return the time found, also check syno for backwards compatibility
+double avancer_fichier_with_syno(Entree& fich, const Nom& id, const Nom& syn_id, const int read_header)
+{
+  // Possible evolution:
+  // avancer_fichier(fich,id) -> fich.avancer_fichier(id);
+  // Implementation of double Entree::seek(const Nom& id):
+  // diffuse_ redescend dans LecFicDiffuseBase
+  /* Surcharge par:
+   double LecFicDiffuse::seek(const Nom& id)
+   {
+      double time;
+      diffuse_=0;
+      if (Process::je_suis_maitre()) time = Entree::seek(id);
+      diffuse_=1;
+      envoyer_broadcast(temps, 0);
+      return time;
+   }
+  */
+  double temps=0;
+  fich.set_diffuse(0); // Entree::set_diffuse() set to 1, only Lec_Diffuse_base::set_diffuse() can set to 0
+  if (fich.get_diffuse() || Process::je_suis_maitre())
+    {
+      Cerr << "Looking for the tag " << id << "or its synonym "<< syn_id<< " in the file." << finl;
+      Nom ident_lu;
+      Nom type_lu;
+      int digits=12; // Number of digits to write the time
+      fich >> ident_lu;
+
+      if (read_header)
+        {
+          if (ident_lu!="format_sauvegarde:")
+            {
+              digits=8; // Old time format
+            }
+          else
+            {
+              // New format
+              int format;
+              fich >> format;
+              fich >> ident_lu;
+            }
+        }
+
+      fich >> type_lu;
+      while (Motcle(ident_lu) != Motcle(id) && Motcle(ident_lu) != Motcle(syn_id))
+        {
+          DerObjU un_objet;
+          un_objet.typer(type_lu);
+          Cerr << "-> Passing object " << ident_lu << " ... " << flush;
+          un_objet.reprendre(fich);
+          Cerr << "OK" << finl;
+          temps = extract_time_from_string(ident_lu, digits);
+          if (!fich.get_istream()) erreur_syn(id,syn_id);
+          fich >> ident_lu;
+          if (id!=(Nom)"fin" && ident_lu == (Nom)"fin") erreur_syn(id,syn_id);
+          fich >> type_lu;
+        }
+      Cerr << "-> Find object " << id << " or its synonym "<< syn_id<<" and reading data in it ..." << finl;
     }
   envoyer_broadcast(temps, 0);
   fich.set_diffuse(1);

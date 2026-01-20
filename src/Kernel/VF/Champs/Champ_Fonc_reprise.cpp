@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -392,7 +392,35 @@ void Champ_Fonc_reprise::read_field_from_file(Entree& jdd, Entree& file, const P
 {
   // Lecture du fichier
   if(!pdi_format)
-    avancer_fichier(file, nom_ident);
+    {
+      Nom field_tag_syno=nom_ident;
+
+      auto create_syno= [nom_ident](std::string pattern, std::string replace)
+      {
+        std::string s = nom_ident.getString();
+        std::size_t pos = s.find(pattern);
+        while (pos != std::string::npos)
+          {
+            s.replace(pos, pattern.length(), replace);
+            pos = s.find(pattern, pos + replace.length());
+          }
+        return Nom(s);
+      };
+      if (pb.discretisation().is_poly_family())
+        {
+          if (pb.discretisation().is_PolyMAC_CDO())
+            field_tag_syno=create_syno("PolyMAC_CDO","PolyMAC");
+          else if (pb.discretisation().is_PolyMAC_MPFA())
+            field_tag_syno=create_syno("PolyMAC_MPFA","PolyMAC_P0");
+          else if (pb.discretisation().is_PolyMAC_HFV())
+            field_tag_syno=create_syno("PolyMAC_HFV","PolyMAC_P0P1NC");
+
+          avancer_fichier_with_syno(file,nom_ident,field_tag_syno);
+        }
+      // end of the backward compatibility
+      else
+        avancer_fichier(file,nom_ident);
+    }
   else
     le_champ().set_PDI_dname(nom_ident);
 

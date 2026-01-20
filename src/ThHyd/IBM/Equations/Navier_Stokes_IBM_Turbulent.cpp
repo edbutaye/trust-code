@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -290,7 +290,15 @@ int Navier_Stokes_IBM_Turbulent::reprendre(Entree& is)
       Nom ident_modele(le_modele_turbulence->que_suis_je());
       ident_modele += probleme().domaine().le_nom();
       ident_modele += Nom(temps, probleme().reprise_format_temps());
-      avancer_fichier(is, ident_modele);
+
+      if (probleme().discretisation().is_poly_family())
+        {
+          Nom field_tag_syno = create_polymacfamily_syno(ident_modele);
+          avancer_fichier_with_syno(is,ident_modele,field_tag_syno);
+        }
+      // end of the backward compatibility
+      else
+        avancer_fichier(is,ident_modele);
     }
   le_modele_turbulence->reprendre(is);
 
