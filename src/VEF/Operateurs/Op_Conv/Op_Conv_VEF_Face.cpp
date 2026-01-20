@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -25,6 +25,17 @@
 #include <Device.h>
 #include <Tetra_VEF.h>
 #include <Tri_VEF.h>
+
+
+
+//If constexpr can be very useful for performances (see https://rbourgeois33.github.io./posts/post1/#template-away-heavy-branches)
+//But it is not compatible with old compilers. We fallback to plain if when necessary
+#if defined(__cpp_if_constexpr)
+#define TRUST_IFCONSTEXPR if constexpr
+#else
+#define TRUST_IFCONSTEXPR if
+#pragma message("Warning: your C++ std is old and does not enables 'if constexpr', switching to plain 'if'. Think about upgrading to C++ 17.")
+#endif
 
 Implemente_instanciable_sans_constructeur(Op_Conv_VEF_Face,"Op_Conv_Generic_VEF_P1NC",Op_Conv_VEF_base);
 // XD convection_generic convection_deriv generic 0 Keyword for generic calling of upwind and muscl convective scheme in VEF discretization. For muscl scheme, limiters and order for fluxes calculations have to be specified. The available limiters are : minmod - vanleer -vanalbada - chakravarthy - superbee, and the order of accuracy is 1 or 2. Note that chakravarthy is a non-symmetric limiter and superbee may engender results out of physical limits. By consequence, these two limiters are not recommended. NL2 Examples: NL2 convection { generic amont }NL2 convection { generic muscl minmod 1 }NL2 convection { generic muscl vanleer 2 }NL2 NL2 In case of results out of physical limits with muscl scheme (due for instance to strong non-conformal velocity flow field), user can redefine in data file a lower order and a smoother limiter, as : convection { generic muscl minmod 1 }
@@ -262,15 +273,15 @@ void compute_flux_tetra_kernel(const FluxTetraKernelData& data)
         // Determination du type de CL selon le rang
         int rang = rang_elem_non_std_v(poly);
         double xc[3];
-        if constexpr (ordre == 3) // A optimiser! Risque de mauvais resultats en parallel si ordre=3
-          {
-            double xsom[12];
-            for (int i = 0; i < nsom_; i++)
-              for (int j = 0; j < dim; j++)
-                xsom[i * 3 + j] = coord_sommets_v(les_elems_[i], j);
-            int idirichlet, n1, n2, n3;
-            calcul_xg_tetra(xc, xsom, itypcl, idirichlet, n1, n2, n3);
-          }
+        TRUST_IFCONSTEXPR (ordre == 3) // A optimiser! Risque de mauvais resultats en parallel si ordre=3
+        {
+          double xsom[12];
+          for (int i = 0; i < nsom_; i++)
+            for (int j = 0; j < dim; j++)
+              xsom[i * 3 + j] = coord_sommets_v(les_elems_[i], j);
+          int idirichlet, n1, n2, n3;
+          calcul_xg_tetra(xc, xsom, itypcl, idirichlet, n1, n2, n3);
+        }
 
         double xp[3] = { xp_v(poly,0), xp_v(poly,1), xp_v(poly,2) };
 
@@ -423,12 +434,12 @@ void compute_flux_tetra_kernel(const FluxTetraKernelData& data)
             int face_amont_m = (psc_m >= 0) ? num10 : num20;
 
             int face_amont_c, face_amont_s, face_amont_s2;
-            if constexpr (ordre == 3 && isMuscl)
-              {
-                face_amont_c = ((psc_c >= 0) ? num10 : num20);
-                face_amont_s = ((psc_s >= 0) ? num10 : num20) ;
-                face_amont_s2 =  ((psc_s2 >= 0) ? num10 : num20) ;
-              }
+            TRUST_IFCONSTEXPR (ordre == 3 && isMuscl)
+            {
+              face_amont_c = ((psc_c >= 0) ? num10 : num20);
+              face_amont_s = ((psc_s >= 0) ? num10 : num20) ;
+              face_amont_s2 =  ((psc_s2 >= 0) ? num10 : num20) ;
+            }
             else
               {
                 face_amont_c= face_amont_m;
@@ -438,14 +449,14 @@ void compute_flux_tetra_kernel(const FluxTetraKernelData& data)
 
             int item_m, item_c, item_s, item_s2;
 
-            if constexpr (isMuscl)
-              {
-                // Use the "face amont" scheme (Muscl)
-                item_m  = face_amont_m;
-                item_c  = face_amont_c;
-                item_s  = face_amont_s;
-                item_s2 = face_amont_s2;
-              }
+            TRUST_IFCONSTEXPR (isMuscl)
+            {
+              // Use the "face amont" scheme (Muscl)
+              item_m  = face_amont_m;
+              item_c  = face_amont_c;
+              item_s  = face_amont_s;
+              item_s2 = face_amont_s2;
+            }
             else
               {
                 // Use the center-of-element scheme (non-Muscl)
@@ -533,12 +544,12 @@ void compute_flux_tetra_kernel(const FluxTetraKernelData& data)
                     // du polyedre. C=G centre du polyedre si volume non etendu
                     // xc donne par elemvef.calcul_xg()
                     double inco_c;
-                    if constexpr (ordre == 3)
-                      {
-                        inco_c = transporte_face_v(face_amont_c, comp0);
-                        for (int j = 0; j < dim; j++)
-                          inco_c += gradient_v(item_c, comp0, j) * (-xv_v(face_amont_c, j) + xc[j]);
-                      }
+                    TRUST_IFCONSTEXPR (ordre == 3)
+                    {
+                      inco_c = transporte_face_v(face_amont_c, comp0);
+                      for (int j = 0; j < dim; j++)
+                        inco_c += gradient_v(item_c, comp0, j) * (-xv_v(face_amont_c, j) + xc[j]);
+                    }
                     else
                       inco_c = dim * inco_m - inco_s - inco_s2;
 
