@@ -96,6 +96,7 @@ doc/tmp_files
 
 # Jupyter
 .ipynb_checkpoints/
+.new_form.md5sum
 
 # Various
 Outils/VisIt/visit-install3_3_2
