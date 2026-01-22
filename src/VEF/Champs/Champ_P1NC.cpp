@@ -181,105 +181,205 @@ void calculer_gradientP1NC_2D(const DoubleTab& tab_variable, const Domaine_VEF& 
   end_gpu_timer(__KERNEL_NAME__);
 }
 
-void calculer_gradientP1NC_3D(const DoubleTab& tab_variable, const Domaine_VEF& domaine_VEF, const Domaine_Cl_VEF& domaine_Cl_VEF, DoubleTab& tab_gradient_elem)
+//Actually optimized kernel
+template<int nbcomp_compile_time, int dims, int nbface>
+void calculer_gradientP1NC_3D_template(const DoubleTab& tab_variable,
+                                       const Domaine_VEF& domaine_VEF,
+                                       const Domaine_Cl_VEF& domaine_Cl_VEF,
+                                       DoubleTab& tab_gradient_elem)
 {
   const DoubleTab& tab_face_normales = domaine_VEF.face_normales();
   const IntTab& tab_face_voisins = domaine_VEF.face_voisins();
   const DoubleVect& tab_inverse_volumes = domaine_VEF.inverse_volumes();
-  const ArrOfInt& tab_est_face_bord = domaine_VEF.est_face_bord();
+  const IntTab& tab_elem_faces = domaine_VEF.elem_faces();
 
-  int dimension = Objet_U::dimension;
-  const int nb_comp = tab_variable.line_size();
-  const int nb_faces_tot = domaine_VEF.nb_faces_tot();
+  int nb_elem_tot = domaine_VEF.nb_elem_tot();
+
   CDoubleTabView face_normales = tab_face_normales.view_ro();
   CIntTabView face_voisins = tab_face_voisins.view_ro();
   CDoubleArrView inverse_volumes = tab_inverse_volumes.view_ro();
   CDoubleTabView variable = tab_variable.view_ro();
-  CIntArrView est_face_bord = tab_est_face_bord.view_ro();
+  CIntTabView elem_faces = tab_elem_faces.view_ro();
   DoubleTabView3 gradient_elem = tab_gradient_elem.view_rw<3>();
-  bool fuse_kernels = getenv("TRUST_FUSE_KERNELS") != nullptr;  // Fusing kernels create differences on several TrioCFD tests cases, pretty annoying
-  if (!fuse_kernels)
-    {
-      Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__), nb_faces_tot, KOKKOS_LAMBDA (int fac)
-      {
-        int type_face = est_face_bord(fac);
-        // type_face 2 periodique
-        double coef = (type_face == 2 ? 0.5 : 1);
-        for (int j=0; j<2; j++)
-          {
-            int elem = face_voisins(fac, j);
-            if (elem >= 0)
-              {
-                for (int icomp = 0; icomp < nb_comp; icomp++)
-                  for (int i = 0; i < dimension; i++)
-                    {
-                      double grad = coef * face_normales(fac, i) * variable(fac, icomp);
-                      Kokkos::atomic_add(&gradient_elem(elem, icomp, i), grad);
-                    }
-                coef*=-1;
-              }
-          }
-      });
-      end_gpu_timer(__KERNEL_NAME__);
 
-      // Division par le volume de l'element
-      const int nb_elem = domaine_VEF.nb_elem_tot();
-      Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__),
-                           range_3D({0,0,0}, {nb_elem,nb_comp,dimension}),
-                           KOKKOS_LAMBDA (int elem, int icomp, int i)
+
+  Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__), nb_elem_tot, KOKKOS_LAMBDA (int elem)
+  {
+
+    double contrib_grad_loc[nbcomp_compile_time*dims]= {};
+
+    for (int iface = 0; iface < nbface; iface++)
       {
-        gradient_elem(elem, icomp, i) *= inverse_volumes(elem);
-      });
-      end_gpu_timer(__KERNEL_NAME__);
+        int fac = elem_faces(elem, iface);
+
+        double coef = (elem == face_voisins(fac, 0) ? 1 : -1);
+
+        double face_normales_loc[dims];
+        double variable_loc[nbcomp_compile_time];
+
+        for (int i = 0; i < dims; i++)
+          {
+            face_normales_loc[i] = face_normales(fac, i);
+          }
+
+        for (int icomp = 0; icomp < nbcomp_compile_time; icomp++)
+          {
+            variable_loc[icomp] = variable(fac, icomp);
+          }
+
+        for (int icomp = 0; icomp < nbcomp_compile_time; icomp++)
+          for (int i = 0; i < dims; i++)
+            {
+              double grad = coef * face_normales_loc[i] * variable_loc[icomp];
+              contrib_grad_loc[dims*icomp + i] += grad;
+            }
+      }
+
+    double inverse = inverse_volumes(elem);
+
+    for (int icomp = 0; icomp < nbcomp_compile_time; icomp++)
+      for (int i = 0; i < dims; i++)
+        {
+          gradient_elem(elem, icomp, i) = contrib_grad_loc[dims*icomp + i]*inverse;
+        }
+
+
+  });
+  end_gpu_timer(__KERNEL_NAME__);
+}
+
+// Helper for variadic template dispatch
+template <int ...> struct TemplateIntList {};
+
+// Base case: no more cases to try
+template<int dims, int nbface>
+void dispatch_nbcomp_impl(int, TemplateIntList<>, const DoubleTab&, const Domaine_VEF&,
+                          const Domaine_Cl_VEF&, DoubleTab&)
+{
+  Cerr << "Error in calculer_gradientP1NC_3D: unsupported nb_comp, add more in 'dispatch_nbcomp'" << finl;
+  Process::exit();
+}
+
+// Recursive case: try each nbcomp value
+template<int dims, int nbface, int nbcomp_compile_time, int ...Rest>
+void dispatch_nbcomp_impl(int nb_comp_runtime, TemplateIntList<nbcomp_compile_time, Rest...>,
+                          const DoubleTab& tab_variable,
+                          const Domaine_VEF& domaine_VEF,
+                          const Domaine_Cl_VEF& domaine_Cl_VEF,
+                          DoubleTab& tab_gradient_elem)
+{
+  if (nbcomp_compile_time == nb_comp_runtime)
+    {
+      calculer_gradientP1NC_3D_template<nbcomp_compile_time, dims, nbface>(tab_variable, domaine_VEF,
+                                                                           domaine_Cl_VEF, tab_gradient_elem);
     }
   else
     {
-      // Faster implementation with kernels fused
-      Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__), range_2D({0, 0}, {nb_faces_tot, 2}),
-                           KOKKOS_LAMBDA(const int fac, const int j)
-      {
-        int type_face = est_face_bord(fac);
-        // type_face 2 periodique
-        int elem = face_voisins(fac, j);
-        if (elem >= 0)
-          {
-            double coef = (type_face == 2 ? 0.5 : 1) * inverse_volumes(elem) * (j == 0 ? 1 : -1);
-            for (int icomp = 0; icomp < nb_comp; icomp++)
-              for (int i = 0; i < dimension; i++)
-                {
-                  double grad = coef * face_normales(fac, i) * variable(fac, icomp);
-                  Kokkos::atomic_add(&gradient_elem(elem, icomp, i), grad);
-                }
-          }
-      });
-      // PL: example whare looping on cells rather on faces to avoid atomic is a bad idea (it's 4 times slower...)
-      // Cause: there is less parallelism (nb_faces_tot ~ 2*nb_elem_tot) in this loop
-      // So you can use MDRangePolicy(int elem, int iface) but atomic_add will be back and you will get lower performance
-      // Better on vect nb_comp=3, slower on scalar nb_comp=1, because of MDRangePolicy inconsistancy
-      /*
-        const IntTab& tab_elem_faces = domaine_VEF.elem_faces();
-        int nb_elem_tot = domaine_VEF.nb_elem_tot();
-        int nb_faces_elem = tab_elem_faces.dimension(1);
-        CIntTabView elem_faces = tab_elem_faces.view_ro();
-        Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__), nb_elem_tot, KOKKOS_LAMBDA (int elem)
+      dispatch_nbcomp_impl<dims, nbface>(nb_comp_runtime, TemplateIntList<Rest...>(),
+                                         tab_variable, domaine_VEF, domaine_Cl_VEF, tab_gradient_elem);
+    }
+}
+
+// Wrapper for nbcomp dispatch
+template<int dims, int nbface>
+void dispatch_nbcomp(int nb_comp_runtime, const DoubleTab& tab_variable,
+                     const Domaine_VEF& domaine_VEF,
+                     const Domaine_Cl_VEF& domaine_Cl_VEF,
+                     DoubleTab& tab_gradient_elem)
+{
+  // List all supported nbcomp values here - easy to extend!
+  dispatch_nbcomp_impl<dims, nbface>(nb_comp_runtime, TemplateIntList<1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20>(),
+                                     tab_variable, domaine_VEF, domaine_Cl_VEF, tab_gradient_elem);
+}
+
+void calculer_gradientP1NC_3D(const DoubleTab& tab_variable,
+                              const Domaine_VEF& domaine_VEF,
+                              const Domaine_Cl_VEF& domaine_Cl_VEF,
+                              DoubleTab& tab_gradient_elem)
+{
+  const int nb_comp = tab_variable.line_size();
+  const int dimensions = Objet_U::dimension;
+  int nb_faces_elem = domaine_VEF.elem_faces().dimension(1);
+
+
+  //Switch to allow compile time optimizations https://rbourgeois33.github.io./posts/post1/ namely:
+  //no atomics, no redundant memory requests
+  //Weird but this kernel is also called for some 2D cases..., exemple Bilans_VEF_QC_Turb_Null
+  //Also weird, P1NC should always be called on tetra so we could deduce nb_faces_elem from dim (3 in 2D, 4 in 3D)
+  //But in triocfd, it is called with quadrangles/hexahedron... tests Smago_hexa Smago_quadra Obstacle_Turb_quadra
+
+  switch (nb_faces_elem)
+    {
+    case 3:
+      switch (dimensions)
         {
-          for (int iface=0; iface<nb_faces_elem; iface++)
-            {
-              int fac = elem_faces(elem, iface);
-              int type_face = est_face_bord(fac);
-              // type_face 2 periodique
-              double coef = (type_face == 2 ? 0.5 : 1) * inverse_volumes(elem);
-              coef *= (elem == face_voisins(fac, 0) ? 1 : -1);
-              for (int icomp = 0; icomp < nb_comp; icomp++)
-                for (int i = 0; i < dimension; i++)
-                  {
-                    double grad = coef * face_normales(fac, i) * variable(fac, icomp);
-                    gradient_elem(elem, icomp, i) += grad;
-                  }
-            }
-        });
-        */
-      end_gpu_timer(__KERNEL_NAME__);
+        case 2:
+          dispatch_nbcomp<2,3>(nb_comp, tab_variable,
+                               domaine_VEF, domaine_Cl_VEF,
+                               tab_gradient_elem);
+          break;
+
+        case 3:
+          dispatch_nbcomp<3,3>(nb_comp, tab_variable,
+                               domaine_VEF, domaine_Cl_VEF,
+                               tab_gradient_elem);
+          break;
+
+        default:
+          Cerr << "Error in calculer_gradientP1NC_3D: dimensions must be 2 or 3, got "
+               << dimensions << finl;
+          Process::exit();
+        }
+      break;
+
+    case 4:
+      switch (dimensions)
+        {
+        case 2:
+          dispatch_nbcomp<2,4>(nb_comp, tab_variable,
+                               domaine_VEF, domaine_Cl_VEF,
+                               tab_gradient_elem);
+          break;
+
+        case 3:
+          dispatch_nbcomp<3,4>(nb_comp, tab_variable,
+                               domaine_VEF, domaine_Cl_VEF,
+                               tab_gradient_elem);
+          break;
+
+        default:
+          Cerr << "Error in calculer_gradientP1NC_3D: dimensions must be 2 or 3, got "
+               << dimensions << finl;
+          Process::exit();
+        }
+      break;
+
+    case 6:
+      switch (dimensions)
+        {
+        case 2:
+          dispatch_nbcomp<2,6>(nb_comp, tab_variable,
+                               domaine_VEF, domaine_Cl_VEF,
+                               tab_gradient_elem);
+          break;
+
+        case 3:
+          dispatch_nbcomp<3,6>(nb_comp, tab_variable,
+                               domaine_VEF, domaine_Cl_VEF,
+                               tab_gradient_elem);
+          break;
+
+        default:
+          Cerr << "Error in calculer_gradientP1NC_3D: dimensions must be 2 or 3, got "
+               << dimensions << finl;
+          Process::exit();
+        }
+      break;
+
+    default:
+      Cerr << "Error in calculer_gradientP1NC_3D: nb_faces_elem must be 3, 4, or 6 got "
+           << nb_faces_elem << finl;
+      Process::exit();
     }
 }
 
