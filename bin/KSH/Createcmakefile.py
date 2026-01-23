@@ -388,12 +388,20 @@ include_directories(SYSTEM
     ${TRUST_ROOT}/lib/src/LIBOSQP/include 
     ${TRUST_ROOT}/lib/src/LIBVC/include 
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include
+)
+
+if (IS_DIRECTORY "${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX")
+   include_directories(SYSTEM 
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/geometry
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/kokkos_ext
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/details
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/spatial
     ${TRUST_KOKKOS_ROOT}/${TRUST_ARCH}${OPT}/include/ArborX/distributed
+)
+endif()
+
+include_directories(SYSTEM     
     ${TRUST_ROOT}/include/EOS 
     ${TRUST_ROOT}/include/CoolProp
     ${TRUST_ROOT}/lib/src/LIBPDI/include 
