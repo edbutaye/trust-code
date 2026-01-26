@@ -83,7 +83,7 @@ Read pb
     {
         lata
         {
-            format lata fichier ThHyd_2D_PolyMAC_CDO
+            format lata fichier ThHyd_2D_PolyMAC_HFV
             fields dt_post 0.1
             {
                 vitesse elem
@@ -93,7 +93,7 @@ Read pb
         }
         lml
         {
-            format lml fichier ThHyd_2D_PolyMAC_CDO
+            format lml fichier ThHyd_2D_PolyMAC_HFV
             fields dt_post 1e10
             {
                 vitesse elem
