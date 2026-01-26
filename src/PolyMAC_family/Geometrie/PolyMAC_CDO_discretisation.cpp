@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@
 #include <grad_U_Champ_Face_PolyMAC_CDO.h>
 
 Implemente_instanciable(PolyMAC_CDO_discretisation, "PolyMAC_CDO|PolyMAC", Discret_Thyd);
-// XD PolyMAC_CDO discretisation_base PolyMAC_CDO -1 PolyMAC_CDO discretization (PolyMAC_CDO discretization that is not compatible with pb_multi).
+// XD PolyMAC_CDO discretisation_base PolyMAC -1 PolyMAC_CDO discretization (PolyMAC_CDO discretization that is not compatible with pb_multi).
 
 
 Entree& PolyMAC_CDO_discretisation::readOn(Entree& s) { return s; }
