@@ -61,6 +61,29 @@ do
   echo "#error File $file.h deprecated in TRUST 1.9.7. You SHOULD change the include to Perf_counters.h. see TRUST_ROOT/DEVELOPER_NOTES for more information" > backward/$file.h
 done
 
+Deprecated_includes_v198="Champ_Elem_PolyMAC Champ_Face_PolyMAC Champ_Fonc_Elem_PolyMAC Champ_Fonc_Face_PolyMAC Champ_Fonc_Som_PolyMAC Champ_Fonc_Tabule_Elem_PolyMAC Champ_Som_PolyMAC grad_U_Champ_Face_PolyMAC Echange_contact_PolyMAC Domaine_PolyMAC PolyMAC_discretisation Eval_Amont_PolyMAC_Elem Eval_Conv_PolyMAC Eval_PolyMAC_Elem Eval_centre_PolyMAC_Elem Evaluateur_PolyMAC Iterateur_PolyMAC_Elem Iterateur_PolyMAC_base Op_Conv_Amont_PolyMAC_Elem Op_Conv_Centre_PolyMAC_Elem Op_Conv_PolyMAC_iterateur_base Op_PolyMAC_Elem Op_Conv_EF_Stab_PolyMAC_Face Op_Conv_PolyMAC_base Couplage_Parietal_PolyMAC_helper Op_Diff_PolyMAC_Gen_base Op_Diff_PolyMAC_base Op_Diff_PolyMAC_Elem Op_Diff_PolyMAC_Face Op_Div_PolyMAC Op_Grad_PolyMAC_Face Assembleur_P_PolyMAC Masse_PolyMAC_Elem Masse_PolyMAC_Face Masse_PolyMAC_base DP_Impose_PolyMAC_Face Perte_Charge_Anisotrope_PolyMAC_Face Perte_Charge_Circulaire_PolyMAC_Face Perte_Charge_Directionnelle_PolyMAC_Face Perte_Charge_Isotrope_PolyMAC_Face Perte_Charge_PolyMAC Perte_Charge_PolyMAC_Face Perte_Charge_Singuliere_PolyMAC_Face Source_Generique_Face_PolyMAC Eval_Puiss_Th_PolyMAC_Elem Eval_Source_C_PolyMAC_Elem Terme_Puissance_Thermique_PolyMAC_Elem Terme_Puissance_Thermique_PolyMAC_base Terme_Source_Constituant_PolyMAC_Elem Terme_Source_PolyMAC_base Terme_Boussinesq_PolyMAC_Face Terme_Puissance_Thermique_Echange_Impose_Elem_PolyMAC Terme_Source_Decroissance_Radioactive_Elem_PolyMAC Terme_Source_Qdm_Face_PolyMAC"
+for file in $Deprecated_includes_v198
+do
+  echo "#error File $file.h deprecated in TRUST 1.9.8. You can run \"python \$TRUST_ROOT/bin/KSH/rename_polymacs.py\" to update your baltik sources to take into account most of these changes. See TRUST_ROOT/DEVELOPER_NOTES for more information" > backward/$file.h
+done
+# second list
+Deprecated_includes_v198="Champ_Elem_PolyMAC_P0 Champ_Face_PolyMAC_P0 Champ_Fonc_Elem_PolyMAC_P0_TC Champ_Fonc_Elem_PolyMAC_P0_rot grad_Champ_Face_PolyMAC_P0 Echange_contact_PolyMAC_P0 Domaine_PolyMAC_P0 PolyMAC_P0_discretisation Correction_Antal_PolyMAC_P0 Correction_Tomiyama_PolyMAC_P0 Dispersion_bulles_PolyMAC_P0 Force_Tchen_PolyMAC_P0 Frottement_interfacial_PolyMAC_P0 Op_Evanescence_Homogene_PolyMAC_P0_Face Portance_interfaciale_PolyMAC_P0 Op_Conv_EF_Stab_PolyMAC_P0_Face Op_Diff_PolyMAC_P0_base Op_Diff_PolyMAC_P0_Elem Op_Diff_PolyMAC_P0_Face Op_Diff_Turbulent_PolyMAC_P0_Elem Op_Diff_Turbulent_PolyMAC_P0_Face Op_Div_PolyMAC_P0 Op_Grad_PolyMAC_P0_Face Assembleur_P_PolyMAC_P0 Masse_PolyMAC_P0_Face"
+for file in $Deprecated_includes_v198
+do
+  echo "#error File $file.h deprecated in TRUST 1.9.8. You can run \"python \$TRUST_ROOT/bin/KSH/rename_polymacs.py\" to update your baltik sources to take into account most of these changes. See TRUST_ROOT/DEVELOPER_NOTES for more information" > backward/$file.h
+done
+# third list
+Deprecated_includes_v198="Champ_Elem_PolyMAC_P0P1NC Champ_Face_PolyMAC_P0P1NC Echange_contact_PolyMAC_P0P1NC Domaine_PolyMAC_P0P1NC PolyMAC_P0P1NC_discretisation Flux_interfacial_PolyMAC_P0P1NC Op_Evanescence_Homogene_PolyMAC_P0P1NC_Elem Op_Evanescence_Homogene_PolyMAC_P0P1NC_Face Travail_pression_PolyMAC_P0P1NC Op_Conv_EF_Stab_PolyMAC_P0P1NC_Elem Op_Conv_EF_Stab_PolyMAC_P0P1NC_Face Op_Diff_PolyMAC_P0P1NC_base Op_Diff_PolyMAC_P0P1NC_Elem Op_Diff_PolyMAC_P0P1NC_Face Op_Div_PolyMAC_P0P1NC Op_Grad_PolyMAC_P0P1NC_Face Assembleur_P_PolyMAC_P0P1NC Masse_PolyMAC_P0P1NC_Elem Masse_PolyMAC_P0P1NC_Face Perte_Charge_Singuliere_PolyMAC_P0P1NC_Face Terme_Source_Qdm_Face_PolyMAC_P0P1NC"
+for file in $Deprecated_includes_v198
+do
+  echo "#error File $file.h deprecated in TRUST 1.9.8.  You can run \"python \$TRUST_ROOT/bin/KSH/rename_polymacs.py\" to update your baltik sources to take into account most of these changes. See TRUST_ROOT/DEVELOPER_NOTES for more information" > backward/$file.h
+done
+# fourth list: family
+file="Domaine_Cl_PolyMAC.h"
+echo "#error File $file deprecated in TRUST 1.9.8. You SHOULD change the include to Domaine_Cl_PolyMAC_family.h" > backward/$file
+file="Option_PolyMAC.h"
+echo "#error File $file deprecated in TRUST 1.9.8. You SHOULD change the include to Option_PolyMAC_family.h" > backward/$file
+
 # EOS includes in EOS if 
 if [ "$TRUST_EOS_HOME_DIR" != "" ]
 then

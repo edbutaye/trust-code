@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------------------------
 Release notes version 1.9.8_beta : Enhancements, modifications and corrected bugs since version 1.9.7 :
 --------------------------------------------------------------------------------------------------
+26/01/26 (TRUST) Change       : Rename PolyMAC discretisation family: PolyMAC-->PolyMAC_CDO ; PolyMAC_P0-->PolyMAC_MPFA ; PolyMAC_P0P1NC-->PolyMAC_HFV ; Option_PolyMAC-->Option_PolyMAC_family ; is_polymac_family-->is_poly_family. Old names are can still be used in .data files, but will be depreciated after TRUST 1.9.9
 16/01/26 (TRUST) Performance  : 3D VEF convective schemes muscl/upwind/muscl3/centre are computed faster (between 20-50%) on CPU and GPU
 16/01/26 (TRUST) Fix          : Possible rtol 0 with high initial residual for PETSc solvers created KSP_DIVERGENCE
 16/01/26 (TRUST) New option   : facsec_cfl (default disabled) computes for an Euler implicit time scheme a time step based on CFL (as diffusive operators are implicited): dt=min(facsec,facsec_max)*dt(CFL)
@@ -11,7 +12,6 @@ Release notes version 1.9.8_beta : Enhancements, modifications and corrected bug
 13/01/26 (TRUST) New feature  : Add new flag 'adapt_dt_tmax' in time scheme that ensures that the simulation ends at tmax
 08/01/26 (TRUST) Bug fix      : Fix for the case where dt_post is specified once in the header of post-processing block and where a mix of post-processings from files and old fashion is requested
 08/01/26 (TRUST) Bug fix      : Possible memory increase when writing some files (typically opened/closed at each write)
-08/12/25 (TRUST) Change       : Rename PolyMAC discretisation family: PolyMAC-->PolyMAC_CDO ; PolyMAC_P0-->PolyMAC_MPFA ; PolyMAC_P0P1NC-->PolyMAC_HFV ; Option_PolyMAC-->Option_PolyMAC_family ; is_polymac_family-->is_poly_family. Old names are can still be used in .data files, but will be depreciated after TRUST 1.9.9
 --------------------------------------------------------------------------------------------------
 Release notes version 1.9.7 : Enhancements, modifications and corrected bugs since version 1.9.6 :
 --------------------------------------------------------------------------------------------------

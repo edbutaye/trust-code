@@ -176,7 +176,7 @@ do
          echo "Arret Validite...KO" | tee -a $log
 	 warning      
       fi 
-      [ -f $cas*lml ] && mv $cas*lml ref.lml   
+      [ -f "$cas*lml" ] && mv $cas*lml ref.lml   
    else
       echo $ECHO_OPTS "$NB_PROCS processeurs:\c"
       [ "$cpu" = 0 ] && echo $ECHO_OPTS " Decoupage...\c" | tee -a $log 
