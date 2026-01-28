@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -34,7 +34,7 @@ Entree& DP_Impose_VEF_Face::readOn(Entree& s)
   remplir_num_faces(s);
   if (!mp_max(sgn.size()))
     {
-      Cerr << "DP_Impose_PolyMAC_CDO_Face : champ d'orientation non renseigne!" << finl;
+      Cerr << "DP_Impose_VEF_Face: champ d'orientation non renseigne!" << finl;
       Process::exit();
     }
   //fichier de sortie

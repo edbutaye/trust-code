@@ -331,6 +331,7 @@ option_configure=" -disable-ccache "
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-cuda11_6" | grep ^$HOST"\."`" != "" ]                       && option_configure=$option_configure" -cuda=/usr/local/cuda-11.6/bin/nvcc"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-cuda " | grep ^$HOST"\."`" != "" ]                          && option_configure=$option_configure" -cuda"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-cuda=cc90" | grep ^$HOST"\."`" != "" ]                          && option_configure=$option_configure" -cuda=cc90"
+[ "`$TRUST_ROOT/bin/admin/liste_machines "\-cuda=cc80" | grep ^$HOST"\."`" != "" ]                          && option_configure=$option_configure" -cuda=cc80"
 # TRUST with OpenMP
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-openmp" | grep ^$HOST"\."`" != "" ]                         && option_configure=$option_configure" -openmp"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-CUDA_VISIBLE_DEVICES=0" | grep ^$HOST"\."`" != "" ]         && env_vars="export CUDA_VISIBLE_DEVICES=0"
@@ -358,7 +359,7 @@ option_configure=" -disable-ccache "
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-disable-mpi " | grep ^$HOST"\."`" != "" ]                   && option_configure=$option_configure" -disable-mpi"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-disable-mpi4py " | grep ^$HOST"\."`" != "" ]                && option_configure=$option_configure" -disable-mpi4py"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-disable-optionals" | grep ^$HOST"\."`" != "" ]              && option_configure="-disable-optionals "$option_configure
-[ "`$TRUST_ROOT/bin/admin/liste_machines "\-for-c3d" | grep ^$HOST"\."`" != "" ]                        && option_configure=$option_configure" -disable-petsc-optionals -disable-gnuplot -disable-vc -disable-valgrind -without-visit -disable-gmsh -disable-plot2d -without-pdflatex -without-doc -disable-jupyter -disable-doxygen -disable-checks -disable-check_sources -disable-openblas -disable-hwloc -disable-trustify -disable-gtest -disable-pdi -without-conda -std=c++14"
+[ "`$TRUST_ROOT/bin/admin/liste_machines "\-for-c3d" | grep ^$HOST"\."`" != "" ]                        && option_configure=$option_configure" -disable-petsc-optionals -disable-gnuplot -disable-vc -disable-valgrind -without-visit -disable-gmsh -disable-plot2d -without-pdflatex -without-doc -disable-jupyter -disable-doxygen -disable-checks -disable-check_sources -disable-openblas -disable-hwloc -disable-trustify -disable-gtest -disable-pdi -without-conda"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-disable-check_sources" | grep ^$HOST"\."`" != "" ]          && option_configure=$option_configure" -disable-check_sources"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-disable-mpiio" | grep ^$HOST"\."`" != "" ]                  && option_configure=$option_configure" -disable-mpiio"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-disable-valgrind" | grep ^$HOST"\."`" != "" ]               && option_configure=$option_configure" -disable-valgrind"
@@ -413,6 +414,7 @@ option_configure=" -disable-ccache "
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-disable-gnuplot" | grep ^$HOST"\."`" != "" ]                && option_configure=$option_configure" -disable-gnuplot"
 # c++ standard
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-stdcpp14" | grep ^$HOST"\."`" != "" ]                       && option_configure=$option_configure" -std=c++14"
+[ "`$TRUST_ROOT/bin/admin/liste_machines "\-stdcpp17" | grep ^$HOST"\."`" != "" ]                       && option_configure=$option_configure" -std=c++17"
 [ "`$TRUST_ROOT/bin/admin/liste_machines "\-stdcpp20" | grep ^$HOST"\."`" != "" ]                       && option_configure=$option_configure" -std=c++20"
 
 ########################

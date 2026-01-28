@@ -15,7 +15,8 @@ mkdir -p $INC/EOS $INC/CoolProp
 echo "Configuring include/arch.h for 64 bits ..."
 util_dir=$TRUST_ROOT/src/Kernel/Utilitaires
 sed -e "s/@TRUST_INT64@/${TRUST_INT64}/" -e "s/@TRUST_INT64_NEW@/${TRUST_INT64_NEW}/" $util_dir/arch.h.in > $TRUST_TMP/arch.h.tmp
-[ "`diff $util_dir/arch.h $TRUST_TMP/arch.h.tmp 1>/dev/null 2>&1; echo $?`" != 0 ] && cat $TRUST_TMP/arch.h.tmp > $util_dir/arch.h && rm -f $TRUST_TMP/arch.h.tmp
+[ "`diff $util_dir/arch.h $TRUST_TMP/arch.h.tmp 1>/dev/null 2>&1; echo $?`" != 0 ] && cat $TRUST_TMP/arch.h.tmp > $util_dir/arch.h
+rm -f $TRUST_TMP/arch.h.tmp
 
 # Ajout des fichiers deprecated by TRUST 1.9.0:
 for file in ArrOfDouble.h ArrOfInt.h DoubleVect.h IntVect.h DoubleTab.h IntTab.h DoubleTrav.h IntTrav.h DoubleList.h IntList.h DoubleLists.h IntLists.h Champ_Tabule_Morceaux.h ConstDoubleTab_parts.h
@@ -104,7 +105,8 @@ else
        done
     fi
 fi
-[ "`diff EOS/eos++.h $TRUST_TMP/eos++.h.tmp 1>/dev/null 2>&1; echo $?`" != 0 ] && cat $TRUST_TMP/eos++.h.tmp > EOS/eos++.h && rm -f $TRUST_TMP/eos++.h.tmp
+[ "`diff EOS/eos++.h $TRUST_TMP/eos++.h.tmp 1>/dev/null 2>&1; echo $?`" != 0 ] && cat $TRUST_TMP/eos++.h.tmp > EOS/eos++.h
+rm -f $TRUST_TMP/eos++.h.tmp
 # CoolProp includes in CoolProp if 
 if [ "$TRUST_COOLPROP_HOME_DIR" != "" ]
 then
@@ -134,7 +136,8 @@ else
        done
     fi
 fi
-[ "`diff CoolProp/coolprop++.h $TRUST_TMP/coolprop++.h.tmp 1>/dev/null 2>&1; echo $?`" != 0 ] && cat $TRUST_TMP/coolprop++.h.tmp > CoolProp/coolprop++.h && rm -f $TRUST_TMP/coolprop++.h.tmp
+[ "`diff CoolProp/coolprop++.h $TRUST_TMP/coolprop++.h.tmp 1>/dev/null 2>&1; echo $?`" != 0 ] && cat $TRUST_TMP/coolprop++.h.tmp > CoolProp/coolprop++.h
+rm -f $TRUST_TMP/coolprop++.h.tmp
 
 # Kokkos tag:
 kokkos_hdr=$TRUST_ROOT/src/Kernel/Utilitaires/kokkos++.h
