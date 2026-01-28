@@ -26,7 +26,7 @@ linux	rsync_ssh	tache	jean-zay-gpu.idris.fr   	-limited 		-TrioCFD          			-
 linux	rsync_ssh	tache	jean-zay-h100.idris.fr   	-limited 		-TrioCFD          			-benchmark -cuda=cc90 		-without-conda -without-doc -disable-plot2d -without-visit -disable-hwloc                					# RedHat 8.1
 linux	rsync_ssh	tache	jean-zay-a100.idris.fr   	-limited 		          			-benchmark -cuda=cc80 		-without-conda -without-doc -disable-plot2d -without-visit -disable-hwloc                					# RedHat 8.1
 linux	ssh_pass 	tache	adastra-gpu.cines.fr		-limited		-TrioCFD					-benchmark -rocm   -without-doc -without-conda -disable-hwloc -disable-plot2d -disable-gmsh -without-visit
-linux	rsync_ssh	tache	orcus-amd-gpu.intra.cea.fr			-TrioCFD   			-cuda  		-disable-plot2d -without-doc -disable-hwloc 									# Rocky 9	CEA Saclay
+linux	rsync_ssh	tache	orcus-amd-gpu.intra.cea.fr			-TrioCFD   			-cuda  		-disable-plot2d -without-doc -disable-hwloc -without-visit  									# Rocky 9	CEA Saclay
 linux   rsync_ssh	tache	petra-gpu.intra.cea.fr 		-all	-benchmark 	-ICoCo -TrioCFD  	 		-cuda -without-pdflatex -without-visit     # Ubuntu 20.04 serveur rackable titania
 linux   rsync_ssh	tache	salacia-gpu.intra.cea.fr 		-all	-benchmark 	-ICoCo -TrioCFD  	 		-cuda -without-pdflatex -without-visit     # Ubuntu 22.04 serveur rackable titania
 linux   rsync_ssh	tache	is248238-gpu.intra.cea.fr 		-all	 	-TrioCFD -semi_opt  	 		-gcc12 -cuda -without-pdflatex -without-visit     # Ubuntu 24.04 titania
