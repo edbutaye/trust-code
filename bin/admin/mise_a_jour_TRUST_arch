@@ -842,7 +842,7 @@ do
             if [ "`$TRUST_ROOT/bin/admin/liste_machines "\-disable-valgrind" | grep ^$HOST_BUILD"\."`" != "" ] || [ $MPI_NATIF = 1 ] || [ $OpenMPI = 1 ] #|| [ $Latest_MPICH = 1 ]
             then
               OK="NOT"
-            elif [ "${TRUST_cc_BASE%nvc}" != "$TRUST_cc_BASE" ]
+            elif [ "${TRUST_cc_BASE%nvc}" != "$TRUST_cc_BASE" ] || [ "${TRUST_cc_BASE%hipcc}" != "$TRUST_cc_BASE" ]
             then
               OK="NOT"
             else

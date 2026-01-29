@@ -82,12 +82,12 @@ bool error_handlers = false;
 #endif
 static int init_petsc(True_int argc, char **argv, bool with_mpi,bool& trio_began_mpi_)
 {
+#ifdef PETSCKSP_H
   PetscBool isInitialized;
   PetscInitialized(&isInitialized);
   if (isInitialized)
     return 1;
 
-#ifdef PETSCKSP_H
   static char help[] = "TRUST may solve linear systems with Petsc library.\n\n" ;
   Nom pwd(::pwd());
   // On initialise Petsc
