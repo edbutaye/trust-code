@@ -52,10 +52,16 @@ void TRUST_global_finalize()
 {
   if (!TRUST_LIBRARY_MODE) return;
 
+#ifdef PETSCKSP_H
+  // On PetscFinalize que si c'est necessaire
   PetscBool isInitialized;
   PetscInitialized(&isInitialized);
   if (isInitialized==PETSC_TRUE)
-    PetscFinalize();
+    {
+      PetscPopErrorHandler(); // Removes the latest error handler that was pushed with PetscPushErrorHandler in init_petsc
+      PetscFinalize();
+    }
+#endif
 
   if (Kokkos::is_initialized())
     Kokkos::finalize();

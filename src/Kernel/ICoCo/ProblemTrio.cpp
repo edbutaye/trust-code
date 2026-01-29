@@ -50,7 +50,9 @@ extern void TRUST_global_finalize();
 
 namespace
 {
+#ifdef MPI_
 bool TRUST_MPI_COMM_SET = false;
+#endif
 }
 
 ProblemTrio::~ProblemTrio()
