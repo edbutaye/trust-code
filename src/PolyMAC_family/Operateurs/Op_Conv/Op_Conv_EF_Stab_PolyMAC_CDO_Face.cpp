@@ -166,7 +166,7 @@ void Op_Conv_EF_Stab_PolyMAC_CDO_Face::dimensionner(Matrice_Morse& mat) const
 // ajoute la contribution de la convection au second membre resu
 // renvoie resu
 
-inline DoubleTab& Op_Conv_EF_Stab_PolyMAC_CDO_Face::ajouter(const DoubleTab& inco, DoubleTab& secmem) const
+DoubleTab& Op_Conv_EF_Stab_PolyMAC_CDO_Face::ajouter(const DoubleTab& inco, DoubleTab& secmem) const
 {
   if (has_interface_blocs())
     return Operateur_base::ajouter(inco, secmem);

@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -135,7 +135,7 @@ int Paroi_negligeable_VEF::calculer_hyd(DoubleTab& tab_k_eps)
         l_unif = 0;
       if ((!l_unif) && (tab_visco.local_min_vect() < DMINFLOAT))
         {
-          Cerr << " visco <=0 ?" << finl;
+          Cerr << "In Paroi_negligeable_VEF::calculer_hyd : visco = " << tab_visco.local_min_vect() << " <= 0 ? " << finl;
           exit();
         }
 
@@ -238,7 +238,7 @@ int Paroi_negligeable_VEF::calculer_hyd(DoubleTab& tab_nu_t, DoubleTab& tab_k)
         }
       if ((!l_unif) && (tab_visco.local_min_vect() < DMINFLOAT))
         {
-          Cerr << " visco <=0 ?" << finl;
+          Cerr << "In Paroi_negligeable_VEF::calculer_hyd : visco = " << tab_visco.local_min_vect() << " <= 0 ? " << finl;
           exit();
         }
 

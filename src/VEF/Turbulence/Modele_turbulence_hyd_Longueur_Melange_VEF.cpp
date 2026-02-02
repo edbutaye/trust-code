@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2024, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -313,7 +313,7 @@ void Modele_turbulence_hyd_Longueur_Melange_VEF::calculer_f_amortissement()
   if ((!l_unif) && (tab_visco.local_min_vect() < DMINFLOAT))
     //   on ne doit pas changer tab_visco ici !
     {
-      Cerr << " visco <=0 ?" << finl;
+      Cerr << "In Modele_turbulence_hyd_Longueur_Melange_VEF::calculer_f_amortissement : visco = " << tab_visco.local_min_vect() << " <= 0 ? " << finl;
       exit();
     }
   //tab_visco+=DMINFLOAT;

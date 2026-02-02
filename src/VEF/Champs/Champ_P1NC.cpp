@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -460,7 +460,7 @@ void Champ_P1NC::calcul_y_plus(const Domaine_Cl_VEF& domaine_Cl_VEF, DoubleVect&
   if ((!l_unif) && (tab_visco.local_min_vect() < DMINFLOAT))
     // GF on ne doit pas changer tab_visco ici !
     {
-      Cerr << " visco <=0 ?" << finl;
+      Cerr << "In Champ_P1NC::calcul_y_plus : visco = " << tab_visco.local_min_vect() << " <= 0 ? " << finl;
       exit();
     }
   // tab_visco+=DMINFLOAT;
