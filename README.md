@@ -61,7 +61,7 @@ cd TRUST-1.9.7
 
 ```bash
 # Check out the sources for TRUST
-git clone git@github.com:cea-trust-platform/trust-code.git TRUST-next
+git clone https://github.com/cea-trust-platform/trust-code.git TRUST-next
 # Move to the cloned TRUST folder
 cd TRUST-next
 # Checkout the developement TRUST branch
