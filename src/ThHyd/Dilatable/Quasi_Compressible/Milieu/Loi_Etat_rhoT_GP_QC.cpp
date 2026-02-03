@@ -159,6 +159,7 @@ void Loi_Etat_rhoT_GP_QC::calculer_masse_volumique()
       DoubleArrView rho_np1 = static_cast<DoubleVect&>(tab_rho_np1).view_wo();
       DoubleTabView rho = tab_rho.view_wo();
       double eps = std::numeric_limits<double>::epsilon();
+      double Tmin_for_exit = Tmin_for_exit_ ;
       Kokkos::parallel_for(start_gpu_timer(__KERNEL_NAME__), n, KOKKOS_LAMBDA(const int i)
       {
         double T = ICh(i, 0);
@@ -166,7 +167,7 @@ void Loi_Etat_rhoT_GP_QC::calculer_masse_volumique()
           {
             T = 0.0;
           }
-        if (T<=Tmin_for_exit_) Process::Kokkos_exit("Dumb temperature in Loi_Etat_rhoT_GP_QC::calculer_masse_volumique !");
+        if (T<=Tmin_for_exit) Process::Kokkos_exit("Dumb temperature in Loi_Etat_rhoT_GP_QC::calculer_masse_volumique !");
         int threadId = parser.acquire();
         parser.setVar(0, T, threadId);
         rho_np1(i) = parser.eval(threadId);
