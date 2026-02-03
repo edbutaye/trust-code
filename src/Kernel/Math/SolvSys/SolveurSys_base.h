@@ -1,5 +1,5 @@
 /****************************************************************************
-* Copyright (c) 2025, CEA
+* Copyright (c) 2026, CEA
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -68,6 +68,8 @@ public :
   void set_read_matrix(bool flag) { read_matrix_ = flag; };
   inline int save_matrix() const { return save_matrice_; };
   void set_save_matrix(int flag) { save_matrice_ = flag; };
+  inline const Nom& le_nom() const override { return nom_; };
+  inline void nommer(const Nom& nom) override { nom_ = nom; };
 
 protected :
   bool nouvelle_matrice_ = true; // Drapeau pour savoir si un stockage ou une factorisation est a refaire
@@ -82,6 +84,7 @@ protected :
   Nom chaine_lue_;
   void lecture(Entree&);
 private:
+  Nom nom_;
   bool read_matrix_ = false; // Drapeau pour savoir si une matrice est a lire
   int limpr_ = 0;            // Drapeau pour impression ou non de la convergence du solveur
   int schema_temps_limpr_ = 1; // Authorization printing flag set by the time scheme
