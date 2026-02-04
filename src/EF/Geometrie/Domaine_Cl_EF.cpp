@@ -307,6 +307,7 @@ void Domaine_Cl_EF::remplir_type_elem_Cl(const Domaine_EF& le_dom_EF)
               for (int f=0; f<nbf; f++)
                 {
                   int face=sommet_face_symetrie(som,f);
+                  construire_normale_locale_face(face_normales, faces_sommets, coord_sommets, face, dimension, nb_som_face, bidim_axi, normale_locale);
                   double prod=0,prod1=0,s=0;
                   for (int d=0; d<dimension; d++)
                     {
