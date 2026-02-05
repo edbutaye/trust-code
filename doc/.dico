@@ -158,6 +158,7 @@
  Champ_input_P0 Champ_input_P0 Champ_input_P0.h
  Champ_Input_P0_Composite Champ_Input_P0_Composite Champ_Input_P0_Composite.h
  Champ_input_uniforme Ch_input_uniforme Ch_input_uniforme.h
+ Champ_Morceaux Champ_Morceaux Champ_Morceaux.h
  Champ_MUSIG Champ_MUSIG Champ_MUSIG.h
  Champ_Ostwald Champ_Ostwald Champ_Ostwald.h
  Champ_Ostwald_VDF Champ_Ostwald_VDF Champ_Ostwald_VDF.h
@@ -320,6 +321,7 @@
  Echange_global_impose_turbulent Echange_global_impose_turbulent Echange_global_impose_turbulent.h
  Echange_impose_base Echange_impose_base Echange_impose_base.h
  Echange_thermique_h_imp_VDF_P0_VDF Source_Echange_Th_VDF Source_Echange_Th_VDF.h
+ Echange_Thermique_Volumique_Elem Echange_Thermique_Volumique_Elem Echange_Thermique_Volumique_Elem.h
  EcrFicCollecte EcrFicCollecte EcrFicCollecte.h
  EcrFicCollecteBin EcrFicCollecteBin EcrFicCollecteBin.h
  EcrFicPartage EcrFicPartage EcrFicPartage.h
@@ -356,6 +358,7 @@
  EOS_Tools_VEF EOS_Tools_VEF EOS_Tools_VEF.h
  Equations_Scalaires_Passifs|Equations_Especes List_Equations_Scalaires_Passifs_Especes List_Equations_Scalaires_Passifs_Especes.h
  Equation_base Equation_base Equation_base.h
+ Equation_Navier_Cauchy Equation_Navier_Cauchy Equation_Navier_Cauchy.h
  ErgunDarcy ModPerm_ErgunPourDarcy Source_Permeabilite_VDF.h
  ErgunForchheimer ModPerm_ErgunPourForch Source_Permeabilite_VDF.h
  Espece Espece Espece.h
@@ -599,6 +602,7 @@
  Merge_MED Merge_MED Merge_MED.h
  Milieu_base Milieu_base Milieu_base.h
  Milieu_composite Milieu_composite Milieu_composite.h
+ Milieu_Elasticite Milieu_Elasticite Milieu_Elasticite.h
  Milieu_MUSIG Milieu_MUSIG Milieu_MUSIG.h
  Mkdir Mkdir Mkdir.h
  Modele_Permeabilite_base Modele_Permeabilite_base Modele_Permeabilite_base.h
@@ -659,6 +663,7 @@
  Neumann_paroi Neumann_paroi Neumann_paroi.h
  Neumann_Paroi_adiabatique Neumann_paroi_adiabatique Neumann_paroi_adiabatique.h
  Neumann_val_ext Neumann_val_ext Neumann_val_ext.h
+ Newmark Solveur_Newmark Solveur_Newmark.h
  Nom Nom Nom.h
  Noms Noms Noms.h
  Objet_a_lire Objet_a_lire Objet_a_lire.h
@@ -846,6 +851,7 @@
  paroi_contact_rayo Paroi_contact_rayo Paroi_contact_rayo.h
  Paroi_decalee_Robin Paroi_decalee_Robin Paroi_decalee_Robin.h
  Paroi_defilante Dirichlet_paroi_defilante Dirichlet_paroi_defilante.h
+ paroi_deplacement_impose CL_Deplacement_Impose CL_Deplacement_Impose.h
  Paroi_Echange_contact_Colburn_VDF Echange_contact_Colburn_VDF Echange_contact_Colburn_VDF.h
  Paroi_Echange_contact_Correlation_VDF Echange_contact_Correlation_VDF Echange_contact_Correlation_VDF.h
  Paroi_Echange_contact_Correlation_VEF Echange_contact_Correlation_VEF Echange_contact_Correlation_VEF.h
@@ -868,6 +874,7 @@
  Paroi_hyd_base_VDF Paroi_hyd_base_VDF Paroi_hyd_base_VDF.h
  Paroi_hyd_base_VEF Paroi_hyd_base_VEF Paroi_hyd_base_VEF.h
  Paroi_Knudsen_non_negligeable Paroi_Knudsen_non_negligeable Paroi_Knudsen_non_negligeable.h
+ paroi_pression_imposee CL_Contrainte_Imposee CL_Contrainte_Imposee.h
  Paroi_scal_hyd_base_EF Paroi_scal_hyd_base_EF Paroi_scal_hyd_base_EF.h
  Paroi_scal_hyd_base_VDF Paroi_scal_hyd_base_VDF Paroi_scal_hyd_base_VDF.h
  Paroi_scal_hyd_base_VEF Paroi_scal_hyd_base_VEF Paroi_scal_hyd_base_VEF.h
@@ -961,6 +968,7 @@
  Perte_Charge_Isotrope_VEF_P1NC Perte_Charge_Isotrope_VEF_P1NC Perte_Charge_Isotrope_VEF_P1NC.h
  Perte_Charge_PolyMAC_CDO Perte_Charge_PolyMAC_CDO Perte_Charge_PolyMAC_CDO.h
  Perte_Charge_PolyMAC_CDO_Face Perte_Charge_PolyMAC_CDO_Face Perte_Charge_PolyMAC_CDO_Face.h
+ Perte_Charge_PolyMAC_HFV Perte_Charge_PolyMAC_HFV Perte_Charge_PolyMAC_HFV.h
  Perte_Charge_Reguliere_QC_VDF_Face Perte_Charge_Reguliere_QC_VDF_Face Source_QC_VDF_Face.h
  Perte_Charge_Reguliere_QC_VEF_P1NC Perte_Charge_Reguliere_QC_VEF_P1NC Source_QC_VEF_P1NC.h
  Perte_Charge_Reguliere_VDF_Face Perte_Charge_Reguliere_VDF_Face Perte_Charge_Reguliere_VDF_Face.h
@@ -1013,6 +1021,7 @@
  Prisme Prisme_32_64 Prisme.h
  Probleme_base Probleme_base Probleme_base.h
  Probleme_Couple Probleme_Couple Probleme_Couple.h
+ Probleme_Elasticite_Lineaire Probleme_Elasticite_Lineaire Probleme_Elasticite_Lineaire.h
  Probleme_U Probleme_U Probleme_U.h
  Puissance_Thermique_EF Puissance_Thermique_EF Puissance_Thermique_EF.h
  Puissance_Thermique_Elem_DG Terme_Puissance_Thermique_DG_Elem Terme_Puissance_Thermique_DG_Elem.h
@@ -1168,6 +1177,7 @@
  Source_Masse_Fluide_Dilatable_base Source_Masse_Fluide_Dilatable_base Source_Masse_Fluide_Dilatable_base.h
  Source_Masse_Fluide_Dilatable_VDF Source_Masse_Fluide_Dilatable_VDF Source_Masse_Fluide_Dilatable_VDF.h
  Source_Masse_Fluide_Dilatable_VEF Source_Masse_Fluide_Dilatable_VEF Source_Masse_Fluide_Dilatable_VEF.h
+ Source_Meca_Grad_Pression_Thermique_EF Source_Meca_Grad_Pression_Thermique_EF Source_Meca_Grad_Pression_Thermique_EF.h
  Source_Neutronique Source_Neutronique Source_Neutronique.h
  Source_Neutronique_VDF_P0_VDF Source_Neutronique_VDF Source_Neutronique_VDF.h
  Source_PDF_base Source_PDF_base Source_PDF_base.h

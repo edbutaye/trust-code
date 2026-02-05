@@ -17,7 +17,7 @@
 #include <Equation_Navier_Cauchy.h>
 
 Implemente_instanciable(Solveur_Newmark, "Newmark", Solveur_non_lineaire);
-// XD newmark solveur_implicite_base solveur_newmark 1 Newmark implicit solver for the resolution of the linear elastodynamic equation.
+// XD newmark solveur_implicite_base newmark 1 Newmark implicit solver for the resolution of the linear elastodynamic equation.
 // XD attr seuil_convergence_implicite floattant seuil_convergence_implicite 0 Keyword to set the value of the convergence criteria for the resolution of the implicit system build to solve either the Navier_Stokes equation (only for Simple and Simpler algorithms) or a scalar equation. It is adviced to use the default value (1e6) to solve the implicit system only once by time step. This value must be decreased when a coupling between problems is considered.
 // XD attr seuil_convergence_solveur floattant seuil_convergence_solveur 1 value of the convergence criteria for the resolution of the implicit system build by solving several times per time step the Navier_Stokes equation and the scalar equations if any. This value MUST be used when a coupling between problems is considered (should be set to a value typically of 0.1 or 0.01).
 // XD attr seuil_generation_solveur floattant seuil_generation_solveur 1 Option to create a GMRES solver and use vrel as the convergence threshold (implicit linear system Ax=B will be solved if residual error ||Ax-B|| is lesser than vrel).

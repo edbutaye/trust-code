@@ -1135,6 +1135,7 @@ echo "###############################################"
         fi
         echo "Call to configure $vue version in `pwd`"
         ./configure -force_provided_mpich 1>/dev/null 2>&1
+        [ -s ~/.perso_TRUST.env ] && cat ~/.perso_TRUST.env_bkp > ~/.perso_TRUST.env
         source env_TRUST.sh 1>/dev/null 2>&1
         echo "TRUST_ROOT=$TRUST_ROOT"
         echo "TRUST_VERSION=$TRUST_VERSION"
