@@ -1379,9 +1379,32 @@ def _set_use_sserver(v=True):
         _print("Disabling Sserver")
         
     
-    
-# for storing jobs opened vie subprocess.Popen    
-# see in TRUSTSuite.runCases and TRUSTCase.run methods
+"""
+_RUNNING_CASES global variable:
+
+For storing informations about the subprocesses handling the trust cases
+
+See usage in TRUSTCase.run method
+Also in wait_run and _wait_for_prepare
+Will store dict objects with the following structure:
+{
+    "case": a ref to the TRUSTCase object 
+    "script": path to the launch script (.cmdsxxx)
+    "logFile": path to the resulting log file  
+    "callback": a lambda function that either do nothing or calls the post_run function 
+    "callbackDone": to know whether the callback has already been called 
+    "popen": a lambda function that can start the trust simulation with a subprocess.popen
+    "process": Initially None, then the popen object returned by the 'popen' lambda function of this dict (see line above)
+    "depends": a list of indices of cases (for this array _RUNNING_CASES) on which this specific cases depends. 
+                For example, cases that were launched during the pre_run of this function
+}
+
+This object is stores both the cases that are running, but also those that are waiting for their pre_run, or waiting for available procs. Thus, the name may not be the most pertinent. Feel free to change it if you find a better one.
+
+See the functions _count_running, _count_running_deps, _has_waiting_cases, _count_waiting_cases
+to understand conditions that correspond to the different states
+
+"""
 _RUNNING_CASES=[]
 
 def _count_running():
@@ -1417,6 +1440,19 @@ def _count_procs_usage():
     return sum([(r["case"].nbProcs_ if (r["process"] and r["process"].poll() == None) else 0) for r in _RUNNING_CASES])
 
 def _wait_for_available_procs(n_procs):
+    """ 
+    When using the parallel_run mode (without Sserver), we must manually manage proc usage from here
+    This function returns when enough procs are available.
+
+    To allow for occasional runs that ask for more procs than the total, 
+    this also stops when all procs become available.
+
+    TODO: a potentially better approach may be to launch all cases that fit into the procs available, rather than waiting on each individual cases. Right now, cases where we have 3 cases that uses 2, 4, 2 procs, with 4 available will lauch the first, wait till it finishes to lauch the second, then wait again and lauch the third, when we could have done this in 2 batches. 
+
+    Still, current handling is sufficient for use cases of this option (and it is also way better than it was in the past...)
+    
+    
+    """
     max_procs = int(os.environ.get("TRUST_NB_PROCS","")) # if not set, then what ? should not happen anyway...
     used = _count_procs_usage()
     free = max_procs - used
@@ -1432,7 +1468,21 @@ def _wait_for_available_procs(n_procs):
         free = max_procs - used
         
 def wait_run(verbose=False):
+    """ 
+    Wait until all TRUST Cases have run, including cases launched from their post_run functions.
+    This is called in TRUSTSuite methods runCases and extractNRCases.
     
+    This function waits till all cases in the global list _RUNNING_CASES are completed.
+    post_run of such cases may append to the list, thus the need for this function.
+
+    In case of failure of a single case, it should correctly abort all others cases and display a clear error message.
+    
+    Parameters
+    ---------
+    verbose: bool
+    
+    """
+
     allOK = True
     
     err_msg = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
@@ -1501,9 +1551,16 @@ def wait_run(verbose=False):
     
     
 def _wait_for_prepare(verbose=False):
-    # wait till all runs that may have been started manually before runCases are done 
-    # (the part that we call 'prepare' as it replaces the old prepare from prm reports)
-    # pre and post_run at this point are not handled. Maybe done later.
+    """ 
+    Wait till all runs that may have been started manually before runCases are done 
+    (the part that we call 'prepare' as it replaces the old prepare from prm reports)
+    pre and post_run at this point are not handled. Maybe done later.
+
+    Parameters
+    ---------
+    verbose: bool
+    
+    """
     
     allOK=True
     
@@ -1540,4 +1597,5 @@ JUPYTER_RUN_OPTIONS=None
 
 defaultSuite_ = None  # a TRUSTSuite instance
 
+# I think it is IMPORTANT to call this at the very end. Not sure though, but be careful when expanding this file
 BUILD_DIRECTORY = _initBuildDir()
