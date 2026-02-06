@@ -99,8 +99,9 @@ check_src()
    ##############################
    # Verification des cast en dur
    ##############################
-   grp_cmd=
-   res=`grep -En "\(.*& *\)" *.cpp 2>/dev/null | grep -v "::"| $TRUST_Awk -F\/\/ '{print $1}' | grep -v catch | grep -v Eval_ |grep -v "iter.reconstructeur()"|grep -v ":[ ]*\*"|grep -v ":/\*!"| $TRUST_Awk  '{if (NF>1) {print $0}}' ` 
+
+   # 06/02/2026: added 'grep -v operator' in the command for 'T& operator=(const T&)'
+   res=`grep -En "\(.*& *\)" *.cpp 2>/dev/null | grep -v "::"| $TRUST_Awk -F\/\/ '{print $1}' | grep -v catch | grep -v operator | grep -v Eval_ | grep -v "iter.reconstructeur()" | grep -v ":[ ]*\*" |grep -v ":/\*!" | $TRUST_Awk  '{if (NF>1) {print $0}}' ` 
    if [ "$res" != "" ]
    then
       echo $res
