@@ -17,7 +17,19 @@ def extract_cases(book):
      root = json.loads(f.read())
      # Now parse tree to retrieve all Python up to the invocation of "runCases()":
      cells = root.get("cells", [])
-     done, s = False, "os.environ['IS_EXTRACTING_NR'] = '1'"
+     
+     done = False
+     s = "os.environ['IS_EXTRACTING_NR'] = '1'\n"
+
+     # another flag, for the case where we want to only get the list of cases
+     # because copie_cas_test will also use this, but needs to run cases that are lauched before run.runCases
+     # we use os.environ to pass this message to the same script who later uses os.environ.get, which may seem absurd
+     # but this is necessary as the script may also be executed from the jupyter notebook, and we need to use a method that provides a default
+     if os.environ.get("IS_EXTRACTING_NR_LIST_ONLY") == '1':
+       s+="os.environ['IS_EXTRACTING_NR_LIST_ONLY'] = '1'\n"
+     else:
+       s+="os.environ['IS_EXTRACTING_NR_LIST_ONLY'] = '0'\n"
+
      for c in cells:
        s += "\n"
        if done: break

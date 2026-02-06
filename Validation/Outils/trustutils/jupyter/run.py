@@ -637,6 +637,8 @@ class TRUSTCase(object):
         # Very specific to the validation process. Sometimes we want the core
         # method 'runCases()' not to do anything ... see script 'archive_resultat' for example.
         if _NOT_RUN:
+            return    
+        if isExtractingNR_ListOnly():
             return
         
         (script, logFile,) = self._generateExecScript()  # Generate the shell script doing pre_run, case and post_run
@@ -1303,6 +1305,26 @@ def isExtractingNR():
     if (os.getenv("IS_EXTRACTING_NR") == '1'): return True
     return False
 
+def isExtractingNR_ListOnly():
+    """
+    Check global variable IS_EXTRACTING_NR_LIST_ONLY to know if we want only the list of nr cases
+    Should only be used internally.
+    This global variable is read from os.environ at the begining (import) of this module
+    """
+
+    return IS_EXTRACTING_NR_LIST_ONLY
+
+def needPrepareForNRCaseList():
+    """
+    Sets IS_EXTRACTING_NR_LIST_ONLY to False.
+
+    To use when the trust runs launched manually before run.runCases are necessary in order
+    to generate the list of non regression test cases.
+    """
+    global IS_EXTRACTING_NR_LIST_ONLY
+    IS_EXTRACTING_NR_LIST_ONLY=False
+    os.environ['IS_EXTRACTING_NR_LIST_ONLY'] = '0' # just in case, also reset the env variable
+
 
 def runCases(verbose=False, preventConcurrent=False):
     """ Launch all TRUST cases for the current validation form.
@@ -1492,7 +1514,13 @@ def wait_run(verbose=False):
     
     run_count=_count_running()
     waiting=_count_waiting_cases()
+    reps=0
     while allOK and (waiting>0 or (run_count>0)):
+        reps+=1
+        # Wait for a bit to avoid polling too frequently
+        if reps>1 and not(isExtractingNR_ListOnly()):
+            sleep(1)
+
         tf=strftime('%H:%M:%S')
         _print(f"\n[{tf}]")
         _print("Running:", run_count, "| Waiting for pre_run:", waiting, "| Finished:", len(_RUNNING_CASES) - run_count - waiting, "| Total:", len(_RUNNING_CASES), "\n")
@@ -1542,8 +1570,6 @@ def wait_run(verbose=False):
         run_count=_count_running()
         waiting=_count_waiting_cases()
         
-        # Sleep for a bit to avoid polling too frequently
-        sleep(1)
         
     _print("Total runs:", len(_RUNNING_CASES))
     
@@ -1594,6 +1620,8 @@ def _wait_for_prepare(verbose=False):
 ORIGIN_DIRECTORY = os.getcwd()
 
 JUPYTER_RUN_OPTIONS=None
+
+IS_EXTRACTING_NR_LIST_ONLY=(os.getenv("IS_EXTRACTING_NR_LIST_ONLY") == '1')
 
 defaultSuite_ = None  # a TRUSTSuite instance
 
