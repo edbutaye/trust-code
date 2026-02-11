@@ -683,12 +683,10 @@ class TRUSTCase(object):
                 _print(f"pre_run of case {self._relPath()} started {len(lj)} jobs. Adding the case to waiting list.", also_to_nb=verbose)
                 _print(f"Deps of case {self._relPath()} are {lj}.")
                 
-                # ~ _WAITING_CASES.append({"depends":lj, "popen": case_popen, "info": case_info})
                 _RUNNING_CASES.append({"process":None, **case_info, "depends":lj})
                 
             else:
                 # Launch the case. 
-                # For cases in _WAITING_CASES, they will be launched in TRUSTSuite.runCases()
                 
                 # Wait for cpu availability if Sserver is not managing the jobs
                 if not(_USE_SSERVER):
@@ -1572,10 +1570,8 @@ def wait_run(verbose=False):
         
         if not allOK:
             _print("ABORTING, a case failed")
-            while len(_WAITING_CASES)>0:
-                _WAITING_CASES.pop()
             for r in _RUNNING_CASES:
-                r["process"].terminate()
+                if r["process"]: r["process"].terminate()
             return False
         
         # IMPORTANT
