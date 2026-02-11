@@ -542,6 +542,19 @@ class TRUSTCase(object):
             s += ") 1>%s 2>&1 \n" % fullL
             f.write(s)
         os.chmod(scriptFl, 0o755)
+        
+        baseName = os.path.join(d, n)
+
+        saveFileAccumulator(f"{baseName}.dt_ev")
+        saveFileAccumulator(f"{baseName}.newton_evol")
+        saveFileAccumulator(f"{baseName}.data")
+        saveFileAccumulator(f"{baseName}.out")
+        saveFileAccumulator(f"{baseName}_*.out")
+        saveFileAccumulator(f"{baseName}.err")
+        saveFileAccumulator(f"{baseName}_*.son")
+        saveFileAccumulator(f"{baseName}.TU")
+        saveFileAccumulator(f"{baseName}_csv.TU")
+        
         return scriptFl, fullL
 
     def partition(self, verbose=False, overwritePartition=True):
