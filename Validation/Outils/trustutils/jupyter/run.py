@@ -185,13 +185,14 @@ def _runCommand(cmd, verbose):
         print(cmd)
         print(complProc.stdout)
     # Throw if return code non-zero:
-    if complProc.returncode != 0 and complProc.stdout:
+    if complProc.returncode != 0: # and complProc.stdout:
         # Display message through a custom exception so that jupyter-nbconvert also shows it properly in the console:
         msg = "\nExecution of following command failed!!\n"
         msg += "  " + cmd
         msg += "\nwith return code %d\n" % complProc.returncode
         msg += "and with following output:\n\n"
         msg += (complProc.stdout if complProc.stdout else "")
+        _print(msg, also_to_nb=True)
         raise RuntimeError(msg)
 
 def _detectSserver():
