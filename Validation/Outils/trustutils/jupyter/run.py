@@ -286,14 +286,14 @@ class TRUSTCase(object):
         """
         full path of the test case in the build directory
         """
-        fullPath = os.path.join(self._fullDir(), self.name_)
+        fullPath = os.path.join(self._fullDir(), self.dataFileName_)
         return fullPath + ".out"
 
     def _fullPath_ErrFile(self):
         """
         full path of the test case in the build directory
         """
-        fullPath = os.path.join(self._fullDir(), self.name_)
+        fullPath = os.path.join(self._fullDir(), self.dataFileName_)
         return fullPath + ".err"
 
     def substitute(self, find, replace):
