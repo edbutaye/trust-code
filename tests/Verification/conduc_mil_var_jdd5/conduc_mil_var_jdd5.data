@@ -27,7 +27,8 @@ END PARTITION #
 Scatter DOM.Zones dom
 END SCATTER #
 
-VDF dis
+trianguler_h dom
+VEFPreP1B dis
 
 Scheme_euler_implicit sch
 Read sch
@@ -55,7 +56,7 @@ Read pb
 {
 
     solide {
-        rho Champ_Uniforme_morceaux dom 1 { defaut	1.0e10 left_elem 2.0 right_elem 0.5 }
+        rho Champ_Uniforme 1 2
         # rho Champ_Uniforme_morceaux dom 1 { defaut	1.0e10 left_elem 2.0 right_elem 0.5 } #
 
         lambda Champ_Uniforme_morceaux dom 1
@@ -64,7 +65,7 @@ Read pb
             left_elem 0.01
             right_elem 0.03
         }
-        Cp Champ_Uniforme_morceaux dom 1 { defaut	1.0e10 left_elem 0.5 right_elem 2.0 }
+        Cp Champ_Uniforme 1 0.5
         # Cp Champ_Uniforme_morceaux dom 1 { defaut	1.0e10 left_elem 0.5 right_elem 2.0 } #
     }
 

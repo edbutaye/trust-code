@@ -1,16 +1,17 @@
-# Conduction 2D : Diverses conditions limites thermiques #
-# PARALLEL OK 8 #
+# Conduction 1D : une barre horizontale faite de deux materiaux  #
+# PARALLEL OK 4 #
 dimension 2
 
 Pb_conduction pb
 Domaine dom
+
 # BEGIN MESH #
 Mailler dom
 {
     Pave Cavite
     {
         Origine 0. 0.
-        Nombre_de_Noeuds 11 11
+        Nombre_de_Noeuds 11 2
         Longueurs 1. 1.
     }
     {
@@ -20,9 +21,8 @@ Mailler dom
         Bord Droit  X = 1. 0. <= Y <= 1.
     }
 }
-
-
 # END MESH #
+
 # BEGIN PARTITION
 Partition dom
 {
@@ -39,7 +39,7 @@ END SCATTER #
 
 VDF dis
 
-Scheme_euler_explicit sch
+Scheme_euler_implicit sch
 Read sch
 {
     tinit 0
@@ -51,6 +51,10 @@ Read sch
     dt_sauv 100
     seuil_statio 1.e-8
 
+    facsec_max 100
+    facsec 10
+    solveur implicite { solveur gmres { diag seuil 1e-20 nb_it_max 3 } }
+
 }
 
 Associate pb dom
@@ -61,37 +65,50 @@ Read pb
 {
 
     solide {
-        rho Champ_Uniforme 1 2
-        lambda Champ_Uniforme 1 0.01
-        Cp Champ_Uniforme 1 0.5
+        rho Champ_tabule_temps 1
+        # 1ere ligne: dimension / 2eme ligne: temps / 3eme ligne: valeurs #
+        {
+            3
+            0     24    25
+            2.0   2.0   2.0
+        }
+        lambda Champ_tabule_temps 1
+        # 1ere ligne: dimension / 2eme ligne: temps / 3eme ligne: valeurs #
+        {
+            3
+            0     149   150
+            0.01  0.01  0.04
+        }
+        Cp Champ_tabule_temps 1
+        # 1ere ligne: dimension / 2eme ligne: temps / 3eme ligne: valeurs #
+        {
+            3
+            0     24    25
+            0.5   0.5   0.5
+        }
+
     }
 
     Conduction
     {
         diffusion { }
         initial_conditions {
-            temperature Champ_Uniforme 1 0.
+            temperature Champ_Uniforme 1  10.0
         }
         boundary_conditions {
             Haut paroi_adiabatique
-            Bas paroi_temperature_imposee
-            Champ_Front_Uniforme 1 5.
-            Droit paroi_flux_impose
-            Champ_Front_Uniforme 1 0.1
-            Gauche paroi_echange_global_impose
-            h_imp Champ_Front_Uniforme 1 0.1
-            T_ext Champ_Front_Uniforme 1 0.
+            Bas paroi_adiabatique
+            Gauche paroi_temperature_imposee        Champ_Front_Uniforme 1 10.
+            Droit paroi_flux_impose                 Champ_Front_Uniforme 1 0.05
         }
     }
 
     Post_processing
     {
-
         Probes
         {
-            sonde_point temperature periode 5. points 1 0.45 0.45
-            sonde_horiz temperature periode 5. segment 10 0.05 0.45 0.95 0.45
-            sonde_vert  temperature periode 5. segment 10 0.45 0.05 0.45 0.95
+            sonde_horiz temperature periode 1. segment 10 0.05 0.5 0.95 0.5
+            sonde_point temperature periode 5. points 1 0.983 0.5
         }
         fields dt_post 1.e10
         {

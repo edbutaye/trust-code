@@ -1,26 +1,16 @@
 # Conduction 1D : une barre horizontale faite de deux materiaux  #
-# PARALLEL OK 4 #
+# PARALLEL NOT #
 dimension 2
 
 Pb_conduction pb
 Domaine dom
 
 # BEGIN MESH #
-Mailler dom
-{
-    Pave Cavite
-    {
-        Origine 0. 0.
-        Nombre_de_Noeuds 11 2
-        Longueurs 1. 1.
-    }
-    {
-        Bord Gauche X = 0. 0. <= Y <= 1.
-        Bord Haut   Y = 1. 0. <= X <= 1.
-        Bord Bas    Y = 0. 0. <= X <= 1.
-        Bord Droit  X = 1. 0. <= Y <= 1.
-    }
+Read_MED {
+    domain dom
+    file domain.med
 }
+Read_file dom_ssz.geo ;
 # END MESH #
 
 # BEGIN PARTITION
@@ -52,8 +42,8 @@ Read sch
     seuil_statio 1.e-8
 
     facsec_max 100
-    facsec 10
-    solveur implicite { solveur gmres { diag seuil 1e-20 nb_it_max 3 } }
+    facsec 1
+    solveur implicite { solveur gmres { diag seuil 1e-15 nb_it_max 5 impr } }
 
 }
 
@@ -65,41 +55,38 @@ Read pb
 {
 
     solide {
-        rho Champ_tabule_temps 1
-        # 1ere ligne: dimension / 2eme ligne: temps / 3eme ligne: valeurs #
-        {
-            3
-            0     24    25
-            2.0   2.0   2.0
-        }
-        lambda Champ_tabule_temps 1
-        # 1ere ligne: dimension / 2eme ligne: temps / 3eme ligne: valeurs #
-        {
-            3
-            0     149   150
-            0.01  0.01  0.04
-        }
-        Cp Champ_tabule_temps 1
-        # 1ere ligne: dimension / 2eme ligne: temps / 3eme ligne: valeurs #
-        {
-            3
-            0     24    25
-            0.5   0.5   0.5
-        }
+        rho Champ_Uniforme_morceaux dom 1 { defaut        1.0e10 left_elem 2.0 right_elem 0.5 }
+        # rho Champ_Uniforme_morceaux dom 1 { defaut	1.0e10 left_elem 2.0 right_elem 0.5 } #
 
+        lambda Champ_Uniforme_morceaux dom 1
+        {
+            defaut	1.0e10  # pas plus de 1.0e38, sinon assert en debug :-) #
+            left_elem 0.01
+            right_elem 0.03
+        }
+        Cp Champ_Uniforme_morceaux dom 1 { defaut     1.0e10 left_elem 0.5 right_elem 2.0 }
+        # Cp Champ_Uniforme_morceaux dom 1 { defaut	1.0e10 left_elem 0.5 right_elem 2.0 } #
     }
 
     Conduction
     {
         diffusion { }
         initial_conditions {
-            temperature Champ_Uniforme 1  10.0
+            # temperature Champ_Uniforme_morceaux dom 1 { defaut 1.0e10 left_elem 20.0 right_elem 10.0 } #
+            temperature Champ_Fonc_MED {
+                domain med_domain
+                file domain.med
+                field T_init
+                loc som
+                time 0.0
+            }
+            # temperature Champ_Fonc_xyz dom 1 (x<0.0)*5.0+(x<0.0001)*5.0+10.0 #
         }
         boundary_conditions {
             Haut paroi_adiabatique
             Bas paroi_adiabatique
-            Gauche paroi_temperature_imposee        Champ_Front_Uniforme 1 10.
-            Droit paroi_flux_impose                 Champ_Front_Uniforme 1 0.05
+            Droit paroi_temperature_imposee         Champ_Front_Uniforme 1 10.
+            Gauche paroi_temperature_imposee        Champ_Front_Uniforme 1 20.
         }
     }
 
@@ -107,9 +94,16 @@ Read pb
     {
         Probes
         {
-            sonde_horiz temperature periode 1. segment 10 0.05 0.5 0.95 0.5
-            sonde_point temperature periode 5. points 1 0.983 0.5
+            sonde_horiz temperature periode 1. segment 30 -0.983 0.5 0.983 0.5
+            # sonde_horiz temperature periode 1. segment 31 -1.0 0.5 1.0 0.5 #
         }
+        /* 		format med
+        		fields dt_post 1.
+        		{
+        		  temperature som
+         		  temperature elem
+        		}
+         */
         fields dt_post 1.e10
         {
             temperature
