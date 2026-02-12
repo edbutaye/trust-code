@@ -282,6 +282,20 @@ class TRUSTCase(object):
         relPath = os.path.relpath(fullPath, start = BUILD_DIRECTORY)
         return relPath + ".data"
 
+    def _fullPath_OutFile(self):
+        """
+        full path of the test case in the build directory
+        """
+        fullPath = os.path.join(self._fullDir(), self.name_)
+        return fullPath + ".out"
+
+    def _fullPath_ErrFile(self):
+        """
+        full path of the test case in the build directory
+        """
+        fullPath = os.path.join(self._fullDir(), self.name_)
+        return fullPath + ".err"
+
     def substitute(self, find, replace):
         """ 
         Substitute (in place and in the build directory) a part of the dataset
@@ -508,7 +522,11 @@ class TRUSTCase(object):
         scriptFl = os.path.join(BUILD_DIRECTORY, scriptName)
 
         logName = scriptName.replace(".sh", ".log")
-        n, d, e = self.dataFileName_, self.dir_, self.execOptions
+        n = self.dataFileName_
+        d = self.dir_
+        e = self.execOptions
+        out_file = self._fullPath_OutFile()
+        err_file = self._fullPath_ErrFile()
         fullD, fullL = os.path.join(BUILD_DIRECTORY, d), os.path.join(BUILD_DIRECTORY, logName)
         para = ""
         if self.nbProcs_ != 1:
@@ -528,8 +546,8 @@ class TRUSTCase(object):
                 s += "fi\n"
 
             # Running case
-            s += "  trust %s %s %s 1>%s.out 2>%s.err;\n" % (n, para, e, n, n)
-            s += "  if [ ! $? -eq 0 ]; then exit -1; fi; \n"
+            s += f"  trust {n} {para} {e} 1>{out_file} 2>{err_file};\n"
+            s += "  if [ ! $? -eq 0 ]; then exit 1; fi; \n"
 
             # Running and checking post_run was OK:
             if not self.has_python_post_run:
@@ -865,11 +883,16 @@ class TRUSTSuite(object):
 
                 
         # start the cases
-        lstC = self.getCases()
-        for case in lstC:
-            case.run(verbose)
-            
-        allOK = wait_run(verbose)
+        if allOK:
+            lstC = self.getCases()
+            for case in lstC:
+                if allOK:
+                    case.run(verbose)
+                    allOK = _handle_error_in_RUNNING_CASES()
+        
+
+        if allOK:
+            allOK = wait_run(verbose)
             
 
 
@@ -934,19 +957,28 @@ class TRUSTSuite(object):
         # have to wait for cases launched in the prepare to complete (probably)
         # at least to avoid errors when deleting directories
         allOK = _wait_for_prepare()
-        
+        if not allOK: 
+            raise RuntimeError("Case failed in prepare")
         # do the pre_run of the cases if they are in python and not bash scripts
+        
         lstC = self.getCases()
         for case in lstC:
-            if case.has_python_pre_run:
+            if allOK and case.has_python_pre_run:
                 case._preRun(verbose)
-            
-        allOK = wait_run()
+                allOK = _handle_error_in_RUNNING_CASES()
+
+        if allOK: 
+            allOK = wait_run()
+
+        if not allOK: 
+            raise RuntimeError("Case failed in preRun")
         
         
         list_exclu_nr = []
         if os.path.exists("src/liste_cas_exclu_nr"):
             list_cases = np.loadtxt("src/liste_cas_exclu_nr", dtype=str)
+            if len(list_cases) == 0:
+                raise RuntimeError("Empty file 'liste_cas_exclu_nr' in your src directory. Please remove it.")
             list_exclu_nr = list(map(lambda a: os.path.normpath(a), list_cases))
 
         for c in self.getCases():
@@ -1500,7 +1532,47 @@ def _wait_for_available_procs(n_procs):
         sleep(1)
         used = _count_procs_usage()
         free = max_procs - used
+
+# p should be a Popen object or None
+def _is_process_running(p):
+    # p is not None means the case was started (we ran Popen and stored the resulting Popen Object)
+    # p.poll() is not None when the subprocess has finished
+    return p is not None and p.poll() is None
+
+# p should be a Popen object or None
+def _is_process_finished(p):
+    # p is not None means the case was started (we ran Popen and stored the resulting Popen Object)
+    # p.poll() is not None when the subprocess has finished
+    return p is not None and p.poll() is not None
+
+def _handle_error_in_RUNNING_CASES():
+
+    err_msg = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    err_msg += "Case '%s/%s.data' FAILED !! Here are the last 20 lines of the err file:\n"
+    err_msg += "(If you don't see anything suspicious, also check pre/post_run scripts!!)\n"
+    err_msg += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+
+    allOK=True
+    for i,r in enumerate(_RUNNING_CASES):
+        p=r["process"]
         
+        if _is_process_finished(p):
+            case = r["case"]
+
+            # if it failed, print error and abort
+            if p.returncode != 0:
+                allOK = False
+                err_file=case._fullPath_ErrFile()
+                _print(err_msg % (case._relPath(), case.name_), also_to_nb=True)
+                _print(getLastLines_(err_file), also_to_nb=True)
+                _print("errfile path:" ,err_file, also_to_nb=True)
+                # only report about the first failed case.
+                # otherwise, too much clutter
+                # user will learn about each failed case after fixing previous one
+                # debatable. 
+                break 
+    return allOK
+
 def wait_run(verbose=False):
     """ 
     Wait until all TRUST Cases have run, including cases launched from their post_run functions.
@@ -1517,12 +1589,10 @@ def wait_run(verbose=False):
     
     """
 
+
+    _print("Starting wait_run")
     allOK = True
     
-    err_msg = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-    err_msg += "Case '%s/%s.data' FAILED !! Here are the last 20 lines of the log file:\n"
-    err_msg += "(If you don't see anything suspicious, also check pre/post_run scripts!!)\n"
-    err_msg += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
     
     run_count=_count_running()
     waiting=_count_waiting_cases()
@@ -1536,20 +1606,26 @@ def wait_run(verbose=False):
         tf=strftime('%H:%M:%S')
         _print(f"\n[{tf}]")
         _print("Running:", run_count, "| Waiting for pre_run:", waiting, "| Finished:", len(_RUNNING_CASES) - run_count - waiting, "| Total:", len(_RUNNING_CASES), "\n")
+
+
+        allOK=_handle_error_in_RUNNING_CASES()
         
-        for i,r in enumerate(_RUNNING_CASES):
-            p=r["process"]
-            
-            if p is not None and p.poll() is not None:
-                case = r["case"]
-                if p.returncode != 0:
-                    allOK = False
-                    _print(err_msg % (case.dir_, case.name_), also_to_nb=True)
-                    _print(getLastLines_(r["logFile"]), also_to_nb=True)
-                if allOK and not(r["callbackDone"]):
-                    _print("Finished case", case._relPath(), also_to_nb=verbose)
-                    r["callback"]()
-                    r["callbackDone"]=True
+        if allOK:
+            for i,r in enumerate(_RUNNING_CASES):
+                p=r["process"]
+                
+                if _is_process_finished(p):
+                    case = r["case"]
+
+                    # failed cases handled in _handle_error_in_RUNNING_CASES
+                    # if we get here, raise an error
+                    if p.returncode != 0:
+                        raise RuntimeError("A failed case was not handled correctly. Contact TRUST Team")
+
+                    if allOK and not(r["callbackDone"]):
+                        _print("Finished case", case._relPath(), also_to_nb=verbose)
+                        r["callback"]()
+                        r["callbackDone"]=True
                     
         if allOK: # handle deps of running cases
             for i,r in enumerate(_RUNNING_CASES):
@@ -1570,10 +1646,9 @@ def wait_run(verbose=False):
                 
         
         if not allOK:
-            _print("ABORTING, a case failed")
+            _print("ABORTING all running cases, because a case failed")
             for r in _RUNNING_CASES:
-                if r["process"]: r["process"].terminate()
-            return False
+                if r["process"] is not None and p.poll() is None: r["process"].terminate()
         
         # IMPORTANT
         # update variables used in while condition
@@ -1598,25 +1673,23 @@ def _wait_for_prepare(verbose=False):
     
     """
     
+    _print("Starting _wait_for_prepare")
     allOK=True
     
-    err_msg = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-    err_msg += "Case '%s/%s.data' FAILED !! Here are the last 20 lines of the log file:\n"
-    err_msg += "(If you don't see anything suspicious, also check pre/post_run scripts!!)\n"
-    err_msg += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    # err_msg = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    # err_msg += "Case '%s/%s.data' FAILED !! Here are the last 20 lines of the log file:\n"
+    # err_msg += "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
     
     if _has_waiting_cases():
         raise Exception("Cases with pre_run that launches other cases are not allowed in prepare.")
     _print(f"\nrunCases: Waiting for cases in prepare\n")
     for r in _RUNNING_CASES:
+        allOK = _handle_error_in_RUNNING_CASES()
+        if not allOK:
+            break
         p=r["process"]
         case = r["case"]
         p.wait()
-        if p.returncode != 0:
-            allOK = False
-            _print(f"\nTRUST run error in prepare:")
-            _print(err_msg % (case.dir_, case.name_), also_to_nb=True)
-            _print(getLastLines_(r["logFile"]), also_to_nb=True)
         
         # post run is called, but post_run are not allowed to start more TRUSTCases
         nj= len(_RUNNING_CASES)
@@ -1624,9 +1697,14 @@ def _wait_for_prepare(verbose=False):
         if len(_RUNNING_CASES) > nj or _has_waiting_cases():
             raise Exception(f"Cases with post_run that launches other cases are not allowed in prepare.\n From case {case._relPath()}")
         r["callbackDone"]=True
-    
-    return allOK
+
+    if not allOK:
+        _print("ABORTING, a case failed in prepare")
+        for r in _RUNNING_CASES:
+            if r["process"]: r["process"].terminate()
         
+    return allOK
+    
 ORIGIN_DIRECTORY = os.getcwd()
 
 JUPYTER_RUN_OPTIONS=None
