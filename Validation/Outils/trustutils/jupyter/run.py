@@ -1691,12 +1691,14 @@ def _wait_for_prepare(verbose=False):
         case = r["case"]
         p.wait()
         
-        # post run is called, but post_run are not allowed to start more TRUSTCases
-        nj= len(_RUNNING_CASES)
-        r["callback"]()
-        if len(_RUNNING_CASES) > nj or _has_waiting_cases():
-            raise Exception(f"Cases with post_run that launches other cases are not allowed in prepare.\n From case {case._relPath()}")
-        r["callbackDone"]=True
+        if not(r["callbackDone"]):
+            _print("Finished prepare case", case._relPath(), also_to_nb=verbose)
+            # post run is called, but post_run are not allowed to start more TRUSTCases
+            nj= len(_RUNNING_CASES)
+            r["callback"]()
+            r["callbackDone"]=True
+            if len(_RUNNING_CASES) > nj or _has_waiting_cases():
+                raise Exception(f"Cases with post_run that launches other cases are not allowed in prepare.\n From case {case._relPath()}")
 
     if not allOK:
         _print("ABORTING, a case failed in prepare")
