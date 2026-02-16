@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------------------------
 Release notes version 1.9.8_beta : Enhancements, modifications and corrected bugs since version 1.9.7 :
 --------------------------------------------------------------------------------------------------
+16/02/26 (TRUST) New feature  : In Jupyter notebooks, trust cases can be given a pre_run and/or post_run python function, via run.addCase(..., pre_run=xxx, post_run=xxx). They will be executed at the same time as the old pre_run/post_run bash scripts. See the SampleFormJuptyer for details.
+16/02/26 (TRUST) New feature  : In Jupyter notebooks, you can now put custom python modules in the src/python_modules directory, that can then be imported. See the SampleFormJuptyer for details.
 04/02/26 (TRUST) New feature  : New mechanics module (Meca) integrated, including linear elasticity (Hooke's law), a Newmark solver for elastodynamics, and thermo-elastic source terms.
 04/02/26 (TRUST) New feature  : Enable bidim_axi support in EF and PolyMAC_MPFA.
 04/02/26 (TRUST) New feature  : DP_impose & regular pressure drops: time-dependent driving, regul option, and save/restore; dp_regul parameter renamed from eps to alpha.
